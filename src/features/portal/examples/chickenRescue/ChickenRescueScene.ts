@@ -3,7 +3,13 @@ import { SceneId } from "features/world/mmoMachine";
 import { BaseScene } from "features/world/scenes/BaseScene";
 import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
+import { SQUARE_WIDTH } from "features/game/lib/constants";
 
+const DISTANCE = 16;
+
+const GRID_SIZE = 16;
+
+type Direction = "left" | "right" | "up" | "down";
 type Pivot = {
   coordinates: Coordinates;
   velocity: Coordinates;
@@ -11,11 +17,19 @@ type Pivot = {
 export class ChickenRescueScene extends BaseScene {
   sceneId: SceneId = "chicken_rescue";
 
-  direction: number | undefined;
+  direction: Direction | undefined = undefined;
+
+  pivots: { x: number; y: number; direction: Direction }[] = [];
+
+  nextMove:
+    | {
+        direction: Direction;
+        moveAt: Coordinates;
+      }
+    | undefined = undefined;
 
   following: {
     container: ChickenContainer;
-    pivots: Pivot[];
   }[] = [];
 
   constructor() {
@@ -61,24 +75,21 @@ export class ChickenRescueScene extends BaseScene {
 
     super.create();
 
-    const spawn = {
-      x: this.currentPlayer?.x ?? 0,
-      y: this.currentPlayer?.y ?? 0,
-    };
+    this.currentPlayer?.setPosition(
+      GRID_SIZE * 6 + GRID_SIZE / 2,
+      GRID_SIZE * 6 + GRID_SIZE / 2
+    );
+
+    this.pivots = [];
 
     this.addSleepingChicken({
-      x: spawn.x,
-      y: spawn.y - 50,
+      x: GRID_SIZE * 4 + GRID_SIZE / 2,
+      y: GRID_SIZE * 4 + GRID_SIZE / 2,
     });
 
     this.addSleepingChicken({
-      x: spawn.x + 50,
-      y: spawn.y - 100,
-    });
-
-    this.addSleepingChicken({
-      x: spawn.x + 80,
-      y: spawn.y - 120,
+      x: GRID_SIZE * 8 + GRID_SIZE / 2,
+      y: GRID_SIZE * 4 + GRID_SIZE / 2,
     });
   }
 
@@ -107,7 +118,7 @@ export class ChickenRescueScene extends BaseScene {
     this.physics.world.enable(chicken);
 
     // Set chicken bounds
-    chicken.body?.setSize(32, 32);
+    chicken.body?.setSize(16, 16);
 
     // On collide destroy the chicken
     this.physics.add.overlap(
@@ -120,112 +131,67 @@ export class ChickenRescueScene extends BaseScene {
     );
   }
 
-  getChickenPhysics() {
-    let following: Phaser.Physics.Arcade.Body;
-    let pivots: Pivot[] = [];
-
-    if (this.following.length > 0) {
-      following = this.following[this.following.length - 1].container
-        .body as Phaser.Physics.Arcade.Body;
-      pivots = this.following[this.following.length - 1].pivots;
-    } else {
-      following = this.currentPlayer?.body as Phaser.Physics.Arcade.Body;
-    }
-
-    const spawn = {
-      x: following.x,
-      y: following.y,
-    };
-
-    if (following.velocity.x >= 1) {
-      spawn.x -= 16;
-    }
-
-    if (following.velocity.x <= -1) {
-      spawn.x += 16;
-    }
-
-    if (following.velocity.y >= 1) {
-      spawn.y -= 16;
-    }
-
-    if (following.velocity.y <= -1) {
-      spawn.y += 16;
-    }
-
-    return {
-      spawn,
-      velocity: following.velocity,
-      pivots,
-    };
-  }
-
   onAddFollower() {
-    const { spawn, velocity, pivots } = this.getChickenPhysics();
+    const { x, y } = this.getPositionInConga(this.following.length);
 
     const chicken = new ChickenContainer({
       scene: this,
-      x: spawn.x,
-      y: spawn.y,
+      x,
+      y,
     });
 
     this.physics.world.enable(chicken);
 
-    const chickenBody = chicken.body as Phaser.Physics.Arcade.Body;
-
-    chickenBody.setOffset(0, 0).setSize(16, 16).setCollideWorldBounds(true);
-
-    chickenBody.setVelocity(velocity.x, velocity.y);
-
-    // Set direction
-    if (velocity.x > 1) {
-      chicken.faceRight();
-    }
-
-    if (velocity.x < -1) {
-      chicken.faceLeft();
-    }
-
-    if (velocity.y > 1) {
-      chicken.faceDown();
-    }
-
-    if (velocity.y < -1) {
-      chicken.faceUp();
-    }
-
     this.following.push({
       container: chicken,
-      pivots,
     });
   }
 
   updateDirection() {
+    // A move is already scheduled
+    if (this.nextMove) {
+      return;
+    }
+
     const previous = this.direction;
-    let newDirection: number | undefined = undefined;
+    let newDirection: "left" | "right" | "up" | "down" | undefined = undefined;
 
     // joystick is active if force is greater than zero
-    newDirection = this.joystick?.force ? this.joystick?.angle : undefined;
+    // const joystick = this.joystick?.force ? this.joystick?.angle : undefined;
+
+    // if (joystick) {
+    //   newDirection = "left";
+    // }
 
     // use keyboard control if joystick is not active
     if (newDirection === undefined) {
       if (document.activeElement?.tagName === "INPUT") return;
 
-      const left =
-        (this.cursorKeys?.left.isDown || this.cursorKeys?.a?.isDown) ?? false;
-      const right =
-        (this.cursorKeys?.right.isDown || this.cursorKeys?.d?.isDown) ?? false;
-      const up =
-        (this.cursorKeys?.up.isDown || this.cursorKeys?.w?.isDown) ?? false;
-      const down =
-        (this.cursorKeys?.down.isDown || this.cursorKeys?.s?.isDown) ?? false;
+      if (this.cursorKeys?.left.isDown || this.cursorKeys?.a?.isDown) {
+        newDirection = "left";
+      }
 
-      newDirection = this.keysToAngle(left, right, up, down);
+      if (this.cursorKeys?.right.isDown || this.cursorKeys?.d?.isDown) {
+        newDirection = "right";
+      }
+
+      if (this.cursorKeys?.up.isDown || this.cursorKeys?.w?.isDown) {
+        newDirection = "up";
+      }
+
+      if (this.cursorKeys?.down.isDown || this.cursorKeys?.s?.isDown) {
+        newDirection = "down";
+      }
     }
 
     // Cannot go backwards
-    const isOppositeDirection = (previous?: number, current?: number) => {
-      return Math.abs(current! - previous!) === 180;
+    const isOppositeDirection = (previous?: Direction, current?: Direction) => {
+      return (
+        (previous === "left" && current === "right") ||
+        (previous === "right" && current === "left") ||
+        (previous === "up" && current === "down") ||
+        (previous === "down" && current === "up")
+      );
     };
 
     if (newDirection === undefined || previous === newDirection) {
@@ -238,37 +204,96 @@ export class ChickenRescueScene extends BaseScene {
 
     this.currentPlayer?.walk();
 
-    if (newDirection === 0) {
-      this.currentPlayer?.faceRight();
-    }
-
-    if (newDirection === 180) {
-      this.currentPlayer?.faceLeft();
-    }
-
-    this.currentPlayer?.body?.setVelocity(
-      this.walkingSpeed * Math.cos((newDirection * Math.PI) / 180),
-      this.walkingSpeed * Math.sin((newDirection * Math.PI) / 180)
-    );
-
-    const pivotCordinates = {
+    let nextGridSquare: Coordinates = {
       x: this.currentPlayer?.x ?? 0,
       y: this.currentPlayer?.y ?? 0,
     };
 
-    // Add the new pivot to each chicken
-    this.following = this.following.map((follower) => ({
-      ...follower,
-      pivots: follower.pivots.concat({
-        coordinates: pivotCordinates,
-        velocity: {
-          x: this.currentPlayer?.body?.velocity.x ?? 0,
-          y: this.currentPlayer?.body?.velocity.y ?? 0,
-        },
-      }),
-    }));
+    if (this.direction === "right") {
+      nextGridSquare.x = Math.floor(nextGridSquare.x / 16) * 16 + 16;
+    }
 
-    this.direction = newDirection;
+    if (this.direction === "left") {
+      nextGridSquare.x = Math.floor(nextGridSquare.x / 16) * 16;
+    }
+
+    if (this.direction === "up") {
+      nextGridSquare.y = Math.floor(nextGridSquare.y / 16) * 16;
+    }
+
+    if (this.direction === "down") {
+      nextGridSquare.y = Math.floor(nextGridSquare.y / 16) * 16 + 16;
+    }
+
+    this.nextMove = {
+      direction: newDirection,
+      moveAt: nextGridSquare,
+    };
+  }
+
+  movePlayer() {
+    if (!this.nextMove) {
+      return;
+    }
+
+    const player = this.currentPlayer as Coordinates;
+    const currentDirection = this.direction;
+    const { direction, moveAt } = this.nextMove;
+
+    // Has player reached its destination
+    let hasReachedDestination = false;
+    if (currentDirection === "right" && player.x >= moveAt.x) {
+      hasReachedDestination = true;
+    }
+
+    if (currentDirection === "left" && player.x <= moveAt.x) {
+      hasReachedDestination = true;
+    }
+
+    if (currentDirection === "up" && player.y <= moveAt.y) {
+      hasReachedDestination = true;
+    }
+
+    if (currentDirection === "down" && player.y >= moveAt.y) {
+      hasReachedDestination = true;
+    }
+
+    if (!hasReachedDestination) return;
+
+    this.currentPlayer?.setPosition(moveAt.x, moveAt.y);
+
+    let yVelocity = 0;
+    if (direction === "up") {
+      yVelocity = -this.walkingSpeed;
+    }
+
+    if (direction === "down") {
+      yVelocity = this.walkingSpeed;
+    }
+
+    let xVelocity = 0;
+    if (direction === "left") {
+      xVelocity = -this.walkingSpeed;
+    }
+
+    if (direction === "right") {
+      xVelocity = this.walkingSpeed;
+    }
+
+    this.currentPlayer?.body?.setVelocity(xVelocity, yVelocity);
+
+    // this.pivots = [
+    //   {
+    //     x: this.currentPlayer?.x ?? 0,
+    //     y: this.currentPlayer?.y ?? 0,
+    //     direction: newDirection,
+    //   },
+    //   ...this.pivots,
+    // ];
+
+    this.direction = direction;
+
+    this.nextMove = undefined;
   }
 
   calculatePosition(
@@ -296,66 +321,74 @@ export class ChickenRescueScene extends BaseScene {
     return { x: newSpeedX, y: newSpeedY };
   }
 
+  getPositionInConga(index: number) {
+    // Update position on conga line
+    const points = [
+      {
+        x: this.currentPlayer?.x ?? 0,
+        y: this.currentPlayer?.y ?? 0,
+        direction: this.direction,
+      },
+      ...this.pivots,
+    ];
+
+    // How far from the front they should be
+    let distanceRemaining = DISTANCE * (index + 1);
+    console.log({ distanceRemaining });
+
+    let pointIndex = 0;
+
+    let x: number = 0;
+    let y: number = 0;
+
+    while (pointIndex < points.length - 1) {
+      const point = points[pointIndex];
+      const nextPoint = points[pointIndex + 1];
+
+      const distanceToNextPoint =
+        Math.abs(nextPoint.x - point.x) + Math.abs(nextPoint.y - point.y);
+
+      console.log({ distanceRemaining, distanceToNextPoint, point, nextPoint });
+
+      if (distanceRemaining > distanceToNextPoint) {
+        // distance += distanceToNextPoint;
+        pointIndex += 1;
+        distanceRemaining -= distanceToNextPoint;
+      } else {
+        if (point.direction === 0 || point.direction === 180) {
+          // Moving horizontally
+          x =
+            point.direction === 180
+              ? point.x + distanceRemaining
+              : point.x - distanceRemaining;
+          y = point.y;
+        } else {
+          // Moving vertically
+          x = point.x;
+          y =
+            point.direction === -90
+              ? point.y + distanceRemaining
+              : point.y - distanceRemaining;
+        }
+
+        break;
+      }
+    }
+
+    return { x, y };
+  }
+
   updateFollowingChickens() {
     if (!this.currentPlayer?.body) {
       return;
     }
 
+    // Update the positions
     this.following.forEach((follower, index) => {
-      let nextPivot = follower.pivots[0]?.coordinates;
+      const { x, y } = this.getPositionInConga(index);
 
-      let following = this.currentPlayer?.body as Phaser.Physics.Arcade.Body;
-      if (index > 0) {
-        following = this.following[index - 1].container
-          .body as Phaser.Physics.Arcade.Body;
-      }
-
-      if (!nextPivot) {
-        this.physics.moveTo(
-          follower.container,
-          following.x,
-          following.y,
-          this.walkingSpeed
-        );
-
-        return;
-      }
-
-      this.physics.moveTo(
-        follower.container,
-        nextPivot.x,
-        nextPivot.y,
-        this.walkingSpeed
-      );
-
-      const distance = Phaser.Math.Distance.BetweenPoints(
-        follower.container.body as Coordinates,
-        nextPivot
-      );
-
-      const hasReachedDestination = distance <= 1;
-
-      if (hasReachedDestination) {
-        // Set direction
-        // if (newPosition.x > followerBody.x) {
-        //   follower.container.faceRight();
-        // }
-
-        // if (newPosition.x < followerBody.x) {
-        //   follower.container.faceLeft();
-        // }
-
-        // if (newPosition.y > followerBody.y) {
-        //   follower.container.faceDown();
-        // }
-
-        // if (newPosition.y < followerBody.y) {
-        //   follower.container.faceUp();
-        // }
-
-        // Remove pivot
-        follower.pivots.shift();
-      }
+      follower.container.x = x;
+      follower.container.y = y;
     });
   }
 
@@ -363,5 +396,17 @@ export class ChickenRescueScene extends BaseScene {
     this.updateDirection();
 
     this.updateFollowingChickens();
+
+    this.debug();
+  }
+
+  debug() {
+    this.add.circle(4 * SQUARE_WIDTH, 4 * SQUARE_WIDTH, 2, 0xff0000);
+
+    // Draw the pivots
+    // this.pivots.forEach((pivot) => {
+    //   this.add.circle(pivot.x, pivot.y, 2, 0xff0000);
+    // });
+    // Clear points
   }
 }

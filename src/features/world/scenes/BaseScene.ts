@@ -2,7 +2,7 @@ import Phaser, { Physics } from "phaser";
 
 import VirtualJoystick from "phaser3-rex-plugins/plugins/virtualjoystick.js";
 
-import { SQUARE_WIDTH } from "features/game/lib/constants";
+import { GRID_WIDTH_PX, SQUARE_WIDTH } from "features/game/lib/constants";
 import { BumpkinContainer } from "../containers/BumpkinContainer";
 import { interactableModalManager } from "../ui/InteractableModals";
 import { NPCName, NPC_WEARABLES } from "lib/npcs";
@@ -589,8 +589,7 @@ export abstract class BaseScene extends Phaser.Scene {
 
       // (this.currentPlayer.body as Phaser.Physics.Arcade.Body).width = 10;
       (this.currentPlayer.body as Phaser.Physics.Arcade.Body)
-        .setOffset(3, 10)
-        .setSize(10, 8)
+        .setSize(SQUARE_WIDTH, SQUARE_WIDTH)
         .setCollideWorldBounds(true);
 
       (this.currentPlayer.body as Phaser.Physics.Arcade.Body).setAllowRotation(

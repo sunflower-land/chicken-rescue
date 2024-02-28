@@ -70,7 +70,7 @@ export class BumpkinContainer extends Phaser.GameObjects.Container {
     this.loadSprites(scene);
 
     this.shadow = this.scene.add
-      .sprite(0.5, 8, "shadow")
+      .sprite(0.5, 2, "shadow")
       .setSize(SQUARE_WIDTH, SQUARE_WIDTH);
 
     this.add(this.shadow);
@@ -130,7 +130,7 @@ export class BumpkinContainer extends Phaser.GameObjects.Container {
     });
 
     if (scene.textures.exists(this.idleSpriteKey)) {
-      const idle = scene.add.sprite(0, 0, this.idleSpriteKey).setOrigin(0.5);
+      const idle = scene.add.sprite(0, -6, this.idleSpriteKey).setOrigin(0.5);
       this.add(idle);
       this.sprite = idle;
 
@@ -162,7 +162,7 @@ export class BumpkinContainer extends Phaser.GameObjects.Container {
         }
 
         const idle = scene.add
-          .sprite(0, 0, this.idleSpriteKey as string)
+          .sprite(0, -6, this.idleSpriteKey as string)
           .setOrigin(0.5);
         this.add(idle);
         this.sprite = idle;
