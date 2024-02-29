@@ -11,6 +11,9 @@ import worldIcon from "assets/icons/world.png";
 import { goHome } from "../lib/portalUtil";
 import { HudContainer } from "components/ui/HudContainer";
 import { InnerPanel, Panel } from "components/ui/Panel";
+import { secondsToString } from "lib/utils/time";
+import { GAME_SECONDS } from "../lib/portalMachine";
+import { useCountdown } from "lib/utils/hooks/useCountdown";
 
 export const ChickenRescueHUD: React.FC = () => {
   const { portalService } = useContext(PortalContext);
@@ -21,7 +24,13 @@ export const ChickenRescueHUD: React.FC = () => {
     goHome();
   };
 
-  const { score } = portalState.context;
+  const { score, endAt } = portalState.context;
+
+  // const timer = useCountdown(endAt);
+
+  // const secondsLeft = !portalState.matches("playing")
+  //   ? GAME_SECONDS
+  //   : timer.seconds;
 
   return (
     <>
@@ -32,6 +41,12 @@ export const ChickenRescueHUD: React.FC = () => {
             <span className="text-base">{score}</span>
           </div>
         </InnerPanel>
+        {/* <InnerPanel className="absolute top-4 left-4">
+          <div className="flex items-center p-1">
+            <img src={SUNNYSIDE.icons.stopwatch} className="h-6 mr-1" />
+            <span className="text-sm">{`${secondsLeft} seconds`}</span>
+          </div>
+        </InnerPanel> */}
         <div
           className="fixed z-50 flex flex-col justify-between"
           style={{

@@ -22,14 +22,6 @@ const getServer = () => {
   return code;
 };
 
-const hasReadRules = () => {
-  return !!localStorage.getItem("rules.read");
-};
-
-export const acknowledgeCropBoomRules = () => {
-  localStorage.setItem("rules.read", new Date().toISOString());
-};
-
 export interface Context {
   id: number;
   jwt: string;
@@ -39,7 +31,7 @@ export interface Context {
   endAt: number;
 }
 
-const GAME_SECONDS = 60;
+export const GAME_SECONDS = 60;
 
 type ChickenRescuedEvent = {
   type: "CHICKEN_RESCUED";
@@ -51,6 +43,7 @@ export type PortalEvent =
   | { type: "CLAIM" }
   | { type: "RETRY" }
   | { type: "CONTINUE" }
+  | { type: "GAME_OVER" }
   | ChickenRescuedEvent;
 
 export type PortalState = {
@@ -63,7 +56,9 @@ export type PortalState = {
     | "loading"
     | "claiming"
     | "completed"
-    | "rules";
+    | "introduction"
+    | "playing"
+    | "gameOver";
   context: Context;
 };
 
@@ -97,30 +92,6 @@ export const portalMachine = createMachine({
         },
         {
           target: "loading",
-        },
-      ],
-    },
-    introduction: {
-      always: [
-        { target: "rules", cond: () => !hasReadRules() },
-        {
-          target: "completed",
-          cond: (c) => {
-            const todayKey = new Date().toISOString().slice(0, 10);
-
-            const portals = (c.state?.portals ??
-              {}) as Required<GameState>["portals"];
-
-            const portal = portals[CONFIG.PORTAL_APP as PortalName];
-
-            const alreadyMintedToday =
-              portal?.history[todayKey]?.arcadeTokensMinted ?? 0;
-
-            return alreadyMintedToday > 0;
-          },
-        },
-        {
-          target: "ready",
         },
       ],
     },
@@ -164,7 +135,8 @@ export const portalMachine = createMachine({
         },
         onDone: [
           {
-            target: "introduction",
+            // target: "introduction",
+            target: "ready",
             actions: assign({
               state: (_: any, event) => event.data.game,
               mmoServer: (_: any, event) => event.data.mmoServer,
@@ -178,24 +150,45 @@ export const portalMachine = createMachine({
       },
     },
 
-    rules: {
+    introduction: {
       on: {
         CONTINUE: {
-          target: "introduction",
+          target: "ready",
         },
       },
     },
 
     ready: {
       on: {
-        CLAIM: {
-          target: "claiming",
+        START: {
+          target: "playing",
+          actions: assign({
+            endAt: (_: any) => Date.now() + GAME_SECONDS * 1000,
+          }),
         },
+      },
+    },
+    playing: {
+      on: {
         CHICKEN_RESCUED: {
           actions: assign({
             score: (context: any, event) => {
               return context.score + (event as ChickenRescuedEvent).points;
             },
+          }),
+        },
+        GAME_OVER: {
+          target: "gameOver",
+        },
+      },
+    },
+    gameOver: {
+      on: {
+        RETRY: {
+          target: "ready",
+          actions: assign({
+            score: 0,
+            endAt: (_: any) => Date.now() + GAME_SECONDS * 1000,
           }),
         },
       },
@@ -227,11 +220,7 @@ export const portalMachine = createMachine({
     },
 
     completed: {
-      on: {
-        CONTINUE: {
-          target: "ready",
-        },
-      },
+      on: {},
     },
     error: {
       on: {

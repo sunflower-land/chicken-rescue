@@ -21,7 +21,7 @@ import {
 } from "features/game/types/resources";
 import { CollectibleLocation } from "features/game/types/collectibles";
 
-type BoundingBox = Position;
+export type BoundingBox = Position;
 
 /**
  * Axis aligned bounding box collision detection
@@ -573,4 +573,21 @@ export function pickEmptyPosition({
   );
 
   return availablePositions[0];
+}
+
+export function randomEmptyPosition({
+  bounding,
+  boxes,
+}: {
+  bounding: BoundingBox;
+  boxes: BoundingBox[];
+}): Position | undefined {
+  const positionsInBounding = splitBoundingBox(bounding);
+
+  const availablePositions = positionsInBounding.filter((position) =>
+    boxes.every((box) => !isOverlapping(position, box))
+  );
+
+  const shuffled = availablePositions.sort(() => 0.5 - Math.random());
+  return shuffled[0];
 }

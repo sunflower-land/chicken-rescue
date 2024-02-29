@@ -5,7 +5,6 @@ import tutorial from "features/portal/examples/cropBoom/assets/crop_boom-tutoria
 import { SUNNYSIDE } from "assets/sunnyside";
 import { Button } from "components/ui/Button";
 import { ITEM_DETAILS } from "features/game/types/images";
-import { acknowledgeCropBoomRules } from "../lib/portalMachine";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
 interface Props {
@@ -62,7 +61,6 @@ export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
       <Button
         className="text-xxs sm:text-sm mt-1 whitespace-nowrap"
         onClick={() => {
-          acknowledgeCropBoomRules();
           onAcknowledged();
         }}
       >

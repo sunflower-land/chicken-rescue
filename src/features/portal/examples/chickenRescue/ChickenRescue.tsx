@@ -82,12 +82,21 @@ export const ChickenRescue: React.FC = () => {
         </Modal>
       )}
 
-      {portalState.matches("rules") && (
+      {portalState.matches("introduction") && (
         <Modal show>
           <Panel bumpkinParts={NPC_WEARABLES.wizard}>
             <ChickenRescueRules
               onAcknowledged={() => portalService.send("CONTINUE")}
             />
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("gameOver") && (
+        <Modal show>
+          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
+            <p>Game over</p>
+            <Button onClick={() => portalService.send("RETRY")}>Retry</Button>
           </Panel>
         </Modal>
       )}

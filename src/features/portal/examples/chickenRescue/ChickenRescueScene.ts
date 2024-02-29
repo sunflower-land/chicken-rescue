@@ -5,21 +5,32 @@ import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SQUARE_WIDTH } from "features/game/lib/constants";
 import { MachineInterpreter } from "./lib/portalMachine";
+import { SUNNYSIDE } from "assets/sunnyside";
+import {
+  BoundingBox,
+  pickEmptyPosition,
+  randomEmptyPosition,
+} from "features/game/expansion/placeable/lib/collisionDetection";
 
 const DISTANCE = 16;
 
 const GRID_SIZE = 16;
 
 export type Direction = "left" | "right" | "up" | "down";
-type Pivot = {
-  coordinates: Coordinates;
-  velocity: Coordinates;
+
+const FENCE_BOUNDS: BoundingBox = {
+  x: 11,
+  y: 21,
+  height: 18,
+  width: 18,
 };
 
 export class ChickenRescueScene extends BaseScene {
   sceneId: SceneId = "chicken_rescue";
 
   chickenPen: Phaser.GameObjects.Rectangle | undefined;
+
+  fences: Phaser.GameObjects.Rectangle[] = [];
 
   direction: Direction | undefined = undefined;
 
@@ -34,6 +45,9 @@ export class ChickenRescueScene extends BaseScene {
 
   // Empty array of followers
   following: (ChickenContainer | null)[] = new Array(50).fill(null);
+
+  enemies: BoundingBox[] = [];
+  sleeping: BoundingBox[] = [];
 
   constructor() {
     super({
@@ -60,6 +74,8 @@ export class ChickenRescueScene extends BaseScene {
       frameWidth: 32,
       frameHeight: 32,
     });
+
+    this.load.image("rock", SUNNYSIDE.resource.stone_rock);
 
     // Ambience SFX
     if (!this.sound.get("nature_1")) {
@@ -100,51 +116,123 @@ export class ChickenRescueScene extends BaseScene {
 
     this.pivots = [];
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 4 + GRID_SIZE / 2,
-      y: GRID_SIZE * 4 + GRID_SIZE / 2,
-    });
+    // Create X sleeping chickens
+    for (let i = 0; i < 10; i++) {
+      this.addSleepingChicken();
+    }
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 8 + GRID_SIZE / 2,
-      y: GRID_SIZE * 4 + GRID_SIZE / 2,
-    });
+    // Create X static enemies
+    for (let i = 0; i < 20; i++) {
+      this.addStaticEnemy({ enemy: "rock" });
+    }
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 9 + GRID_SIZE / 2,
-      y: GRID_SIZE * 4 + GRID_SIZE / 2,
-    });
+    // Fences
+    const leftFence = this.add.rectangle(
+      GRID_SIZE * FENCE_BOUNDS.x - GRID_SIZE / 2,
+      GRID_SIZE * 13, // GRID_SIZE * (FENCE_BOUNDS.y - FENCE_BOUNDS.height),
+      GRID_SIZE / 2,
+      GRID_SIZE * FENCE_BOUNDS.height,
+      0x000000,
+      0
+    );
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 10 + GRID_SIZE / 2,
-      y: GRID_SIZE * 4 + GRID_SIZE / 2,
-    });
+    const rightFence = this.add.rectangle(
+      GRID_SIZE * (FENCE_BOUNDS.x + FENCE_BOUNDS.width) + GRID_SIZE / 2,
+      GRID_SIZE * 13, // GRID_SIZE * (FENCE_BOUNDS.y - FENCE_BOUNDS.height),
+      GRID_SIZE / 2,
+      GRID_SIZE * FENCE_BOUNDS.height,
+      0x000000,
+      0
+    );
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 20 + GRID_SIZE / 2,
-      y: GRID_SIZE * 18 + GRID_SIZE / 2,
-    });
+    const bottomFence = this.add.rectangle(
+      GRID_SIZE * 20,
+      GRID_SIZE * 23 - GRID_SIZE / 2, // GRID_SIZE * (FENCE_BOUNDS.y - FENCE_BOUNDS.height),
+      GRID_SIZE * FENCE_BOUNDS.width,
+      GRID_SIZE / 2,
+      0x000000,
+      0
+    );
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 17 + GRID_SIZE / 2,
-      y: GRID_SIZE * 18 + GRID_SIZE / 2,
-    });
+    const topFence = this.add.rectangle(
+      GRID_SIZE * 20,
+      GRID_SIZE * 4 - GRID_SIZE / 2, // GRID_SIZE * (FENCE_BOUNDS.y - FENCE_BOUNDS.height),
+      GRID_SIZE * FENCE_BOUNDS.width,
+      GRID_SIZE / 2,
+      0x000000,
+      0
+    );
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 17 + GRID_SIZE / 2,
-      y: GRID_SIZE * 15 + GRID_SIZE / 2,
-    });
+    this.physics.world.enable(leftFence);
+    this.physics.world.enable(rightFence);
+    this.physics.world.enable(bottomFence);
+    this.physics.world.enable(topFence);
 
-    this.addSleepingChicken({
-      x: GRID_SIZE * 14 + GRID_SIZE / 2,
-      y: GRID_SIZE * 14 + GRID_SIZE / 2,
-    });
+    // On collide destroy the chicken
+    this.physics.add.overlap(
+      this.currentPlayer as Phaser.GameObjects.GameObject,
+      [leftFence, rightFence, bottomFence, topFence],
+      () => {
+        this.gameOver();
+      }
+    );
   }
 
-  addSleepingChicken(coordinates: Coordinates) {
+  pickEmptyGridPosition({ width, height }: { width: number; height: number }) {
+    const sleepingBoxes = this.sleeping.map((sleeping) => ({
+      x: Math.floor(sleeping.x / SQUARE_WIDTH),
+      y: Math.floor(sleeping.y / SQUARE_WIDTH),
+      // Give them a wide area
+      width: 3,
+      height: 3,
+    }));
+
+    const enemies = this.enemies.map((enemy) => ({
+      ...enemy,
+      // Give them a wide area
+      width: 3,
+      height: 3,
+    }));
+
+    const chickenPen: BoundingBox = {
+      y: 20,
+      x: 20,
+      width: 8,
+      height: 5,
+    };
+
+    // this.add.rectangle(
+    //   chickenPen.x * SQUARE_WIDTH,
+    //   chickenPen.y * SQUARE_WIDTH,
+    //   chickenPen.width * SQUARE_WIDTH,
+    //   chickenPen.height * SQUARE_WIDTH,
+    //   0xff0000
+    // );
+
+    const coordinates = randomEmptyPosition({
+      bounding: FENCE_BOUNDS,
+      boxes: [...enemies, ...sleepingBoxes, chickenPen],
+    });
+
+    return coordinates;
+  }
+
+  addSleepingChicken() {
+    const coordinates = this.pickEmptyGridPosition({ width: 1, height: 1 });
+
+    if (!coordinates) {
+      console.log("NO AVAILABLE POSITIONS!");
+      return;
+    }
+
+    console.log({
+      x: coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      y: coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+    });
+
     const chicken = this.add.sprite(
-      coordinates.x,
-      coordinates.y,
+      coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
       "sleeping_chicken"
     );
 
@@ -165,6 +253,13 @@ export class ChickenRescueScene extends BaseScene {
     // Add a collider to the chicken
     this.physics.world.enable(chicken);
 
+    this.sleeping.push({
+      x: coordinates.x * SQUARE_WIDTH,
+      y: coordinates.y * SQUARE_WIDTH,
+      width: 1,
+      height: 1,
+    });
+
     const body = chicken.body as Phaser.Physics.Arcade.Body;
 
     // Set chicken bounds
@@ -179,6 +274,62 @@ export class ChickenRescueScene extends BaseScene {
         this.onAddFollower();
       }
     );
+  }
+
+  addStaticEnemy({}: { enemy: "rock" }) {
+    const coordinates = this.pickEmptyGridPosition({ width: 1, height: 1 });
+
+    if (!coordinates) {
+      console.log("No available positions for enemy");
+      return;
+    }
+
+    const enemy = this.add.sprite(
+      coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      "rock"
+    );
+
+    this.physics.world.enable(enemy);
+
+    const body = enemy.body as Phaser.Physics.Arcade.Body;
+    body.setSize(10, 10);
+
+    // On collide destroy the chicken
+    this.physics.add.overlap(
+      this.currentPlayer as Phaser.GameObjects.GameObject,
+      enemy,
+      () => {
+        this.gameOver();
+      }
+    );
+
+    this.enemies.push({
+      x: coordinates.x * SQUARE_WIDTH,
+      y: coordinates.y * SQUARE_WIDTH,
+      width: 1,
+      height: 1,
+    });
+  }
+
+  private isDead = false;
+
+  async gameOver() {
+    this.isDead = true;
+
+    this.currentPlayer?.body?.setVelocity(0, 0);
+
+    this.currentPlayer?.disappear();
+
+    this.following.forEach((follower, index) => {
+      setInterval(() => follower?.disappear(), (index + 1) * 100);
+    });
+
+    console.log("DEAD!");
+
+    await new Promise((res) => setTimeout(res, 1000));
+
+    this.portalService?.send("GAME_OVER");
   }
 
   onAddFollower() {
@@ -347,6 +498,10 @@ export class ChickenRescueScene extends BaseScene {
       this.currentPlayer?.faceRight();
     }
 
+    if (!this.direction) {
+      this.portalService?.send("START");
+    }
+
     this.currentPlayer?.body?.setVelocity(xVelocity, yVelocity);
 
     this.pivots = [
@@ -465,12 +620,12 @@ export class ChickenRescueScene extends BaseScene {
 
   update() {
     this.updateDirection();
+    this.debug();
+
+    if (this.isDead) return;
 
     this.movePlayer();
-
     this.updateFollowingChickens();
-
-    this.debug();
   }
 
   debug() {
