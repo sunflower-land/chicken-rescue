@@ -73,7 +73,7 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
     // Add the sprite to the container
     this.add(this.sprite);
 
-    this.setSize(16, 16);
+    this.setSize(12, 12);
 
     // Add the container to the scene
     this.scene.add.existing(this);
@@ -97,5 +97,50 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
     if (direction === "down") {
       this.sprite?.anims.play("walking_down_chicken", true);
     }
+  }
+
+  public destroyed = false;
+  public disappear() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const container = this;
+
+    if (container.destroyed || !container.scene) {
+      return;
+    }
+
+    this.destroyed = true;
+
+    this.sprite?.destroy();
+
+    const scoreText = this.scene.add.bitmapText(
+      0,
+      1,
+      "Teeny Tiny Pixls",
+      "+1",
+      5
+    );
+    this.add(scoreText);
+
+    const poof = this.scene.add.sprite(0, 4, "poof").setOrigin(0.5);
+    this.add(poof);
+
+    this.scene.anims.create({
+      key: `poof_anim`,
+      frames: this.scene.anims.generateFrameNumbers("poof", {
+        start: 0,
+        end: 8,
+      }),
+      repeat: 0,
+      frameRate: 10,
+    });
+
+    poof.play(`poof_anim`, true);
+
+    // Listen for the animation complete event
+    poof.on("animationcomplete", function (animation: { key: string }) {
+      if (animation.key === "poof_anim") {
+        container.destroy();
+      }
+    });
   }
 }

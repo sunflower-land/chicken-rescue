@@ -4,6 +4,7 @@ import { BaseScene } from "features/world/scenes/BaseScene";
 import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SQUARE_WIDTH } from "features/game/lib/constants";
+import { MachineInterpreter } from "./lib/portalMachine";
 
 const DISTANCE = 16;
 
@@ -40,6 +41,10 @@ export class ChickenRescueScene extends BaseScene {
       map: { json: mapJson },
       audio: { fx: { walk_key: "dirt_footstep" } },
     });
+  }
+
+  public get portalService() {
+    return this.registry.get("portalService") as MachineInterpreter | undefined;
   }
 
   preload() {
@@ -163,7 +168,7 @@ export class ChickenRescueScene extends BaseScene {
     const body = chicken.body as Phaser.Physics.Arcade.Body;
 
     // Set chicken bounds
-    body.setSize(16, 16);
+    body.setSize(10, 10);
 
     // On collide destroy the chicken
     this.physics.add.overlap(
@@ -196,8 +201,15 @@ export class ChickenRescueScene extends BaseScene {
       this.chickenPen as Phaser.GameObjects.GameObject,
       chicken,
       () => {
-        chicken.destroy();
+        if (chicken.destroyed) return;
+
+        chicken.disappear();
         this.following[index] = null;
+
+        this.portalService?.send("CHICKEN_RESCUED", {
+          points: 1,
+        });
+        const points = 1;
       }
     );
   }

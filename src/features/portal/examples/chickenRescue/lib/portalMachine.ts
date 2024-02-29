@@ -35,17 +35,23 @@ export interface Context {
   jwt: string;
   state: GameState;
   mmoServer?: Room<PlazaRoomState>;
-  score?: number;
+  score: number;
   endAt: number;
 }
 
 const GAME_SECONDS = 60;
 
+type ChickenRescuedEvent = {
+  type: "CHICKEN_RESCUED";
+  points: number;
+};
+
 export type PortalEvent =
   | { type: "START" }
   | { type: "CLAIM" }
   | { type: "RETRY" }
-  | { type: "CONTINUE" };
+  | { type: "CONTINUE" }
+  | ChickenRescuedEvent;
 
 export type PortalState = {
   value:
@@ -78,6 +84,7 @@ export const portalMachine = createMachine({
     jwt: getJWT(),
     state: CONFIG.API_URL ? undefined : OFFLINE_FARM,
 
+    score: 0,
     completeAcknowledged: false,
   },
   states: {
@@ -183,6 +190,13 @@ export const portalMachine = createMachine({
       on: {
         CLAIM: {
           target: "claiming",
+        },
+        CHICKEN_RESCUED: {
+          actions: assign({
+            score: (context: any, event) => {
+              return context.score + (event as ChickenRescuedEvent).points;
+            },
+          }),
         },
       },
     },

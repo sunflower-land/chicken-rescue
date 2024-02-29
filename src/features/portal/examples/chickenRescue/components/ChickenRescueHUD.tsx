@@ -9,72 +9,69 @@ import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SUNNYSIDE } from "assets/sunnyside";
 import worldIcon from "assets/icons/world.png";
 import { goHome } from "../lib/portalUtil";
+import { HudContainer } from "components/ui/HudContainer";
+import { InnerPanel, Panel } from "components/ui/Panel";
 
 export const ChickenRescueHUD: React.FC = () => {
   const { portalService } = useContext(PortalContext);
   const [portalState] = useActor(portalService);
 
+  console.log({ portalState });
   const travelHome = () => {
     goHome();
   };
 
+  const { score } = portalState.context;
+
   return (
     <>
-      {createPortal(
+      <HudContainer>
+        <InnerPanel className="absolute top-4 right-4">
+          <div className="flex items-center">
+            <img src={SUNNYSIDE.resource.chicken} className="h-6 mr-1" />
+            <span className="text-base">{score}</span>
+          </div>
+        </InnerPanel>
         <div
-          data-html2canvas-ignore="true"
-          aria-label="Hud"
-          className="absolute z-40"
+          className="fixed z-50 flex flex-col justify-between"
+          style={{
+            left: `${PIXEL_SCALE * 3}px`,
+            bottom: `${PIXEL_SCALE * 3}px`,
+            width: `${PIXEL_SCALE * 22}px`,
+          }}
         >
-          <Balance balance={portalState.context.state.balance} />
-          <BlockBucks
-            blockBucks={
-              portalState.context.state.inventory["Block Buck"] ??
-              new Decimal(0)
-            }
-          />
           <div
-            className="fixed z-50 flex flex-col justify-between"
+            id="deliveries"
+            className="flex relative z-50 justify-center cursor-pointer hover:img-highlight"
             style={{
-              left: `${PIXEL_SCALE * 3}px`,
-              bottom: `${PIXEL_SCALE * 3}px`,
               width: `${PIXEL_SCALE * 22}px`,
+              height: `${PIXEL_SCALE * 23}px`,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              travelHome();
             }}
           >
-            <div
-              id="deliveries"
-              className="flex relative z-50 justify-center cursor-pointer hover:img-highlight"
+            <img
+              src={SUNNYSIDE.ui.round_button}
+              className="absolute"
               style={{
                 width: `${PIXEL_SCALE * 22}px`,
-                height: `${PIXEL_SCALE * 23}px`,
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                travelHome();
+            />
+            <img
+              src={worldIcon}
+              style={{
+                width: `${PIXEL_SCALE * 12}px`,
+                left: `${PIXEL_SCALE * 5}px`,
+                top: `${PIXEL_SCALE * 4}px`,
               }}
-            >
-              <img
-                src={SUNNYSIDE.ui.round_button}
-                className="absolute"
-                style={{
-                  width: `${PIXEL_SCALE * 22}px`,
-                }}
-              />
-              <img
-                src={worldIcon}
-                style={{
-                  width: `${PIXEL_SCALE * 12}px`,
-                  left: `${PIXEL_SCALE * 5}px`,
-                  top: `${PIXEL_SCALE * 4}px`,
-                }}
-                className="absolute"
-              />
-            </div>
+              className="absolute"
+            />
           </div>
-        </div>,
-        document.body
-      )}
+        </div>
+      </HudContainer>
     </>
   );
 };
