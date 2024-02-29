@@ -1,4 +1,4 @@
-import { Coordinates } from "features/game/expansion/components/MapPlacement";
+import { Direction } from "./ChickenRescueScene";
 
 export class ChickenContainer extends Phaser.GameObjects.Container {
   public sprite: Phaser.GameObjects.Sprite | undefined;
@@ -6,8 +6,6 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
   constructor({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
     super(scene, x, y);
     this.scene = scene;
-
-    console.log({ x, y });
 
     if (!this.scene.anims.exists("walking_down_chicken")) {
       this.scene.anims.create({
@@ -69,29 +67,35 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
       });
     }
 
-    this.sprite = scene.add.sprite(4, 4, "walking_chicken").setOrigin(0.5);
+    this.sprite = scene.add.sprite(0, 0, "walking_chicken").setOrigin(0.5);
     this.sprite.anims.play("walking_left_chicken", true);
 
     // Add the sprite to the container
     this.add(this.sprite);
 
+    this.setSize(16, 16);
+
     // Add the container to the scene
     this.scene.add.existing(this);
   }
 
-  public faceLeft() {
-    this.sprite?.anims.play("walking_left_chicken", true);
-  }
+  public setDirection(direction: Direction) {
+    if (!this.active) return;
 
-  public faceRight() {
-    this.sprite?.anims.play("walking_right_chicken", true);
-  }
+    if (direction === "left") {
+      this.sprite?.anims.play("walking_left_chicken", true);
+    }
 
-  public faceUp() {
-    this.sprite?.anims.play("walking_up_chicken", true);
-  }
+    if (direction === "right") {
+      this.sprite?.anims.play("walking_right_chicken", true);
+    }
 
-  public faceDown() {
-    this.sprite?.anims.play("walking_down_chicken", true);
+    if (direction === "up") {
+      this.sprite?.anims.play("walking_up_chicken", true);
+    }
+
+    if (direction === "down") {
+      this.sprite?.anims.play("walking_down_chicken", true);
+    }
   }
 }

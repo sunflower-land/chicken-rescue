@@ -1,84 +1,135 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Game, AUTO } from "phaser";
-import NinePatchPlugin from "phaser3-rex-plugins/plugins/ninepatch-plugin.js";
-import VirtualJoystickPlugin from "phaser3-rex-plugins/plugins/virtualjoystick-plugin.js";
+import React, { useContext } from "react";
 
-import { Preloader } from "features/world/scenes/Preloader";
-import { ChickenRescueScene } from "./ChickenRescueScene";
-import { OFFLINE_FARM } from "features/game/lib/landData";
+import { useActor } from "@xstate/react";
+import { Modal } from "components/ui/Modal";
+import { Panel } from "components/ui/Panel";
+import { Button } from "components/ui/Button";
+
+import { PortalContext, PortalProvider } from "./lib/PortalProvider";
+import { Ocean } from "features/world/ui/Ocean";
+import { Label } from "components/ui/Label";
+import { SUNNYSIDE } from "assets/sunnyside";
+import { NPC_WEARABLES } from "lib/npcs";
+import { secondsTillReset } from "features/helios/components/hayseedHank/HayseedHankV2";
+import { secondsToString } from "lib/utils/time";
+import {
+  authorisePortal,
+  goHome,
+} from "features/portal/examples/cropBoom/lib/portalUtil";
+import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { ChickenRescueHUD } from "./components/ChickenRescueHUD";
+import { ChickenRescueRules } from "./components/ChickenRescueRules";
+import { ChickenRescueGame } from "./ChickenRescueGame";
+
+export const ChickenRescueApp: React.FC = () => {
+  return (
+    <PortalProvider>
+      <Ocean>
+        <ChickenRescue />
+      </Ocean>
+    </PortalProvider>
+  );
+};
 
 export const ChickenRescue: React.FC = () => {
-  const [loaded, setLoaded] = useState(false);
-  const game = useRef<Game>();
-
-  const scene = "chicken_rescue";
-
-  const scenes = [Preloader, ChickenRescueScene];
-
-  useEffect(() => {
-    const config: Phaser.Types.Core.GameConfig = {
-      type: AUTO,
-      fps: {
-        target: 30,
-        smoothStep: true,
-      },
-      backgroundColor: "#000000",
-      parent: "phaser-example",
-
-      autoRound: true,
-      pixelArt: true,
-      plugins: {
-        global: [
-          {
-            key: "rexNinePatchPlugin",
-            plugin: NinePatchPlugin,
-            start: true,
-          },
-          {
-            key: "rexVirtualJoystick",
-            plugin: VirtualJoystickPlugin,
-            start: true,
-          },
-        ],
-      },
-      width: window.innerWidth,
-      height: window.innerHeight,
-
-      physics: {
-        default: "arcade",
-        arcade: {
-          debug: true,
-          gravity: { y: 0 },
-        },
-      },
-      scene: scenes,
-      loader: {
-        crossOrigin: "anonymous",
-      },
-    };
-
-    game.current = new Game({
-      ...config,
-      parent: "game-content",
-    });
-
-    game.current.registry.set("initialScene", scene);
-
-    game.current.registry.set("initialScene", scene);
-    game.current.registry.set("gameState", OFFLINE_FARM);
-
-    setLoaded(true);
-
-    return () => {
-      game.current?.destroy(true);
-    };
-  }, []);
-
-  const ref = useRef<HTMLDivElement>(null);
+  const { portalService } = useContext(PortalContext);
+  const [portalState] = useActor(portalService);
+  const { t } = useAppTranslation();
 
   return (
     <div>
-      <div id="game-content" ref={ref} />
+      {portalState.matches("error") && (
+        <Modal show>
+          <Panel>
+            <div className="p-2">
+              <Label type="danger">{t("error")}</Label>
+              <span className="text-sm my-2">{t("error.wentWrong")}</span>
+            </div>
+            <Button onClick={() => portalService.send("RETRY")}>
+              {t("retry")}
+            </Button>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("loading") && (
+        <Modal show>
+          <Panel>
+            <span className="loading">{t("loading")}</span>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("unauthorised") && (
+        <Modal show>
+          <Panel>
+            <div className="p-2">
+              <Label type="danger">{t("error")}</Label>
+              <span className="text-sm my-2">{t("session.expired")}</span>
+            </div>
+            <Button onClick={authorisePortal}>{t("welcome.login")}</Button>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("idle") && (
+        <Modal show>
+          <Panel>
+            <Button onClick={() => portalService.send("START")}>
+              {t("start")}
+            </Button>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("rules") && (
+        <Modal show>
+          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
+            <ChickenRescueRules
+              onAcknowledged={() => portalService.send("CONTINUE")}
+            />
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("claiming") && (
+        <Modal show>
+          <Panel>
+            <p className="loading">{t("loading")}</p>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("completed") && (
+        <Modal show>
+          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
+            <div className="p-2">
+              <p className="mb-2">
+                {`Congratulations, you have completed today's challenge.`}
+              </p>
+              <p className="text-sm mb-1">{t("crop.boom.back.puzzle")}</p>
+              <Label type="info" icon={SUNNYSIDE.icons.timer}>
+                {secondsToString(secondsTillReset(), { length: "medium" })}
+              </Label>
+            </div>
+            <div className="flex">
+              <Button onClick={goHome} className="mr-1">
+                {t("go.home")}
+              </Button>
+              <Button onClick={() => portalService.send("CONTINUE")}>
+                {t("play.again")}
+              </Button>
+            </div>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.context.state && (
+        <>
+          <ChickenRescueHUD />
+          <ChickenRescueGame />
+        </>
+      )}
     </div>
   );
 };

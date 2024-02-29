@@ -9,13 +9,16 @@ const DISTANCE = 16;
 
 const GRID_SIZE = 16;
 
-type Direction = "left" | "right" | "up" | "down";
+export type Direction = "left" | "right" | "up" | "down";
 type Pivot = {
   coordinates: Coordinates;
   velocity: Coordinates;
 };
+
 export class ChickenRescueScene extends BaseScene {
   sceneId: SceneId = "chicken_rescue";
+
+  chickenPen: Phaser.GameObjects.Rectangle | undefined;
 
   direction: Direction | undefined = undefined;
 
@@ -28,9 +31,8 @@ export class ChickenRescueScene extends BaseScene {
       }
     | undefined = undefined;
 
-  following: {
-    container: ChickenContainer;
-  }[] = [];
+  // Empty array of followers
+  following: (ChickenContainer | null)[] = new Array(50).fill(null);
 
   constructor() {
     super({
@@ -75,9 +77,20 @@ export class ChickenRescueScene extends BaseScene {
 
     super.create();
 
+    this.chickenPen = this.add.rectangle(
+      GRID_SIZE * 19 + GRID_SIZE,
+      GRID_SIZE * 20 + GRID_SIZE / 2,
+      GRID_SIZE * 4,
+      GRID_SIZE,
+      0x000000,
+      0
+    ); // 0x000000 is black, 0 is alpha
+
+    this.physics.world.enable(this.chickenPen);
+
     this.currentPlayer?.setPosition(
-      GRID_SIZE * 6 + GRID_SIZE / 2,
-      GRID_SIZE * 6 + GRID_SIZE / 2
+      GRID_SIZE * 20 + GRID_SIZE / 2,
+      GRID_SIZE * 20 + GRID_SIZE / 2
     );
 
     this.pivots = [];
@@ -90,6 +103,36 @@ export class ChickenRescueScene extends BaseScene {
     this.addSleepingChicken({
       x: GRID_SIZE * 8 + GRID_SIZE / 2,
       y: GRID_SIZE * 4 + GRID_SIZE / 2,
+    });
+
+    this.addSleepingChicken({
+      x: GRID_SIZE * 9 + GRID_SIZE / 2,
+      y: GRID_SIZE * 4 + GRID_SIZE / 2,
+    });
+
+    this.addSleepingChicken({
+      x: GRID_SIZE * 10 + GRID_SIZE / 2,
+      y: GRID_SIZE * 4 + GRID_SIZE / 2,
+    });
+
+    this.addSleepingChicken({
+      x: GRID_SIZE * 20 + GRID_SIZE / 2,
+      y: GRID_SIZE * 18 + GRID_SIZE / 2,
+    });
+
+    this.addSleepingChicken({
+      x: GRID_SIZE * 17 + GRID_SIZE / 2,
+      y: GRID_SIZE * 18 + GRID_SIZE / 2,
+    });
+
+    this.addSleepingChicken({
+      x: GRID_SIZE * 17 + GRID_SIZE / 2,
+      y: GRID_SIZE * 15 + GRID_SIZE / 2,
+    });
+
+    this.addSleepingChicken({
+      x: GRID_SIZE * 14 + GRID_SIZE / 2,
+      y: GRID_SIZE * 14 + GRID_SIZE / 2,
     });
   }
 
@@ -117,8 +160,10 @@ export class ChickenRescueScene extends BaseScene {
     // Add a collider to the chicken
     this.physics.world.enable(chicken);
 
+    const body = chicken.body as Phaser.Physics.Arcade.Body;
+
     // Set chicken bounds
-    chicken.body?.setSize(16, 16);
+    body.setSize(16, 16);
 
     // On collide destroy the chicken
     this.physics.add.overlap(
@@ -132,7 +177,10 @@ export class ChickenRescueScene extends BaseScene {
   }
 
   onAddFollower() {
-    const { x, y } = this.getPositionInConga(this.following.length);
+    // Find first empty position in conga line
+    const index = this.following.findIndex((follower) => !follower);
+
+    const { x, y } = this.getPositionInConga(index);
 
     const chicken = new ChickenContainer({
       scene: this,
@@ -142,9 +190,16 @@ export class ChickenRescueScene extends BaseScene {
 
     this.physics.world.enable(chicken);
 
-    this.following.push({
-      container: chicken,
-    });
+    this.following[index] = chicken;
+
+    this.physics.add.overlap(
+      this.chickenPen as Phaser.GameObjects.GameObject,
+      chicken,
+      () => {
+        chicken.destroy();
+        this.following[index] = null;
+      }
+    );
   }
 
   updateDirection() {
@@ -155,13 +210,6 @@ export class ChickenRescueScene extends BaseScene {
 
     const previous = this.direction;
     let newDirection: "left" | "right" | "up" | "down" | undefined = undefined;
-
-    // joystick is active if force is greater than zero
-    // const joystick = this.joystick?.force ? this.joystick?.angle : undefined;
-
-    // if (joystick) {
-    //   newDirection = "left";
-    // }
 
     // use keyboard control if joystick is not active
     if (newDirection === undefined) {
@@ -204,25 +252,29 @@ export class ChickenRescueScene extends BaseScene {
 
     this.currentPlayer?.walk();
 
-    let nextGridSquare: Coordinates = {
+    const nextGridSquare: Coordinates = {
       x: this.currentPlayer?.x ?? 0,
       y: this.currentPlayer?.y ?? 0,
     };
 
     if (this.direction === "right") {
-      nextGridSquare.x = Math.floor(nextGridSquare.x / 16) * 16 + 16;
+      nextGridSquare.x =
+        Math.floor(nextGridSquare.x / 16) * 16 + 16 + SQUARE_WIDTH / 2;
     }
 
     if (this.direction === "left") {
-      nextGridSquare.x = Math.floor(nextGridSquare.x / 16) * 16;
+      nextGridSquare.x =
+        Math.floor(nextGridSquare.x / 16) * 16 - SQUARE_WIDTH / 2;
     }
 
     if (this.direction === "up") {
-      nextGridSquare.y = Math.floor(nextGridSquare.y / 16) * 16;
+      nextGridSquare.y =
+        Math.floor(nextGridSquare.y / 16) * 16 - SQUARE_WIDTH / 2;
     }
 
     if (this.direction === "down") {
-      nextGridSquare.y = Math.floor(nextGridSquare.y / 16) * 16 + 16;
+      nextGridSquare.y =
+        Math.floor(nextGridSquare.y / 16) * 16 + 16 + SQUARE_WIDTH / 2;
     }
 
     this.nextMove = {
@@ -237,7 +289,7 @@ export class ChickenRescueScene extends BaseScene {
     }
 
     const player = this.currentPlayer as Coordinates;
-    const currentDirection = this.direction;
+    const currentDirection = this.direction ?? "up";
     const { direction, moveAt } = this.nextMove;
 
     // Has player reached its destination
@@ -274,22 +326,24 @@ export class ChickenRescueScene extends BaseScene {
     let xVelocity = 0;
     if (direction === "left") {
       xVelocity = -this.walkingSpeed;
+
+      this.currentPlayer?.faceLeft();
     }
 
     if (direction === "right") {
       xVelocity = this.walkingSpeed;
+      this.currentPlayer?.faceRight();
     }
 
     this.currentPlayer?.body?.setVelocity(xVelocity, yVelocity);
 
-    // this.pivots = [
-    //   {
-    //     x: this.currentPlayer?.x ?? 0,
-    //     y: this.currentPlayer?.y ?? 0,
-    //     direction: newDirection,
-    //   },
-    //   ...this.pivots,
-    // ];
+    this.pivots = [
+      {
+        ...moveAt,
+        direction: currentDirection,
+      },
+      ...this.pivots,
+    ];
 
     this.direction = direction;
 
@@ -334,12 +388,11 @@ export class ChickenRescueScene extends BaseScene {
 
     // How far from the front they should be
     let distanceRemaining = DISTANCE * (index + 1);
-    console.log({ distanceRemaining });
 
     let pointIndex = 0;
 
-    let x: number = 0;
-    let y: number = 0;
+    let x = 0;
+    let y = 0;
 
     while (pointIndex < points.length - 1) {
       const point = points[pointIndex];
@@ -348,17 +401,15 @@ export class ChickenRescueScene extends BaseScene {
       const distanceToNextPoint =
         Math.abs(nextPoint.x - point.x) + Math.abs(nextPoint.y - point.y);
 
-      console.log({ distanceRemaining, distanceToNextPoint, point, nextPoint });
-
       if (distanceRemaining > distanceToNextPoint) {
         // distance += distanceToNextPoint;
         pointIndex += 1;
         distanceRemaining -= distanceToNextPoint;
       } else {
-        if (point.direction === 0 || point.direction === 180) {
+        if (point.direction === "left" || point.direction === "right") {
           // Moving horizontally
           x =
-            point.direction === 180
+            point.direction === "left"
               ? point.x + distanceRemaining
               : point.x - distanceRemaining;
           y = point.y;
@@ -366,7 +417,7 @@ export class ChickenRescueScene extends BaseScene {
           // Moving vertically
           x = point.x;
           y =
-            point.direction === -90
+            point.direction === "up"
               ? point.y + distanceRemaining
               : point.y - distanceRemaining;
         }
@@ -375,7 +426,9 @@ export class ChickenRescueScene extends BaseScene {
       }
     }
 
-    return { x, y };
+    const direction = points[pointIndex].direction ?? "up";
+
+    return { x, y, direction };
   }
 
   updateFollowingChickens() {
@@ -385,15 +438,23 @@ export class ChickenRescueScene extends BaseScene {
 
     // Update the positions
     this.following.forEach((follower, index) => {
-      const { x, y } = this.getPositionInConga(index);
+      if (!follower) {
+        return;
+      }
 
-      follower.container.x = x;
-      follower.container.y = y;
+      const { x, y, direction } = this.getPositionInConga(index);
+
+      follower.x = x;
+      follower.y = y;
+
+      follower.setDirection(direction);
     });
   }
 
   update() {
     this.updateDirection();
+
+    this.movePlayer();
 
     this.updateFollowingChickens();
 
@@ -401,8 +462,6 @@ export class ChickenRescueScene extends BaseScene {
   }
 
   debug() {
-    this.add.circle(4 * SQUARE_WIDTH, 4 * SQUARE_WIDTH, 2, 0xff0000);
-
     // Draw the pivots
     // this.pivots.forEach((pivot) => {
     //   this.add.circle(pivot.x, pivot.y, 2, 0xff0000);

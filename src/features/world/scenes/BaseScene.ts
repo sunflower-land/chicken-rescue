@@ -2,7 +2,7 @@ import Phaser, { Physics } from "phaser";
 
 import VirtualJoystick from "phaser3-rex-plugins/plugins/virtualjoystick.js";
 
-import { GRID_WIDTH_PX, SQUARE_WIDTH } from "features/game/lib/constants";
+import { SQUARE_WIDTH } from "features/game/lib/constants";
 import { BumpkinContainer } from "../containers/BumpkinContainer";
 import { interactableModalManager } from "../ui/InteractableModals";
 import { NPCName, NPC_WEARABLES } from "lib/npcs";
@@ -720,7 +720,7 @@ export abstract class BaseScene extends Phaser.Scene {
     return (Math.atan2(y, x) * 180) / Math.PI;
   }
 
-  public walkingSpeed = 50;
+  public walkingSpeed = 40;
 
   updatePlayer() {
     if (!this.currentPlayer?.body) {
