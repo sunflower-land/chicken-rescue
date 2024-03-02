@@ -36,9 +36,9 @@ export const ChickenRescueHUD: React.FC = () => {
     <>
       <HudContainer>
         <InnerPanel className="absolute top-4 right-4">
-          <div className="flex items-center">
-            <img src={SUNNYSIDE.resource.chicken} className="h-6 mr-1" />
-            <span className="text-base">{score}</span>
+          <div className="flex items-center p-2">
+            <img src={SUNNYSIDE.resource.chicken} className="h-8 mr-1" />
+            <span className="text-lg">{score}</span>
           </div>
         </InnerPanel>
         {/* <InnerPanel className="absolute top-4 left-4">

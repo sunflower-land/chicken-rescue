@@ -8,9 +8,12 @@ import { MachineInterpreter } from "./lib/portalMachine";
 import { SUNNYSIDE } from "assets/sunnyside";
 import {
   BoundingBox,
+  isOverlapping,
   pickEmptyPosition,
   randomEmptyPosition,
 } from "features/game/expansion/placeable/lib/collisionDetection";
+import { getAvailablePosition } from "./lib/chickenGrid";
+import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
 
 const DISTANCE = 16;
 
@@ -25,14 +28,18 @@ const FENCE_BOUNDS: BoundingBox = {
   width: 18,
 };
 
+const MAX_CHICKENS = 200;
+
 export class ChickenRescueScene extends BaseScene {
   sceneId: SceneId = "chicken_rescue";
 
-  chickenPen: Phaser.GameObjects.Rectangle | undefined;
+  // chickenPen: Phaser.GameObjects.Rectangle | undefined;
 
   fences: Phaser.GameObjects.Rectangle[] = [];
 
   direction: Direction | undefined = undefined;
+
+  queuedDirection: Direction | undefined = undefined;
 
   pivots: { x: number; y: number; direction: Direction }[] = [];
 
@@ -44,10 +51,15 @@ export class ChickenRescueScene extends BaseScene {
     | undefined = undefined;
 
   // Empty array of followers
-  following: (ChickenContainer | null)[] = new Array(50).fill(null);
+  following: (ChickenContainer | null)[] = new Array(MAX_CHICKENS).fill(null);
 
-  enemies: BoundingBox[] = [];
+  obstacles: BoundingBox[] = [];
   sleeping: BoundingBox[] = [];
+
+  goblins: {
+    container: BumpkinContainer;
+    moveTo?: Coordinates;
+  }[] = [];
 
   constructor() {
     super({
@@ -76,6 +88,9 @@ export class ChickenRescueScene extends BaseScene {
     });
 
     this.load.image("rock", SUNNYSIDE.resource.stone_rock);
+    this.load.image("boulder", SUNNYSIDE.resource.boulder);
+    this.load.image("fox_box", "world/fox_box.png");
+    this.load.image("pot_plant", "world/pot_plant.png");
 
     // Ambience SFX
     if (!this.sound.get("nature_1")) {
@@ -98,16 +113,16 @@ export class ChickenRescueScene extends BaseScene {
 
     super.create();
 
-    this.chickenPen = this.add.rectangle(
-      GRID_SIZE * 19 + GRID_SIZE,
-      GRID_SIZE * 20 + GRID_SIZE / 2,
-      GRID_SIZE * 4,
-      GRID_SIZE,
-      0x000000,
-      0
-    ); // 0x000000 is black, 0 is alpha
+    // this.chickenPen = this.add.rectangle(
+    //   GRID_SIZE * 19 + GRID_SIZE,
+    //   GRID_SIZE * 20 + GRID_SIZE / 2,
+    //   GRID_SIZE * 4,
+    //   GRID_SIZE,
+    //   0x000000,
+    //   0
+    // ); // 0x000000 is black, 0 is alpha
 
-    this.physics.world.enable(this.chickenPen);
+    // this.physics.world.enable(this.chickenPen);
 
     this.currentPlayer?.setPosition(
       GRID_SIZE * 20 + GRID_SIZE / 2,
@@ -116,14 +131,18 @@ export class ChickenRescueScene extends BaseScene {
 
     this.pivots = [];
 
+    this.addGoblin();
+
     // Create X sleeping chickens
     for (let i = 0; i < 10; i++) {
       this.addSleepingChicken();
     }
 
     // Create X static enemies
-    for (let i = 0; i < 20; i++) {
-      this.addStaticEnemy({ enemy: "rock" });
+    for (let i = 0; i < 5; i++) {
+      this.addStaticObstacle({ name: "rock" });
+      // this.addStaticObstacle({ name: "fox_box" });
+      this.addStaticObstacle({ name: "pot_plant" });
     }
 
     // Fences
@@ -176,45 +195,326 @@ export class ChickenRescueScene extends BaseScene {
         this.gameOver();
       }
     );
+
+    // Draw coordinates at each grid position
+    for (let x = 0; x < this.map.widthInPixels; x += GRID_SIZE) {
+      for (let y = 0; y < this.map.heightInPixels; y += GRID_SIZE) {
+        const name = this.add.bitmapText(
+          x,
+          y,
+          "Teeny Tiny Pixls",
+          `${x / GRID_SIZE},${y / GRID_SIZE}`,
+          5
+        );
+        name.setScale(0.5);
+      }
+    }
+  }
+
+  getBoundingBoxes(): BoundingBox[] {
+    const sleepingBoxes = this.sleeping.map((sleeping) => ({
+      x: sleeping.x,
+      y: sleeping.y,
+      width: 1,
+      height: 1,
+    }));
+
+    // Give them a wide area with a buffer so don't spawn right next to them
+    const enemies = this.obstacles.map((enemy) => ({
+      x: enemy.x - 1,
+      y: enemy.y + 1,
+      width: 3,
+      height: 3,
+    }));
+
+    const PLAYER_RADIUS = 6;
+    const playerGridPosition = {
+      x:
+        Math.floor((this.currentPlayer?.x ?? 0) / SQUARE_WIDTH) -
+        PLAYER_RADIUS / 2,
+      y:
+        Math.floor((this.currentPlayer?.y ?? 0) / SQUARE_WIDTH) +
+        PLAYER_RADIUS / 2,
+      width: PLAYER_RADIUS,
+      height: PLAYER_RADIUS,
+    };
+
+    const followingGridPositions = this.following.map((follower) => ({
+      x: Math.floor((follower?.x ?? 0) / SQUARE_WIDTH),
+      y: Math.floor((follower?.y ?? 0) / SQUARE_WIDTH),
+      width: 1,
+      height: 1,
+    }));
+
+    // TODO - also check the path they are going to
+    const goblinGridPositions = this.goblins.map((goblin) => ({
+      x: Math.floor(goblin.container.x / SQUARE_WIDTH),
+      y: Math.floor(goblin.container.y / SQUARE_WIDTH),
+      width: 1,
+      height: 1,
+    }));
+
+    let goblinPathPositions: Coordinates[] = [];
+    this.goblins
+      .filter((goblin) => goblin.moveTo)
+      // Fill in all positions between the goblin and the moveTo
+      .forEach((goblin) => {
+        const { x: moveToX, y: moveToY } = goblin.moveTo as Coordinates;
+        const { x: goblinX, y: goblinY } = goblin.container;
+
+        const goblinGridCoords = {
+          x: Math.floor(goblinX / SQUARE_WIDTH),
+          y: Math.floor(goblinY / SQUARE_WIDTH),
+        };
+
+        for (
+          let x = Math.min(goblinGridCoords.x, moveToX) + 1;
+          x < Math.max(goblinGridCoords.x, moveToX);
+          x++
+        ) {
+          goblinPathPositions.push({ x, y: goblinGridCoords.y });
+        }
+
+        for (
+          let y = Math.min(goblinGridCoords.y, moveToY) + 1;
+          y < Math.max(goblinGridCoords.y, moveToY);
+          y++
+        ) {
+          goblinPathPositions.push({ x: goblinGridCoords.x, y });
+        }
+      });
+
+    return [
+      ...enemies,
+      ...sleepingBoxes,
+      ...followingGridPositions,
+      ...goblinGridPositions,
+      ...goblinPathPositions.map((position) => ({
+        ...position,
+        width: 1,
+        height: 1,
+      })),
+      playerGridPosition,
+    ];
   }
 
   pickEmptyGridPosition({ width, height }: { width: number; height: number }) {
-    const sleepingBoxes = this.sleeping.map((sleeping) => ({
-      x: Math.floor(sleeping.x / SQUARE_WIDTH),
-      y: Math.floor(sleeping.y / SQUARE_WIDTH),
-      // Give them a wide area
-      width: 3,
-      height: 3,
-    }));
-
-    const enemies = this.enemies.map((enemy) => ({
-      ...enemy,
-      // Give them a wide area
-      width: 3,
-      height: 3,
-    }));
-
-    const chickenPen: BoundingBox = {
-      y: 20,
-      x: 20,
-      width: 8,
-      height: 5,
-    };
-
-    // this.add.rectangle(
-    //   chickenPen.x * SQUARE_WIDTH,
-    //   chickenPen.y * SQUARE_WIDTH,
-    //   chickenPen.width * SQUARE_WIDTH,
-    //   chickenPen.height * SQUARE_WIDTH,
-    //   0xff0000
-    // );
-
     const coordinates = randomEmptyPosition({
       bounding: FENCE_BOUNDS,
-      boxes: [...enemies, ...sleepingBoxes, chickenPen],
+      boxes: this.getBoundingBoxes(),
+      item: { width, height },
     });
 
     return coordinates;
+  }
+
+  getAvailableDestination({ x, y }: Coordinates) {}
+
+  addGoblin() {
+    const coordinates = this.pickEmptyGridPosition({
+      width: 1,
+      height: 1,
+    });
+    // const coordinates = {
+    //   x: FENCE_BOUNDS.x,
+    //   y: FENCE_BOUNDS.y,
+    // };
+    if (!coordinates) {
+      console.log("No available positions for enemy");
+      return;
+    }
+
+    let x = coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2;
+    let y = coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2;
+
+    const goblin = new BumpkinContainer({
+      clothing: {
+        body: "Goblin Potion",
+        shirt: "Red Farmer Shirt",
+        pants: "Farmer Overalls",
+        shoes: "Black Farmer Boots",
+        updatedAt: 0,
+      },
+      scene: this,
+      x,
+      y,
+    });
+
+    (goblin.body as Phaser.Physics.Arcade.Body)
+      .setSize(10, 10)
+      .setOffset(3, 3)
+      .setImmovable(true)
+      .setCollideWorldBounds(true);
+
+    // On collide destroy the chicken
+    this.physics.add.overlap(
+      this.currentPlayer as Phaser.GameObjects.GameObject,
+      goblin.body,
+      () => {
+        this.gameOver();
+      }
+    );
+
+    this.goblins.push({
+      container: goblin,
+    });
+
+    const index = this.goblins.length - 1;
+
+    setInterval(() => {
+      this.moveGoblin(index);
+    }, 5000);
+  }
+
+  async moveGoblin(index: number) {
+    const goblin = this.goblins[index];
+
+    const coordinates = {
+      x: Math.floor(goblin.container.x / SQUARE_WIDTH),
+      y: Math.floor(goblin.container.y / SQUARE_WIDTH),
+    };
+
+    console.log({ coordinates });
+    // Find point to move to
+    const boxes = this.getBoundingBoxes();
+    const potentialPoints: Coordinates[] = [];
+
+    // Iterate through the grid to find potential points to the right
+    for (
+      let coordX = coordinates.x + 1;
+      coordX < FENCE_BOUNDS.x + FENCE_BOUNDS.width;
+      coordX++
+    ) {
+      console.log({ coordX });
+      const isEmpty = boxes.every(
+        (box) =>
+          !isOverlapping(
+            {
+              x: coordX,
+              y: coordinates.y,
+              width: 1,
+              height: 1,
+            },
+            box
+          )
+      );
+
+      if (!isEmpty) {
+        break;
+      }
+
+      potentialPoints.push({
+        x: coordX,
+        y: coordinates.y,
+      });
+    }
+
+    // Iterate through the grid to find potential points to the left
+    for (let coordX = coordinates.x - 1; coordX >= FENCE_BOUNDS.x; coordX--) {
+      const isEmpty = boxes.every(
+        (box) =>
+          !isOverlapping(
+            {
+              x: coordX,
+              y: coordinates.y,
+              width: 1,
+              height: 1,
+            },
+            box
+          )
+      );
+
+      if (!isEmpty) {
+        break;
+      }
+
+      potentialPoints.push({
+        x: coordX,
+        y: coordinates.y,
+      });
+    }
+
+    // Iterate through the grid to find potential points upwards
+    for (
+      let coordY = coordinates.y - 1;
+      coordY > FENCE_BOUNDS.y - FENCE_BOUNDS.height;
+      coordY--
+    ) {
+      const isEmpty = boxes.every(
+        (box) =>
+          !isOverlapping(
+            {
+              x: coordinates.x,
+              y: coordY,
+              width: 1,
+              height: 1,
+            },
+            box
+          )
+      );
+
+      if (!isEmpty) {
+        break;
+      }
+
+      potentialPoints.push({
+        x: coordinates.x,
+        y: coordY,
+      });
+    }
+
+    // Iterate through the grid to find potential points downwards
+    for (let coordY = coordinates.y + 1; coordY < FENCE_BOUNDS.y; coordY++) {
+      const isEmpty = boxes.every(
+        (box) =>
+          !isOverlapping(
+            {
+              x: coordinates.x,
+              y: coordY,
+              width: 1,
+              height: 1,
+            },
+            box
+          )
+      );
+
+      if (!isEmpty) {
+        break;
+      }
+      console.log({ empty: coordY });
+
+      potentialPoints.push({
+        x: coordinates.x,
+        y: coordY,
+      });
+    }
+
+    // Pick random point
+    let moveTo: Coordinates | undefined;
+    if (potentialPoints.length > 0) {
+      moveTo =
+        potentialPoints[Math.floor(Math.random() * potentialPoints.length)];
+    }
+
+    if (!moveTo) return;
+
+    this.goblins[index].container.alerted();
+
+    await new Promise((res) => setTimeout(res, 1000));
+
+    this.goblins[index].moveTo = moveTo;
+
+    // Face left
+    if (moveTo.x < coordinates.x) {
+      this.goblins[index].container.faceLeft();
+    }
+
+    // Face right
+    if (moveTo.x > coordinates.x) {
+      this.goblins[index].container.faceRight();
+    }
+
+    this.goblins[index].container.walk();
   }
 
   addSleepingChicken() {
@@ -224,11 +524,6 @@ export class ChickenRescueScene extends BaseScene {
       console.log("NO AVAILABLE POSITIONS!");
       return;
     }
-
-    console.log({
-      x: coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-      y: coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-    });
 
     const chicken = this.add.sprite(
       coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
@@ -254,8 +549,8 @@ export class ChickenRescueScene extends BaseScene {
     this.physics.world.enable(chicken);
 
     this.sleeping.push({
-      x: coordinates.x * SQUARE_WIDTH,
-      y: coordinates.y * SQUARE_WIDTH,
+      x: coordinates.x,
+      y: coordinates.y,
       width: 1,
       height: 1,
     });
@@ -272,43 +567,68 @@ export class ChickenRescueScene extends BaseScene {
       () => {
         chicken.destroy();
         this.onAddFollower();
+
+        this.sleeping = this.sleeping.filter(
+          (sleeping) =>
+            sleeping.x !== coordinates.x && sleeping.y !== coordinates.y
+        );
       }
     );
   }
 
-  addStaticEnemy({}: { enemy: "rock" }) {
-    const coordinates = this.pickEmptyGridPosition({ width: 1, height: 1 });
+  addStaticObstacle({
+    name,
+  }: {
+    name: "rock" | "boulder" | "fox_box" | "pot_plant";
+  }) {
+    const dimensions = {
+      rock: { width: 1, height: 1 },
+      boulder: { width: 2, height: 2 },
+      fox_box: { width: 2, height: 2 },
+      pot_plant: { width: 2, height: 1 },
+    }[name];
+
+    const coordinates = this.pickEmptyGridPosition(dimensions);
 
     if (!coordinates) {
       console.log("No available positions for enemy");
       return;
     }
 
-    const enemy = this.add.sprite(
-      coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-      coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-      "rock"
+    let x = coordinates.x * SQUARE_WIDTH;
+    let y = coordinates.y * SQUARE_WIDTH;
+
+    if (dimensions.width % 2 === 1) {
+      x += SQUARE_WIDTH / 2;
+    }
+
+    if (dimensions.height % 2 === 1) {
+      y += SQUARE_WIDTH / 2;
+    }
+
+    const enemySprite = this.add.sprite(x, y, name);
+
+    this.physics.world.enable(enemySprite);
+
+    const body = enemySprite.body as Phaser.Physics.Arcade.Body;
+    body.setSize(
+      dimensions.width * SQUARE_WIDTH - 6,
+      dimensions.height * SQUARE_WIDTH - 6
     );
-
-    this.physics.world.enable(enemy);
-
-    const body = enemy.body as Phaser.Physics.Arcade.Body;
-    body.setSize(10, 10);
 
     // On collide destroy the chicken
     this.physics.add.overlap(
       this.currentPlayer as Phaser.GameObjects.GameObject,
-      enemy,
+      enemySprite,
       () => {
         this.gameOver();
       }
     );
 
-    this.enemies.push({
-      x: coordinates.x * SQUARE_WIDTH,
-      y: coordinates.y * SQUARE_WIDTH,
-      width: 1,
-      height: 1,
+    this.obstacles.push({
+      x: coordinates.x,
+      y: coordinates.y,
+      ...dimensions,
     });
   }
 
@@ -348,52 +668,70 @@ export class ChickenRescueScene extends BaseScene {
 
     this.following[index] = chicken;
 
+    // this.physics.add.overlap(
+    //   this.chickenPen as Phaser.GameObjects.GameObject,
+    //   chicken,
+    //   () => {
+    //     if (chicken.destroyed) return;
+
+    //     chicken.disappear();
+    //     this.following[index] = null;
+
+    //     this.portalService?.send("CHICKEN_RESCUED", {
+    //       points: 1,
+    //     });
+    //     const points = 1;
+    //   }
+    // );
+
+    this.portalService?.send("CHICKEN_RESCUED", {
+      points: 1,
+    });
+
     this.physics.add.overlap(
-      this.chickenPen as Phaser.GameObjects.GameObject,
+      this.currentPlayer as Phaser.GameObjects.GameObject,
       chicken,
       () => {
         if (chicken.destroyed) return;
 
-        chicken.disappear();
-        this.following[index] = null;
+        // To close in line to hit
+        if (index <= 2) return;
 
-        this.portalService?.send("CHICKEN_RESCUED", {
-          points: 1,
-        });
-        const points = 1;
+        this.gameOver();
       }
     );
   }
 
   updateDirection() {
-    // A move is already scheduled
+    const previous = this.direction;
+
+    let newDirection: "left" | "right" | "up" | "down" | undefined =
+      this.queuedDirection;
+
+    if (document.activeElement?.tagName === "INPUT") return;
+
+    if (this.cursorKeys?.left.isDown || this.cursorKeys?.a?.isDown) {
+      newDirection = "left";
+    }
+
+    if (this.cursorKeys?.right.isDown || this.cursorKeys?.d?.isDown) {
+      newDirection = "right";
+    }
+
+    if (this.cursorKeys?.up.isDown || this.cursorKeys?.w?.isDown) {
+      newDirection = "up";
+    }
+
+    if (this.cursorKeys?.down.isDown || this.cursorKeys?.s?.isDown) {
+      newDirection = "down";
+    }
+
     if (this.nextMove) {
+      this.queuedDirection = newDirection;
       return;
     }
 
-    const previous = this.direction;
-    let newDirection: "left" | "right" | "up" | "down" | undefined = undefined;
-
-    // use keyboard control if joystick is not active
-    if (newDirection === undefined) {
-      if (document.activeElement?.tagName === "INPUT") return;
-
-      if (this.cursorKeys?.left.isDown || this.cursorKeys?.a?.isDown) {
-        newDirection = "left";
-      }
-
-      if (this.cursorKeys?.right.isDown || this.cursorKeys?.d?.isDown) {
-        newDirection = "right";
-      }
-
-      if (this.cursorKeys?.up.isDown || this.cursorKeys?.w?.isDown) {
-        newDirection = "up";
-      }
-
-      if (this.cursorKeys?.down.isDown || this.cursorKeys?.s?.isDown) {
-        newDirection = "down";
-      }
-    }
+    if (!newDirection) return;
 
     // Cannot go backwards
     const isOppositeDirection = (previous?: Direction, current?: Direction) => {
@@ -415,35 +753,81 @@ export class ChickenRescueScene extends BaseScene {
 
     this.currentPlayer?.walk();
 
+    const player = this.currentPlayer as Coordinates;
+
     const nextGridSquare: Coordinates = {
-      x: this.currentPlayer?.x ?? 0,
-      y: this.currentPlayer?.y ?? 0,
+      x: Math.floor(player.x / 16),
+      y: Math.floor(player.y / 16),
     };
 
+    // Draw point
+    this.add.circle(
+      nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
+      nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
+      2,
+      0x0000ff
+    );
+
+    const BUFFER = SQUARE_WIDTH / 2 - 2;
+
     if (this.direction === "right") {
-      nextGridSquare.x =
-        Math.floor(nextGridSquare.x / 16) * 16 + 16 + SQUARE_WIDTH / 2;
+      nextGridSquare.x = Math.floor((player.x + BUFFER) / 16);
     }
 
     if (this.direction === "left") {
-      nextGridSquare.x =
-        Math.floor(nextGridSquare.x / 16) * 16 - SQUARE_WIDTH / 2;
+      nextGridSquare.x = Math.floor((player.x - BUFFER) / 16);
     }
 
     if (this.direction === "up") {
-      nextGridSquare.y =
-        Math.floor(nextGridSquare.y / 16) * 16 - SQUARE_WIDTH / 2;
+      nextGridSquare.y = Math.floor((player.y - BUFFER) / 16);
     }
 
     if (this.direction === "down") {
-      nextGridSquare.y =
-        Math.floor(nextGridSquare.y / 16) * 16 + 16 + SQUARE_WIDTH / 2;
+      nextGridSquare.y = Math.floor((player.y + BUFFER) / 16);
+    }
+
+    // If same as first pivot do not set it
+    if (
+      this.pivots.length > 0 &&
+      this.pivots[0].x === nextGridSquare.x &&
+      this.pivots[0].y === nextGridSquare.y
+    ) {
+      return;
     }
 
     this.nextMove = {
       direction: newDirection,
       moveAt: nextGridSquare,
     };
+
+    this.add.circle(
+      nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
+      nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
+      2,
+      0xff00ff
+    );
+
+    delete this.queuedDirection;
+  }
+
+  start() {
+    this.portalService?.send("START");
+
+    // TODO: progressively generate less chickens
+    setInterval(() => {
+      if (this.sleeping.length < 10) {
+        this.addSleepingChicken();
+      }
+    }, 1000);
+
+    setInterval(() => {
+      this.addStaticObstacle({ name: "rock" });
+    }, 5000);
+
+    // TODO: progressively less goblins
+    setInterval(() => {
+      this.addGoblin();
+    }, 100);
   }
 
   movePlayer() {
@@ -453,10 +837,15 @@ export class ChickenRescueScene extends BaseScene {
 
     const player = this.currentPlayer as Coordinates;
     const currentDirection = this.direction ?? "up";
-    const { direction, moveAt } = this.nextMove;
+    const { direction, moveAt: moveAtGridPosition } = this.nextMove;
+
+    const moveAt = {
+      x: moveAtGridPosition.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      y: moveAtGridPosition.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+    };
 
     // Has player reached its destination
-    let hasReachedDestination = false;
+    let hasReachedDestination = this.pivots.length === 0; // First move
     if (currentDirection === "right" && player.x >= moveAt.x) {
       hasReachedDestination = true;
     }
@@ -474,8 +863,6 @@ export class ChickenRescueScene extends BaseScene {
     }
 
     if (!hasReachedDestination) return;
-
-    this.currentPlayer?.setPosition(moveAt.x, moveAt.y);
 
     let yVelocity = 0;
     if (direction === "up") {
@@ -499,14 +886,14 @@ export class ChickenRescueScene extends BaseScene {
     }
 
     if (!this.direction) {
-      this.portalService?.send("START");
+      this.start();
     }
 
     this.currentPlayer?.body?.setVelocity(xVelocity, yVelocity);
 
     this.pivots = [
       {
-        ...moveAt,
+        ...moveAtGridPosition,
         direction: currentDirection,
       },
       ...this.pivots,
@@ -514,6 +901,7 @@ export class ChickenRescueScene extends BaseScene {
 
     this.direction = direction;
 
+    console.log("MOVE AND SHIFT");
     this.nextMove = undefined;
   }
 
@@ -550,7 +938,11 @@ export class ChickenRescueScene extends BaseScene {
         y: this.currentPlayer?.y ?? 0,
         direction: this.direction,
       },
-      ...this.pivots,
+      ...this.pivots.map((pivot) => ({
+        x: Math.floor(pivot.x * SQUARE_WIDTH + SQUARE_WIDTH / 2),
+        y: Math.floor(pivot.y * SQUARE_WIDTH + SQUARE_WIDTH / 2),
+        direction: pivot.direction,
+      })),
     ];
 
     // How far from the front they should be
@@ -618,6 +1010,32 @@ export class ChickenRescueScene extends BaseScene {
     });
   }
 
+  moveGoblins() {
+    this.goblins.forEach((goblin) => {
+      if (goblin.moveTo) {
+        const { x, y } = goblin.moveTo;
+
+        const mapX = x * SQUARE_WIDTH + SQUARE_WIDTH / 2;
+        const mapY = y * SQUARE_WIDTH + SQUARE_WIDTH / 2;
+
+        this.physics.moveTo(goblin.container, mapX, mapY, this.walkingSpeed);
+
+        if (
+          Phaser.Math.Distance.BetweenPoints(goblin.container, {
+            x: mapX,
+            y: mapY,
+          }) < 1
+        ) {
+          goblin.moveTo = undefined;
+          goblin.container.body.setVelocity(0, 0);
+          console.log("REACHED!");
+          goblin.container.idle();
+          // Reached it!
+        }
+      }
+    });
+  }
+
   update() {
     this.updateDirection();
     this.debug();
@@ -626,6 +1044,9 @@ export class ChickenRescueScene extends BaseScene {
 
     this.movePlayer();
     this.updateFollowingChickens();
+    this.moveGoblins();
+
+    this.currentPlayer?.setDepth(1000000000);
   }
 
   debug() {

@@ -470,4 +470,13 @@ export class BumpkinContainer extends Phaser.GameObjects.Container {
       }
     );
   }
+
+  public async alerted() {
+    this.alert = this.scene.add.sprite(1, -20, "alert").setSize(4, 10);
+    this.add(this.alert);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    this.alert?.destroy();
+  }
 }

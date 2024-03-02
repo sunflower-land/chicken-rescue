@@ -578,15 +578,31 @@ export function pickEmptyPosition({
 export function randomEmptyPosition({
   bounding,
   boxes,
+  item,
 }: {
   bounding: BoundingBox;
   boxes: BoundingBox[];
+  item: { width: number; height: number };
 }): Position | undefined {
   const positionsInBounding = splitBoundingBox(bounding);
 
-  const availablePositions = positionsInBounding.filter((position) =>
-    boxes.every((box) => !isOverlapping(position, box))
-  );
+  const availablePositions = positionsInBounding.filter((position) => {
+    // Check if the entire object fits in this position
+    if (
+      position.x + item.width <= bounding.x + bounding.width &&
+      position.y - item.height >= bounding.y - bounding.height
+    ) {
+      // Check if any part of the object overlaps with existing boxes
+      const objectBoundingBox: BoundingBox = {
+        x: position.x,
+        y: position.y,
+        width: item.width,
+        height: item.height,
+      };
+      return boxes.every((box) => !isOverlapping(objectBoundingBox, box));
+    }
+    return false;
+  });
 
   const shuffled = availablePositions.sort(() => 0.5 - Math.random());
   return shuffled[0];
