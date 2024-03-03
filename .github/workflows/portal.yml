@@ -37,6 +37,7 @@ jobs:
           VITE_RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
           VITE_PRIVATE_IMAGE_URL: "https://sunflower-land.com/game-assets"
           VITE_API_URL: "https://api-dev.sunflower-land.com"
+          VITE_PORTAL_GAME_URL: "https://sunflower-land.com/testnet/"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1.5.9
