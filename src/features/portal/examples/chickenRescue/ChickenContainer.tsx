@@ -112,15 +112,6 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
 
     this.sprite?.destroy();
 
-    const scoreText = this.scene.add.bitmapText(
-      0,
-      1,
-      "Teeny Tiny Pixls",
-      "+1",
-      5
-    );
-    this.add(scoreText);
-
     const poof = this.scene.add.sprite(0, 4, "poof").setOrigin(0.5);
     this.add(poof);
 

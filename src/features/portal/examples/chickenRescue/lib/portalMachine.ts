@@ -135,8 +135,8 @@ export const portalMachine = createMachine({
         },
         onDone: [
           {
-            // target: "introduction",
-            target: "ready",
+            target: "introduction",
+            // target: "ready",
             actions: assign({
               state: (_: any, event) => event.data.game,
               mmoServer: (_: any, event) => event.data.mmoServer,

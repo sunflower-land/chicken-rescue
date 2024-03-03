@@ -111,37 +111,29 @@ export class ChickenRescueScene extends BaseScene {
       key: "chicken_rescue",
     });
 
+    console.log("CREATE");
     super.create();
-
-    // this.chickenPen = this.add.rectangle(
-    //   GRID_SIZE * 19 + GRID_SIZE,
-    //   GRID_SIZE * 20 + GRID_SIZE / 2,
-    //   GRID_SIZE * 4,
-    //   GRID_SIZE,
-    //   0x000000,
-    //   0
-    // ); // 0x000000 is black, 0 is alpha
-
-    // this.physics.world.enable(this.chickenPen);
 
     this.currentPlayer?.setPosition(
       GRID_SIZE * 20 + GRID_SIZE / 2,
       GRID_SIZE * 20 + GRID_SIZE / 2
     );
 
+    // Reset all scene data
     this.pivots = [];
-
-    this.addGoblin();
+    this.direction = undefined;
+    this.queuedDirection = undefined;
+    this.nextMove = undefined;
+    this.following = new Array(MAX_CHICKENS).fill(null);
+    this.obstacles = [];
+    this.sleeping = [];
+    this.goblins = [];
+    this.isDead = false;
 
     // Create X sleeping chickens
-    for (let i = 0; i < 10; i++) {
-      this.addSleepingChicken();
-    }
-
-    // Create X static enemies
     for (let i = 0; i < 5; i++) {
+      this.addSleepingChicken();
       this.addStaticObstacle({ name: "rock" });
-      // this.addStaticObstacle({ name: "fox_box" });
       this.addStaticObstacle({ name: "pot_plant" });
     }
 
@@ -196,19 +188,27 @@ export class ChickenRescueScene extends BaseScene {
       }
     );
 
-    // Draw coordinates at each grid position
-    for (let x = 0; x < this.map.widthInPixels; x += GRID_SIZE) {
-      for (let y = 0; y < this.map.heightInPixels; y += GRID_SIZE) {
-        const name = this.add.bitmapText(
-          x,
-          y,
-          "Teeny Tiny Pixls",
-          `${x / GRID_SIZE},${y / GRID_SIZE}`,
-          5
-        );
-        name.setScale(0.5);
+    if (this.physics.world.drawDebug) {
+      // Draw coordinates at each grid position
+      for (let x = 0; x < this.map.widthInPixels; x += GRID_SIZE) {
+        for (let y = 0; y < this.map.heightInPixels; y += GRID_SIZE) {
+          const name = this.add.bitmapText(
+            x,
+            y,
+            "Teeny Tiny Pixls",
+            `${x / GRID_SIZE},${y / GRID_SIZE}`,
+            5
+          );
+          name.setScale(0.5);
+        }
       }
     }
+
+    this.portalService?.onEvent((event) => {
+      if (event.type === "RETRY") {
+        this.scene.restart();
+      }
+    });
   }
 
   getBoundingBoxes(): BoundingBox[] {
@@ -585,7 +585,7 @@ export class ChickenRescueScene extends BaseScene {
       rock: { width: 1, height: 1 },
       boulder: { width: 2, height: 2 },
       fox_box: { width: 2, height: 2 },
-      pot_plant: { width: 2, height: 1 },
+      pot_plant: { width: 2, height: 2 },
     }[name];
 
     const coordinates = this.pickEmptyGridPosition(dimensions);
@@ -593,6 +593,10 @@ export class ChickenRescueScene extends BaseScene {
     if (!coordinates) {
       console.log("No available positions for enemy");
       return;
+    }
+
+    if (dimensions.width === 2) {
+      coordinates.x += 1;
     }
 
     let x = coordinates.x * SQUARE_WIDTH;
@@ -635,6 +639,8 @@ export class ChickenRescueScene extends BaseScene {
   private isDead = false;
 
   async gameOver() {
+    if (this.isDead) return;
+
     this.isDead = true;
 
     this.currentPlayer?.body?.setVelocity(0, 0);
@@ -760,13 +766,15 @@ export class ChickenRescueScene extends BaseScene {
       y: Math.floor(player.y / 16),
     };
 
-    // Draw point
-    this.add.circle(
-      nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
-      nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
-      2,
-      0x0000ff
-    );
+    if (this.physics.world.drawDebug) {
+      // Draw point
+      this.add.circle(
+        nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
+        nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
+        2,
+        0x0000ff
+      );
+    }
 
     const BUFFER = SQUARE_WIDTH / 2 - 2;
 
@@ -800,34 +808,54 @@ export class ChickenRescueScene extends BaseScene {
       moveAt: nextGridSquare,
     };
 
-    this.add.circle(
-      nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
-      nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
-      2,
-      0xff00ff
-    );
+    if (this.physics.world.drawDebug) {
+      this.add.circle(
+        nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
+        nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
+        2,
+        0xff00ff
+      );
+    }
 
     delete this.queuedDirection;
   }
 
+  get score() {
+    return this.portalService?.state.context.score ?? 0;
+  }
+
   start() {
+    console.log("START IT!");
     this.portalService?.send("START");
 
-    // TODO: progressively generate less chickens
     setInterval(() => {
-      if (this.sleeping.length < 10) {
+      let chickenLimit = 10;
+
+      if (this.score > 20) {
+        chickenLimit = 5;
+      }
+
+      if (this.sleeping.length < chickenLimit) {
         this.addSleepingChicken();
       }
     }, 1000);
 
     setInterval(() => {
       this.addStaticObstacle({ name: "rock" });
-    }, 5000);
+    }, 6000);
 
-    // TODO: progressively less goblins
     setInterval(() => {
-      this.addGoblin();
-    }, 100);
+      this.addStaticObstacle({ name: "pot_plant" });
+    }, 11000);
+
+    setInterval(() => {
+      // Every 10 score, add a goblin
+      let limit = Math.floor(this.score / 10);
+
+      if (this.goblins.length < limit) {
+        this.addGoblin();
+      }
+    }, 10000);
   }
 
   movePlayer() {

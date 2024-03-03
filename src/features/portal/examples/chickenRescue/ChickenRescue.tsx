@@ -20,6 +20,7 @@ import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { ChickenRescueHUD } from "./components/ChickenRescueHUD";
 import { ChickenRescueRules } from "./components/ChickenRescueRules";
 import { ChickenRescueGame } from "./ChickenRescueGame";
+import { ITEM_DETAILS } from "features/game/types/images";
 
 export const ChickenRescueApp: React.FC = () => {
   return (
@@ -84,7 +85,7 @@ export const ChickenRescue: React.FC = () => {
 
       {portalState.matches("introduction") && (
         <Modal show>
-          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
+          <Panel bumpkinParts={NPC_WEARABLES.chicken}>
             <ChickenRescueRules
               onAcknowledged={() => portalService.send("CONTINUE")}
             />
@@ -94,9 +95,26 @@ export const ChickenRescue: React.FC = () => {
 
       {portalState.matches("gameOver") && (
         <Modal show>
-          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
-            <p>Game over</p>
-            <Button onClick={() => portalService.send("RETRY")}>Retry</Button>
+          <Panel bumpkinParts={NPC_WEARABLES.chicken}>
+            <div className="p-2">
+              <Label
+                className="mb-2"
+                type="danger"
+                icon={SUNNYSIDE.icons.death}
+              >
+                Game over
+              </Label>
+              <div className="flex">
+                <span>{`Score: ${portalState.context.score}`}</span>
+                <img src={ITEM_DETAILS.Chicken.image} className="h-6 ml-2" />
+              </div>
+            </div>
+            <div className="flex">
+              <Button onClick={goHome} className="mr-1">
+                Exit
+              </Button>
+              <Button onClick={() => portalService.send("RETRY")}>Retry</Button>
+            </div>
           </Panel>
         </Modal>
       )}
@@ -111,7 +129,7 @@ export const ChickenRescue: React.FC = () => {
 
       {portalState.matches("completed") && (
         <Modal show>
-          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
+          <Panel bumpkinParts={NPC_WEARABLES.chicken}>
             <div className="p-2">
               <p className="mb-2">
                 {`Congratulations, you have completed today's challenge.`}
