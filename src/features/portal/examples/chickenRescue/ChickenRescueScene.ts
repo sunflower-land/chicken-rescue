@@ -12,7 +12,6 @@ import {
   pickEmptyPosition,
   randomEmptyPosition,
 } from "features/game/expansion/placeable/lib/collisionDetection";
-import { getAvailablePosition } from "./lib/chickenGrid";
 import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
 
 const DISTANCE = 16;
@@ -349,7 +348,7 @@ export class ChickenRescueScene extends BaseScene {
     // On collide destroy the chicken
     this.physics.add.overlap(
       this.currentPlayer as Phaser.GameObjects.GameObject,
-      goblin.body,
+      goblin as Phaser.GameObjects.GameObject,
       () => {
         this.gameOver();
       }
@@ -643,7 +642,7 @@ export class ChickenRescueScene extends BaseScene {
 
     this.isDead = true;
 
-    this.currentPlayer?.body?.setVelocity(0, 0);
+    (this.currentPlayer?.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
 
     this.currentPlayer?.disappear();
 
@@ -917,7 +916,10 @@ export class ChickenRescueScene extends BaseScene {
       this.start();
     }
 
-    this.currentPlayer?.body?.setVelocity(xVelocity, yVelocity);
+    (this.currentPlayer?.body as Phaser.Physics.Arcade.Body).setVelocity(
+      xVelocity,
+      yVelocity
+    );
 
     this.pivots = [
       {
@@ -1055,7 +1057,10 @@ export class ChickenRescueScene extends BaseScene {
           }) < 1
         ) {
           goblin.moveTo = undefined;
-          goblin.container.body.setVelocity(0, 0);
+          (goblin.container.body as Phaser.Physics.Arcade.Body).setVelocity(
+            0,
+            0
+          );
           console.log("REACHED!");
           goblin.container.idle();
           // Reached it!

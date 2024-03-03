@@ -163,8 +163,8 @@ export const portalMachine = createMachine({
         START: {
           target: "playing",
           actions: assign({
-            endAt: (_: any) => Date.now() + GAME_SECONDS * 1000,
-          }),
+            endAt: () => Date.now() + GAME_SECONDS * 1000,
+          }) as any,
         },
       },
     },
@@ -187,9 +187,9 @@ export const portalMachine = createMachine({
         RETRY: {
           target: "ready",
           actions: assign({
-            score: 0,
-            endAt: (_: any) => Date.now() + GAME_SECONDS * 1000,
-          }),
+            score: () => 0,
+            endAt: () => Date.now() + GAME_SECONDS * 1000,
+          }) as any,
         },
       },
     },
