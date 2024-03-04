@@ -16,7 +16,6 @@ import { ChickenRescueApp } from "./examples/chickenRescue/ChickenRescue";
 initialise();
 
 export const PortalApp: React.FC = () => {
-  return <span className="text-black">TEST</span>;
   if (CONFIG.PORTAL_APP === "chicken-rescue") {
     return <ChickenRescueApp />;
   }
