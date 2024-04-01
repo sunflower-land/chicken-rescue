@@ -4,10 +4,18 @@ const isInIframe = window.self !== window.top;
 
 export function goHome() {
   if (isInIframe) {
-    window.parent.postMessage("closePortal", "*");
+    window.parent.postMessage({ event: "closePortal" }, "*");
   } else {
     window.location.href = CONFIG.PORTAL_GAME_URL;
   }
+}
+
+export function purchase() {
+  if (!isInIframe) {
+    throw new Error("Not available");
+  }
+
+  window.parent.postMessage({ event: "purchase", sfl: 1 }, "*");
 }
 
 export function authorisePortal() {

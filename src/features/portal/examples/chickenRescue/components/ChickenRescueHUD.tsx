@@ -1,27 +1,24 @@
 import React, { useContext } from "react";
-import { Balance } from "components/Balance";
 import { useActor } from "@xstate/react";
-import Decimal from "decimal.js-light";
-import { createPortal } from "react-dom";
-import { BlockBucks } from "features/island/hud/components/BlockBucks";
 import { PortalContext } from "../lib/PortalProvider";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SUNNYSIDE } from "assets/sunnyside";
 import worldIcon from "assets/icons/world.png";
-import { goHome } from "../lib/portalUtil";
+import { goHome, purchase } from "../lib/portalUtil";
 import { HudContainer } from "components/ui/HudContainer";
-import { InnerPanel, Panel } from "components/ui/Panel";
-import { secondsToString } from "lib/utils/time";
-import { GAME_SECONDS } from "../lib/portalMachine";
-import { useCountdown } from "lib/utils/hooks/useCountdown";
+import { InnerPanel } from "components/ui/Panel";
+import { Button } from "components/ui/Button";
 
 export const ChickenRescueHUD: React.FC = () => {
   const { portalService } = useContext(PortalContext);
   const [portalState] = useActor(portalService);
 
-  console.log({ portalState });
   const travelHome = () => {
     goHome();
+  };
+
+  const buy = () => {
+    purchase();
   };
 
   const { score, endAt } = portalState.context;
@@ -35,6 +32,9 @@ export const ChickenRescueHUD: React.FC = () => {
   return (
     <>
       <HudContainer>
+        <InnerPanel className="absolute top-4 left-4">
+          <Button onClick={buy}>Buy more</Button>
+        </InnerPanel>
         <InnerPanel className="absolute top-4 right-4">
           <div className="flex items-center p-2">
             <img src={SUNNYSIDE.resource.chicken} className="h-8 mr-1" />
