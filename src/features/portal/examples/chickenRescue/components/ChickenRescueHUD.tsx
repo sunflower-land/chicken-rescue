@@ -8,6 +8,8 @@ import { goHome, purchase } from "../lib/portalUtil";
 import { HudContainer } from "components/ui/HudContainer";
 import { InnerPanel } from "components/ui/Panel";
 import { Button } from "components/ui/Button";
+import { Balances } from "components/Balances";
+import Decimal from "decimal.js-light";
 
 export const ChickenRescueHUD: React.FC = () => {
   const { portalService } = useContext(PortalContext);
@@ -32,6 +34,13 @@ export const ChickenRescueHUD: React.FC = () => {
   return (
     <>
       <HudContainer>
+        <Balances
+          sfl={portalState.context.state.balance}
+          coins={portalState.context.state.coins}
+          blockBucks={
+            portalState.context.state.inventory["Block Buck"] ?? new Decimal(0)
+          }
+        />
         <InnerPanel className="absolute top-4 left-4">
           <div className="flex items-center p-2">
             <img src={SUNNYSIDE.resource.chicken} className="h-8 mr-1" />

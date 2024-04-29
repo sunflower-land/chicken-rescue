@@ -41,6 +41,7 @@ type ChickenRescuedEvent = {
 export type PortalEvent =
   | { type: "START" }
   | { type: "CLAIM" }
+  | { type: "PURCHASED" }
   | { type: "RETRY" }
   | { type: "CONTINUE" }
   | { type: "GAME_OVER" }
@@ -58,7 +59,9 @@ export type PortalState = {
     | "completed"
     | "introduction"
     | "playing"
-    | "gameOver";
+    | "gameOver"
+    | "starting"
+    | "noAttempts";
   context: Context;
 };
 
@@ -124,8 +127,8 @@ export const portalMachine = createMachine({
               jwt: context.jwt,
               bumpkin: game?.bumpkin,
               farmId,
-              x: SPAWNS.crop_boom.default.x,
-              y: SPAWNS.crop_boom.default.y,
+              x: SPAWNS.chicken_rescue.default.x,
+              y: SPAWNS.chicken_rescue.default.y,
               sceneId: "crop_boom",
               experience: game.bumpkin?.experience ?? 0,
             });
@@ -136,7 +139,6 @@ export const portalMachine = createMachine({
         onDone: [
           {
             target: "introduction",
-            // target: "ready",
             actions: assign({
               state: (_: any, event) => event.data.game,
               mmoServer: (_: any, event) => event.data.mmoServer,
@@ -150,10 +152,55 @@ export const portalMachine = createMachine({
       },
     },
 
+    noAttempts: {
+      on: {
+        PURCHASED: {
+          target: "loading",
+        },
+      },
+    },
+
+    starting: {
+      always: [
+        {
+          target: "noAttempts",
+          cond: (context) => {
+            const dateKey = new Date().toISOString().slice(0, 10);
+
+            const minigame = context.state?.minigames.games["chicken-rescue"];
+            const history = minigame?.history ?? {};
+            const purchases = minigame?.purchases ?? [];
+
+            const dailyAttempt = history[dateKey] ?? {
+              attempts: 0,
+              highscore: 0,
+            };
+
+            const attemptsLeft = 3 - dailyAttempt.attempts;
+
+            // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
+            const hasUnlimitedAttempts = purchases.some(
+              (purchase) =>
+                purchase.purchasedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
+            );
+
+            if (hasUnlimitedAttempts) {
+              return false;
+            }
+
+            return attemptsLeft <= 0;
+          },
+        },
+        {
+          target: "ready",
+        },
+      ],
+    },
+
     introduction: {
       on: {
         CONTINUE: {
-          target: "ready",
+          target: "starting",
         },
       },
     },
@@ -185,7 +232,7 @@ export const portalMachine = createMachine({
     gameOver: {
       on: {
         RETRY: {
-          target: "ready",
+          target: "starting",
           actions: assign({
             score: () => 0,
             endAt: () => Date.now() + GAME_SECONDS * 1000,

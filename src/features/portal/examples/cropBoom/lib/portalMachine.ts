@@ -54,6 +54,7 @@ export type PortalState = {
     | "loading"
     | "claiming"
     | "completed"
+    | "noAttempts"
     | "rules";
   context: Context;
 };
@@ -94,6 +95,35 @@ export const portalMachine = createMachine({
       always: [
         { target: "rules", cond: () => !hasReadRules() },
         {
+          target: "noAttempts",
+          cond: (context) => {
+            const dateKey = new Date().toISOString().slice(0, 10);
+
+            const minigame = context.state?.minigames.games["chicken-rescue"];
+            const history = minigame?.history ?? {};
+            const purchases = minigame?.purchases ?? [];
+
+            const dailyAttempt = history[dateKey] ?? {
+              attempts: 0,
+              highscore: 0,
+            };
+
+            const attemptsLeft = 3 - dailyAttempt.attempts;
+
+            // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
+            const hasUnlimitedAttempts = purchases.some(
+              (purchase) =>
+                purchase.purchasedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
+            );
+
+            if (hasUnlimitedAttempts) {
+              return false;
+            }
+
+            return attemptsLeft <= 0;
+          },
+        },
+        {
           target: "completed",
           cond: (c) => {
             const todayKey = new Date().toISOString().slice(0, 10);
@@ -114,6 +144,8 @@ export const portalMachine = createMachine({
         },
       ],
     },
+
+    noAttempts: {},
 
     loading: {
       id: "loading",

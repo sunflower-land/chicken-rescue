@@ -10,12 +10,12 @@ export function goHome() {
   }
 }
 
-export function purchase() {
+export function purchase({ sfl }: { sfl: number }) {
   if (!isInIframe) {
     throw new Error("Not available");
   }
 
-  window.parent.postMessage({ event: "purchase", sfl: 1 }, "*");
+  window.parent.postMessage({ event: "purchase", sfl }, "*");
 }
 
 export function played() {

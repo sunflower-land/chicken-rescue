@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 
 import { useActor } from "@xstate/react";
 import { Modal } from "components/ui/Modal";
@@ -18,9 +18,17 @@ import {
 } from "features/portal/examples/cropBoom/lib/portalUtil";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { ChickenRescueHUD } from "./components/ChickenRescueHUD";
-import { ChickenRescueRules } from "./components/ChickenRescueRules";
+import {
+  ChickenRescueRules,
+  MinigameAttempts,
+} from "./components/ChickenRescueRules";
 import { ChickenRescueGame } from "./ChickenRescueGame";
 import { ITEM_DETAILS } from "features/game/types/images";
+import { MinigamePrize } from "features/game/types/game";
+
+import lock from "assets/skills/lock.png";
+import sfl from "assets/icons/sfl.webp";
+import { purchase } from "./lib/portalUtil";
 
 export const ChickenRescueApp: React.FC = () => {
   return (
@@ -36,6 +44,47 @@ export const ChickenRescue: React.FC = () => {
   const { portalService } = useContext(PortalContext);
   const [portalState] = useActor(portalService);
   const { t } = useAppTranslation();
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      console.log({ handle: event });
+      // TODO
+      const isValidOrigin = true; //event.oring === 'https://example.com'
+
+      // Check if the origin of the message is trusted
+      if (isValidOrigin) {
+        // Handle the received message
+        if (event.data.event === "purchased") {
+          console.log(
+            "Received confirmation message from parent window:",
+            event.data
+          );
+          portalService.send("PURCHASED");
+          // Handle confirming the purchase or any other action
+        }
+      } else {
+        // If the origin is not trusted, handle it accordingly
+        console.log("Received message from untrusted origin:", event.origin);
+      }
+    };
+
+    // Add event listener to listen for messages from the parent window
+    window.addEventListener("message", handleMessage);
+
+    // Clean up the event listener when component unmounts
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
+  const dateKey = new Date().toISOString().slice(0, 10);
+  const minigame = portalState.context.state.minigames.games["chicken-rescue"];
+  const history = minigame?.history ?? {};
+
+  const dailyAttempt = history[dateKey] ?? {
+    attempts: 0,
+    highscore: 0,
+  };
 
   return (
     <div>
@@ -83,6 +132,52 @@ export const ChickenRescue: React.FC = () => {
         </Modal>
       )}
 
+      {portalState.matches("noAttempts") && (
+        <Modal show>
+          <Panel>
+            <div className="p-1">
+              <div className="flex justify-between items-center mb-2">
+                <Label icon={lock} type="danger">
+                  No attempts remaining
+                </Label>
+                <Label
+                  icon={sfl}
+                  type={
+                    portalState.context.state.balance.lt(10)
+                      ? "danger"
+                      : "default"
+                  }
+                >
+                  10 SFL required
+                </Label>
+              </div>
+
+              <p className="text-sm mb-2">
+                You have ran out of daily attempts.
+              </p>
+              <p className="text-sm mb-2">
+                Would you like to unlock unlimited attempts for 7 days?
+              </p>
+            </div>
+            <div className="flex">
+              <Button
+                disabled={portalState.context.state.balance.lt(10)}
+                onClick={goHome}
+                className="mr-1"
+              >
+                Exit
+              </Button>
+              <Button
+                disabled={portalState.context.state.balance.lt(10)}
+                onClick={() => purchase({ sfl: 10 })}
+              >
+                Unlock attempts
+              </Button>
+            </div>
+          </Panel>
+        </Modal>
+      )}
+
       {portalState.matches("introduction") && (
         <Modal show>
           <Panel bumpkinParts={NPC_WEARABLES.chicken}>
@@ -97,16 +192,27 @@ export const ChickenRescue: React.FC = () => {
         <Modal show>
           <Panel bumpkinParts={NPC_WEARABLES.chicken}>
             <div className="p-2">
-              <Label
-                className="mb-2"
-                type="danger"
-                icon={SUNNYSIDE.icons.death}
-              >
-                Game over
-              </Label>
+              <div className="flex justify-between items-center">
+                <Label
+                  className="mb-2"
+                  type="danger"
+                  icon={SUNNYSIDE.icons.death}
+                >
+                  Game over
+                </Label>
+                <MinigameAttempts
+                  purchases={minigame?.purchases}
+                  history={dailyAttempt}
+                />
+              </div>
               <div className="flex">
                 <span>{`Score: ${portalState.context.score}`}</span>
-                <img src={ITEM_DETAILS.Chicken.image} className="h-6 ml-2" />
+              </div>
+              <div className="flex">
+                <span>{`Highscore: ${Math.max(
+                  portalState.context.score,
+                  minigame?.highscore ?? 0
+                )}`}</span>
               </div>
             </div>
             <div className="flex">
