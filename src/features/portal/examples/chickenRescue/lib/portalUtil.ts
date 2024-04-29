@@ -18,6 +18,14 @@ export function purchase() {
   window.parent.postMessage({ event: "purchase", sfl: 1 }, "*");
 }
 
+export function played() {
+  if (!isInIframe) {
+    throw new Error("Not available");
+  }
+
+  window.parent.postMessage({ event: "played", score: 1 }, "*");
+}
+
 export function authorisePortal() {
   if (isInIframe) {
     window.parent.postMessage("closePortal", "*");
