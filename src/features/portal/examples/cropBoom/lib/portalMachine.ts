@@ -38,6 +38,7 @@ export interface Context {
 }
 
 export type PortalEvent =
+  | { type: "PURCHASED" }
   | { type: "START" }
   | { type: "CLAIM" }
   | { type: "RETRY" }
@@ -102,6 +103,7 @@ export const portalMachine = createMachine({
             const minigame = context.state?.minigames.games["chicken-rescue"];
             const history = minigame?.history ?? {};
             const purchases = minigame?.purchases ?? [];
+            console.log("Purchases now: ", purchases);
 
             const dailyAttempt = history[dateKey] ?? {
               attempts: 0,
@@ -145,7 +147,13 @@ export const portalMachine = createMachine({
       ],
     },
 
-    noAttempts: {},
+    noAttempts: {
+      on: {
+        PURCHASED: {
+          target: "loading",
+        },
+      },
+    },
 
     loading: {
       id: "loading",

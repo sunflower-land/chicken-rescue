@@ -47,7 +47,6 @@ export const ChickenRescue: React.FC = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log({ handle: event });
       // TODO
       const isValidOrigin = true; //event.oring === 'https://example.com'
 
@@ -55,12 +54,7 @@ export const ChickenRescue: React.FC = () => {
       if (isValidOrigin) {
         // Handle the received message
         if (event.data.event === "purchased") {
-          console.log(
-            "Received confirmation message from parent window:",
-            event.data
-          );
           portalService.send("PURCHASED");
-          // Handle confirming the purchase or any other action
         }
       } else {
         // If the origin is not trusted, handle it accordingly
