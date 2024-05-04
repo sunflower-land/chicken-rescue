@@ -527,7 +527,8 @@ export type MinigamePrize = {
   startAt: number;
   endAt: number;
   score: number;
-  sfl: number;
+  coins: number;
+  factionPoints: number;
 };
 
 export type MinigameHistory = {

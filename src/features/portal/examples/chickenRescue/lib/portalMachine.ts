@@ -9,6 +9,7 @@ import { Client, Room } from "colyseus.js";
 import { PlazaRoomState } from "features/world/types/Room";
 import { SPAWNS } from "features/world/lib/spawn";
 import { decodeToken } from "features/auth/actions/login";
+import { played } from "./portalUtil";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
@@ -26,9 +27,9 @@ export interface Context {
   id: number;
   jwt: string;
   state: GameState;
-  mmoServer?: Room<PlazaRoomState>;
   score: number;
   endAt: number;
+  attemptsLeft: number;
 }
 
 export const GAME_SECONDS = 60;
@@ -55,11 +56,11 @@ export type PortalState = {
     | "ready"
     | "unauthorised"
     | "loading"
-    | "claiming"
-    | "completed"
     | "introduction"
     | "playing"
     | "gameOver"
+    | "winner"
+    | "loser"
     | "starting"
     | "noAttempts";
   context: Context;
@@ -84,6 +85,7 @@ export const portalMachine = createMachine({
 
     score: 0,
     completeAcknowledged: false,
+    attemptsLeft: 0,
   },
   states: {
     initialising: {
@@ -104,7 +106,7 @@ export const portalMachine = createMachine({
       invoke: {
         src: async (context) => {
           if (!CONFIG.API_URL) {
-            return { game: OFFLINE_FARM };
+            return { game: OFFLINE_FARM, attemptsLeft: 3 };
           }
 
           const { farmId } = decodeToken(context.jwt as string);
@@ -115,34 +117,28 @@ export const portalMachine = createMachine({
             token: context.jwt as string,
           });
 
-          // Join the MMO Server
-          let mmoServer: Room<PlazaRoomState> | undefined;
-          const serverName = getServer() ?? "sunflorea_bliss";
-          const mmoUrl = CONFIG.ROOM_URL;
+          const dateKey = new Date().toISOString().slice(0, 10);
 
-          if (serverName && mmoUrl) {
-            const client = new Client(mmoUrl);
+          const minigame = context.state?.minigames.games["chicken-rescue"];
+          const history = minigame?.history ?? {};
 
-            mmoServer = await client?.joinOrCreate<PlazaRoomState>(serverName, {
-              jwt: context.jwt,
-              bumpkin: game?.bumpkin,
-              farmId,
-              x: SPAWNS.chicken_rescue.default.x,
-              y: SPAWNS.chicken_rescue.default.y,
-              sceneId: "crop_boom",
-              experience: game.bumpkin?.experience ?? 0,
-            });
-          }
+          const dailyAttempt = history[dateKey] ?? {
+            attempts: 0,
+            highscore: 0,
+          };
 
-          return { game, mmoServer, farmId };
+          const attemptsLeft = 3 - dailyAttempt.attempts;
+          console.log({ SetHer: attemptsLeft });
+
+          return { game, farmId, attemptsLeft };
         },
         onDone: [
           {
             target: "introduction",
             actions: assign({
               state: (_: any, event) => event.data.game,
-              mmoServer: (_: any, event) => event.data.mmoServer,
               id: (_: any, event) => event.data.farmId,
+              attemptsLeft: (_: any, event) => event.data.attemptsLeft,
             }),
           },
         ],
@@ -165,18 +161,8 @@ export const portalMachine = createMachine({
         {
           target: "noAttempts",
           cond: (context) => {
-            const dateKey = new Date().toISOString().slice(0, 10);
-
             const minigame = context.state?.minigames.games["chicken-rescue"];
-            const history = minigame?.history ?? {};
             const purchases = minigame?.purchases ?? [];
-
-            const dailyAttempt = history[dateKey] ?? {
-              attempts: 0,
-              highscore: 0,
-            };
-
-            const attemptsLeft = 3 - dailyAttempt.attempts;
 
             // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
             const hasUnlimitedAttempts = purchases.some(
@@ -188,7 +174,7 @@ export const portalMachine = createMachine({
               return false;
             }
 
-            return attemptsLeft <= 0;
+            return context.attemptsLeft <= 0;
           },
         },
         {
@@ -211,6 +197,7 @@ export const portalMachine = createMachine({
           target: "playing",
           actions: assign({
             endAt: () => Date.now() + GAME_SECONDS * 1000,
+            attemptsLeft: (context: Context) => context.attemptsLeft - 1,
           }) as any,
         },
       },
@@ -226,10 +213,32 @@ export const portalMachine = createMachine({
         },
         GAME_OVER: {
           target: "gameOver",
+          actions: (context: Context) => {
+            played({ score: context.score });
+          },
         },
       },
     },
     gameOver: {
+      always: [
+        {
+          target: "winner",
+          cond: (context) => {
+            const prize = context.state?.minigames.prizes["chicken-rescue"];
+
+            if (!prize) {
+              return false;
+            }
+
+            return context.score >= prize.score;
+          },
+        },
+        {
+          target: "loser",
+        },
+      ],
+    },
+    winner: {
       on: {
         RETRY: {
           target: "starting",
@@ -240,34 +249,16 @@ export const portalMachine = createMachine({
         },
       },
     },
-    claiming: {
-      id: "claiming",
-      invoke: {
-        src: async (context) => {
-          const { game } = await claimArcadeToken({
-            token: context.jwt as string,
-          });
-
-          return { game };
+    loser: {
+      on: {
+        RETRY: {
+          target: "starting",
+          actions: assign({
+            score: () => 0,
+            endAt: () => Date.now() + GAME_SECONDS * 1000,
+          }) as any,
         },
-        onDone: [
-          {
-            target: "completed",
-            actions: assign({
-              state: (_: any, event) => event.data.game,
-            }),
-          },
-        ],
-        onError: [
-          {
-            target: "error",
-          },
-        ],
       },
-    },
-
-    completed: {
-      on: {},
     },
     error: {
       on: {

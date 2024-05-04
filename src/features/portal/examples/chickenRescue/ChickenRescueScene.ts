@@ -1,3 +1,4 @@
+import PubSub from "pubsub-js";
 import mapJson from "assets/map/chicken_rescue.json";
 import { SceneId } from "features/world/mmoMachine";
 import { BaseScene } from "features/world/scenes/BaseScene";
@@ -105,6 +106,29 @@ export class ChickenRescueScene extends BaseScene {
     });
   }
 
+  /**
+   * These are handled in the React UI (listen to the events)
+   */
+  async setupMobileControls() {
+    // TODO - clean up listeners
+
+    PubSub.subscribe("GO_DOWN", () => {
+      this.queuedDirection = "down";
+    });
+
+    PubSub.subscribe("GO_RIGHT", () => {
+      this.queuedDirection = "right";
+    });
+
+    PubSub.subscribe("GO_LEFT", () => {
+      this.queuedDirection = "left";
+    });
+
+    PubSub.subscribe("GO_UP", () => {
+      this.queuedDirection = "up";
+    });
+  }
+
   async create() {
     this.map = this.make.tilemap({
       key: "chicken_rescue",
@@ -112,6 +136,8 @@ export class ChickenRescueScene extends BaseScene {
 
     console.log("CREATE");
     super.create();
+
+    this.setupMobileControls();
 
     this.currentPlayer?.setPosition(
       GRID_SIZE * 20 + GRID_SIZE / 2,

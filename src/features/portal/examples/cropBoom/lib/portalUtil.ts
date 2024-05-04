@@ -3,6 +3,7 @@ import { CONFIG } from "lib/config";
 const isInIframe = window.self !== window.top;
 
 export function goHome() {
+  console.log("GO HOME");
   if (isInIframe) {
     window.parent.postMessage("closePortal", "*");
   } else {

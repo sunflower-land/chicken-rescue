@@ -3,7 +3,6 @@ import { GameState } from "features/game/types/game";
 import { assign, createMachine, Interpreter, State } from "xstate";
 import { loadPortal } from "../actions/loadPortal";
 import { CONFIG } from "lib/config";
-import { claimArcadeToken } from "../actions/claimArcadeToken";
 import { PortalName } from "features/game/types/portals";
 import { Client, Room } from "colyseus.js";
 import { PlazaRoomState } from "features/world/types/Room";
@@ -40,7 +39,6 @@ export interface Context {
 export type PortalEvent =
   | { type: "PURCHASED" }
   | { type: "START" }
-  | { type: "CLAIM" }
   | { type: "RETRY" }
   | { type: "CONTINUE" };
 
@@ -53,7 +51,6 @@ export type PortalState = {
     | "playing"
     | "unauthorised"
     | "loading"
-    | "claiming"
     | "completed"
     | "noAttempts"
     | "rules";
@@ -216,38 +213,7 @@ export const portalMachine = createMachine({
       },
     },
 
-    ready: {
-      on: {
-        CLAIM: {
-          target: "claiming",
-        },
-      },
-    },
-    claiming: {
-      id: "claiming",
-      invoke: {
-        src: async (context) => {
-          const { game } = await claimArcadeToken({
-            token: context.jwt as string,
-          });
-
-          return { game };
-        },
-        onDone: [
-          {
-            target: "completed",
-            actions: assign({
-              state: (_: any, event) => event.data.game,
-            }),
-          },
-        ],
-        onError: [
-          {
-            target: "error",
-          },
-        ],
-      },
-    },
+    ready: {},
 
     completed: {
       on: {

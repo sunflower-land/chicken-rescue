@@ -58,14 +58,15 @@ export const MinigamePrizeUI: React.FC<{
               {secondsToString(secondsLeft, { length: "medium" })}
             </Label>
           )}
-
           <div className="flex items-center space-x-2">
-            <Label icon={flagIcon} type="warning">
-              10 Points
-            </Label>
-            {!!prize.sfl && (
-              <Label icon={sfl} type="warning">
-                {prize.sfl}
+            {prize.factionPoints && (
+              <Label icon={flagIcon} type="warning">
+                {`${prize.factionPoints} Faction Points`}
+              </Label>
+            )}
+            {prize.coins && (
+              <Label icon={coins} type="warning">
+                {prize.coins}
               </Label>
             )}
           </div>
@@ -76,11 +77,9 @@ export const MinigamePrizeUI: React.FC<{
 };
 
 export const MinigameAttempts: React.FC<{
-  history?: MinigameHistory;
+  attemptsLeft: number;
   purchases: Minigame["purchases"];
-}> = ({ history, purchases = [] }) => {
-  const attemptsLeft = 3 - (history?.attempts ?? 0);
-
+}> = ({ attemptsLeft, purchases = [] }) => {
   // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
   const hasUnlimitedAttempts = purchases.some(
     (purchase) => purchase.purchasedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
@@ -89,26 +88,14 @@ export const MinigameAttempts: React.FC<{
   const hasMoreAttempts = attemptsLeft > 0;
 
   if (hasUnlimitedAttempts) {
-    return (
-      <Label className="mb-2" type="success">
-        {`Unlimited attempts`}
-      </Label>
-    );
+    return <Label type="success">{`Unlimited attempts`}</Label>;
   }
 
   if (hasMoreAttempts) {
-    return (
-      <Label className="mb-2" type="vibrant">
-        {`${attemptsLeft} Attempts Remaining`}
-      </Label>
-    );
+    return <Label type="vibrant">{`${attemptsLeft} Attempts Remaining`}</Label>;
   }
 
-  return (
-    <Label className="mb-2" type="danger">
-      {`No attempts remaining`}
-    </Label>
-  );
+  return <Label type="danger">{`No attempts remaining`}</Label>;
 };
 
 export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
@@ -119,6 +106,7 @@ export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
   const dateKey = new Date().toISOString().slice(0, 10);
   const minigame = portalState.context.state.minigames.games["chicken-rescue"];
   const history = minigame?.history ?? {};
+  const attemptsLeft = portalState.context.attemptsLeft;
 
   const dailyAttempt = history[dateKey] ?? {
     attempts: 0,
@@ -127,19 +115,16 @@ export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
 
   const prize = portalState.context.state.minigames.prizes["chicken-rescue"];
 
+  console.log({ attemptsLeft });
   return (
     <>
       <div>
-        <div className="w-full relative flex justify-between p-1">
-          <Label
-            className="mb-2"
-            type="default"
-            icon={ITEM_DETAILS["Chicken"].image}
-          >
+        <div className="w-full relative flex justify-between p-1 items-center mb-2">
+          <Label type="default" icon={ITEM_DETAILS["Chicken"].image}>
             Chicken Rescue
           </Label>
           <MinigameAttempts
-            history={dailyAttempt}
+            attemptsLeft={attemptsLeft}
             purchases={minigame?.purchases}
           />
         </div>
