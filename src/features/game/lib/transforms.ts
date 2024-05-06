@@ -41,6 +41,7 @@ export function makeGame(farm: any): GameState {
     username: farm.username,
     trades: farm.trades,
     farmHands: farm.farmHands,
+    minigames: farm.minigames,
     tradeOffer: farm.tradeOffer
       ? {
           ...farm.tradeOffer,

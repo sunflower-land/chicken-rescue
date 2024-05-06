@@ -20,6 +20,7 @@ import {
 import { secondsToString } from "lib/utils/time";
 import { PortalContext } from "../lib/PortalProvider";
 import { useActor } from "@xstate/react";
+import { InlineDialogue } from "features/world/ui/TypingMessage";
 
 interface Props {
   onAcknowledged: () => void;
@@ -64,7 +65,7 @@ export const MinigamePrizeUI: React.FC<{
                 {`${prize.factionPoints} Faction Points`}
               </Label>
             )}
-            {prize.coins && (
+            {!!prize.coins && (
               <Label icon={coins} type="warning">
                 {prize.coins}
               </Label>
@@ -123,6 +124,7 @@ export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
           <Label type="default" icon={ITEM_DETAILS["Chicken"].image}>
             Chicken Rescue
           </Label>
+
           <MinigameAttempts
             attemptsLeft={attemptsLeft}
             purchases={minigame?.purchases}

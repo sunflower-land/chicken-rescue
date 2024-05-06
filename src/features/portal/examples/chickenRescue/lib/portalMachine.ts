@@ -106,7 +106,7 @@ export const portalMachine = createMachine({
       invoke: {
         src: async (context) => {
           if (!CONFIG.API_URL) {
-            return { game: OFFLINE_FARM, attemptsLeft: 3 };
+            return { game: OFFLINE_FARM, attemptsLeft: 1 };
           }
 
           const { farmId } = decodeToken(context.jwt as string);

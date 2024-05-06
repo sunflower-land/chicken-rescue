@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 
-import { useActor } from "@xstate/react";
+import { useActor, useSelector } from "@xstate/react";
 import { Modal } from "components/ui/Modal";
 import { Panel } from "components/ui/Panel";
 import { Button } from "components/ui/Button";
@@ -10,12 +10,7 @@ import { Ocean } from "features/world/ui/Ocean";
 import { Label } from "components/ui/Label";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { NPC_WEARABLES } from "lib/npcs";
-import { secondsTillReset } from "features/helios/components/hayseedHank/HayseedHankV2";
-import { secondsToString } from "lib/utils/time";
-import {
-  authorisePortal,
-  goHome,
-} from "features/portal/examples/cropBoom/lib/portalUtil";
+
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { ChickenRescueHUD } from "./components/ChickenRescueHUD";
 import {
@@ -29,7 +24,8 @@ import { MinigamePrize } from "features/game/types/game";
 
 import lock from "assets/skills/lock.png";
 import sfl from "assets/icons/sfl.webp";
-import { complete, purchase } from "./lib/portalUtil";
+import { authorisePortal, complete, goHome, purchase } from "./lib/portalUtil";
+import { PortalMachineState } from "./lib/portalMachine";
 
 export const ChickenRescueApp: React.FC = () => {
   return (
@@ -41,10 +37,14 @@ export const ChickenRescueApp: React.FC = () => {
   );
 };
 
+const _gameState = (state: PortalMachineState) => state.context.state;
+
 export const ChickenRescue: React.FC = () => {
   const { portalService } = useContext(PortalContext);
   const [portalState] = useActor(portalService);
   const { t } = useAppTranslation();
+
+  const gameState = useSelector(portalService, _gameState);
 
   useEffect(() => {
     // If a player tries to quit while playing, mark it as an attempt
@@ -80,11 +80,22 @@ export const ChickenRescue: React.FC = () => {
     };
   }, []);
 
+  console.log({ value: portalState.value });
+
+  if (portalState.matches("loading")) {
+    <Modal show>
+      <Panel>
+        <span className="loading">{t("loading")}</span>
+      </Panel>
+    </Modal>;
+  }
+
   const dateKey = new Date().toISOString().slice(0, 10);
-  const minigame = portalState.context.state.minigames.games["chicken-rescue"];
+  console.log({ state: gameState });
+  const minigame = gameState.minigames.games["chicken-rescue"];
   const history = minigame?.history ?? {};
 
-  const prize = portalState.context.state.minigames.prizes["chicken-rescue"];
+  const prize = gameState.minigames.prizes["chicken-rescue"];
 
   const dailyAttempt = history[dateKey] ?? {
     attempts: 0,
@@ -105,14 +116,6 @@ export const ChickenRescue: React.FC = () => {
             <Button onClick={() => portalService.send("RETRY")}>
               {t("retry")}
             </Button>
-          </Panel>
-        </Modal>
-      )}
-
-      {portalState.matches("loading") && (
-        <Modal show>
-          <Panel>
-            <span className="loading">{t("loading")}</span>
           </Panel>
         </Modal>
       )}
@@ -149,11 +152,7 @@ export const ChickenRescue: React.FC = () => {
                 </Label>
                 <Label
                   icon={sfl}
-                  type={
-                    portalState.context.state.balance.lt(10)
-                      ? "danger"
-                      : "default"
-                  }
+                  type={gameState.balance.lt(10) ? "danger" : "default"}
                 >
                   10 SFL required
                 </Label>
@@ -168,14 +167,14 @@ export const ChickenRescue: React.FC = () => {
             </div>
             <div className="flex">
               <Button
-                disabled={portalState.context.state.balance.lt(10)}
+                disabled={gameState.balance.lt(10)}
                 onClick={goHome}
                 className="mr-1"
               >
                 Exit
               </Button>
               <Button
-                disabled={portalState.context.state.balance.lt(10)}
+                disabled={gameState.balance.lt(10)}
                 onClick={() => purchase({ sfl: 10 })}
               >
                 Unlock attempts
@@ -309,7 +308,7 @@ export const ChickenRescue: React.FC = () => {
         </Modal>
       )}
 
-      {portalState.context.state && (
+      {gameState && (
         <>
           <ChickenRescueHUD />
           <ChickenRescueGame />

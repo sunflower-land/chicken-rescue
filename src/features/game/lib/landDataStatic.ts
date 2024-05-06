@@ -369,7 +369,7 @@ export const STATIC_OFFLINE_FARM: GameState = {
       "chicken-rescue": {
         history: {
           [new Date().toISOString().slice(0, 10)]: {
-            attempts: 1,
+            attempts: 2,
             highscore: 22,
           },
         },
@@ -388,7 +388,7 @@ export const STATIC_OFFLINE_FARM: GameState = {
         score: 2,
         endAt: Date.now() + 60 * 60 * 1000,
         startAt: Date.now() - 60 * 60 * 1000,
-        coins: 100,
+        coins: 0,
         factionPoints: 15,
       },
     },
