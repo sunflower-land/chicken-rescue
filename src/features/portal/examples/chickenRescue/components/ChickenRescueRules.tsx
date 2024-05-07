@@ -24,6 +24,7 @@ import { InlineDialogue } from "features/world/ui/TypingMessage";
 
 interface Props {
   onAcknowledged: () => void;
+  onClose: () => void;
 }
 
 export const MinigamePrizeUI: React.FC<{
@@ -42,7 +43,8 @@ export const MinigamePrizeUI: React.FC<{
     );
   }
 
-  const isComplete = history && prize.score > history.highscore;
+  console.log({ history, prize });
+  const isComplete = history && history.highscore > prize.score;
   const secondsLeft = (prize.endAt - Date.now()) / 1000;
 
   return (
@@ -99,7 +101,10 @@ export const MinigameAttempts: React.FC<{
   return <Label type="danger">{`No attempts remaining`}</Label>;
 };
 
-export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
+export const ChickenRescueRules: React.FC<Props> = ({
+  onAcknowledged,
+  onClose,
+}) => {
   const { portalService } = useContext(PortalContext);
   const [portalState] = useActor(portalService);
   const { t } = useAppTranslation();
@@ -116,7 +121,6 @@ export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
 
   const prize = portalState.context.state.minigames.prizes["chicken-rescue"];
 
-  console.log({ attemptsLeft });
   return (
     <>
       <div>
@@ -132,14 +136,24 @@ export const ChickenRescueRules: React.FC<Props> = ({ onAcknowledged }) => {
         </div>
         <MinigamePrizeUI history={dailyAttempt} prize={prize} />
       </div>
-      <Button
-        className="mt-1 whitespace-nowrap capitalize"
-        onClick={() => {
-          onAcknowledged();
-        }}
-      >
-        {t("start")}
-      </Button>
+      <div className="flex space-x-1">
+        <Button
+          className="mt-1 whitespace-nowrap capitalize"
+          onClick={() => {
+            onClose();
+          }}
+        >
+          {t("exit")}
+        </Button>
+        <Button
+          className="mt-1 whitespace-nowrap capitalize"
+          onClick={() => {
+            onAcknowledged();
+          }}
+        >
+          {t("start")}
+        </Button>
+      </div>
     </>
   );
 };

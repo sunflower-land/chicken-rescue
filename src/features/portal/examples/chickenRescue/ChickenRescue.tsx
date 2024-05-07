@@ -80,14 +80,14 @@ export const ChickenRescue: React.FC = () => {
     };
   }, []);
 
-  console.log({ value: portalState.value });
-
-  if (portalState.matches("loading")) {
-    <Modal show>
-      <Panel>
-        <span className="loading">{t("loading")}</span>
-      </Panel>
-    </Modal>;
+  if (portalState.matches("loading") || !gameState) {
+    return (
+      <Modal show>
+        <Panel>
+          <span className="loading">{t("loading")}</span>
+        </Panel>
+      </Modal>
+    );
   }
 
   const dateKey = new Date().toISOString().slice(0, 10);
@@ -189,6 +189,7 @@ export const ChickenRescue: React.FC = () => {
           <Panel bumpkinParts={NPC_WEARABLES.chicken}>
             <ChickenRescueRules
               onAcknowledged={() => portalService.send("CONTINUE")}
+              onClose={() => goHome()}
             />
           </Panel>
         </Modal>
@@ -272,6 +273,37 @@ export const ChickenRescue: React.FC = () => {
                 {t("claim")}
               </Button>
             </>
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("complete") && (
+        <Modal show>
+          <Panel bumpkinParts={NPC_WEARABLES.chicken}>
+            <div className="w-full relative flex justify-between p-1 items-center">
+              <Label type="default" icon={SUNNYSIDE.icons.death}>
+                Chicken Rescue
+              </Label>
+              <MinigameAttempts
+                attemptsLeft={attemptsLeft}
+                purchases={minigame?.purchases}
+              />
+            </div>
+            <div className="mt-1 flex justify-between flex-col space-y-1 px-1 mb-2">
+              <span className="text-sm">{`Score: ${portalState.context.score}`}</span>
+              <span className="text-xs">{`Highscore: ${Math.max(
+                portalState.context.score,
+                minigame?.highscore ?? 0
+              )}`}</span>
+            </div>
+            <div className="flex mt-1">
+              <Button onClick={goHome} className="mr-1">
+                {t("go.home")}
+              </Button>
+              <Button onClick={() => portalService.send("RETRY")}>
+                {t("play.again")}
+              </Button>
+            </div>
           </Panel>
         </Modal>
       )}

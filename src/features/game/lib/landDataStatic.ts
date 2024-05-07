@@ -380,7 +380,6 @@ export const STATIC_OFFLINE_FARM: GameState = {
           // },
         ],
         highscore: 10,
-        prizeClaimedAt: 0,
       },
     },
     prizes: {

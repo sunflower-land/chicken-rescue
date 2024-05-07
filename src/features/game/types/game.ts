@@ -534,13 +534,13 @@ export type MinigamePrize = {
 export type MinigameHistory = {
   highscore: number;
   attempts: number;
+  prizeClaimedAt?: number;
 };
 
 export type Minigame = {
-  history: Record<string, MinigameHistory>;
   highscore: number;
-  prizeClaimedAt: number;
   purchases?: { sfl: number; purchasedAt: number }[];
+  history: Record<string, MinigameHistory>;
 };
 
 export type Airdrop = {

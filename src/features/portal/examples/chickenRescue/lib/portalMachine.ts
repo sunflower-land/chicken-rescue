@@ -10,6 +10,7 @@ import { PlazaRoomState } from "features/world/types/Room";
 import { SPAWNS } from "features/world/lib/spawn";
 import { decodeToken } from "features/auth/actions/login";
 import { played } from "./portalUtil";
+import { purchaseMinigameItem } from "features/game/events/minigames/purchaseMinigameItem";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
@@ -61,6 +62,7 @@ export type PortalState = {
     | "gameOver"
     | "winner"
     | "loser"
+    | "complete"
     | "starting"
     | "noAttempts";
   context: Context;
@@ -119,13 +121,15 @@ export const portalMachine = createMachine({
 
           const dateKey = new Date().toISOString().slice(0, 10);
 
-          const minigame = context.state?.minigames.games["chicken-rescue"];
+          const minigame = game.minigames.games["chicken-rescue"];
           const history = minigame?.history ?? {};
 
           const dailyAttempt = history[dateKey] ?? {
             attempts: 0,
             highscore: 0,
           };
+
+          console.log({ history, dateKey, dailyAttempt, minigame });
 
           const attemptsLeft = 3 - dailyAttempt.attempts;
           console.log({ SetHer: attemptsLeft });
@@ -151,7 +155,18 @@ export const portalMachine = createMachine({
     noAttempts: {
       on: {
         PURCHASED: {
-          target: "loading",
+          target: "introduction",
+          actions: assign({
+            state: (context: Context) =>
+              purchaseMinigameItem({
+                state: context.state,
+                action: {
+                  id: "chicken-rescue",
+                  sfl: 10,
+                  type: "minigame.itemPurchased",
+                },
+              }),
+          }),
         },
       },
     },
@@ -222,6 +237,21 @@ export const portalMachine = createMachine({
     gameOver: {
       always: [
         {
+          // They have already completed the mission before
+          target: "complete",
+          cond: (context) => {
+            const dateKey = new Date().toISOString().slice(0, 10);
+
+            const minigame = context.state?.minigames.games["chicken-rescue"];
+            const history = minigame?.history ?? {};
+
+            console.log({ history, today: history[dateKey] });
+
+            return !!history[dateKey]?.prizeClaimedAt;
+          },
+        },
+
+        {
           target: "winner",
           cond: (context) => {
             const prize = context.state?.minigames.prizes["chicken-rescue"];
@@ -250,6 +280,17 @@ export const portalMachine = createMachine({
       },
     },
     loser: {
+      on: {
+        RETRY: {
+          target: "starting",
+          actions: assign({
+            score: () => 0,
+            endAt: () => Date.now() + GAME_SECONDS * 1000,
+          }) as any,
+        },
+      },
+    },
+    complete: {
       on: {
         RETRY: {
           target: "starting",
