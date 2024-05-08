@@ -173,6 +173,7 @@ import {
   Factions,
   Leaderboard,
   GameOptions,
+  Minigame,
 } from "./types";
 
 const generalTerms: Record<GeneralTerms, string> = {
@@ -4806,6 +4807,28 @@ const gameOptions: Record<GameOptions, string> = {
     ENGLISH_TERMS["gameOptions.plazaSettings.changeServer"],
 };
 
+const minigame: Record<Minigame, string> = {
+  "minigame.chickenRescue": ENGLISH_TERMS["minigame.chickenRescue"],
+  "minigame.comingSoon": ENGLISH_TERMS["minigame.comingSoon"],
+  "minigame.completed": ENGLISH_TERMS["minigame.completed"],
+  "minigame.confirm": ENGLISH_TERMS["minigame.confirm"],
+  "minigame.noPrizeAvailable": ENGLISH_TERMS["minigame.noPrizeAvailable"],
+  "minigame.playNow": ENGLISH_TERMS["minigame.playNow"],
+  "minigame.purchase": ENGLISH_TERMS["minigame.purchase"],
+  "minigame.chickenRescueHelp": ENGLISH_TERMS["minigame.chickenRescueHelp"],
+  "minigame.attemptsRemaining": ENGLISH_TERMS["minigame.attemptsRemaining"],
+  "minigame.noAttemptsRemaining": ENGLISH_TERMS["minigame.noAttemptsRemaining"],
+  "minigame.unlimitedAttempts": ENGLISH_TERMS["minigame.unlimitedAttempts"],
+  "minigame.sflRequired": ENGLISH_TERMS["minigame.sflRequired"],
+  "minigame.youHaveRunOutOfAttempts":
+    ENGLISH_TERMS["minigame.youHaveRunOutOfAttempts"],
+  "minigame.wouldYouLikeToUnlock":
+    ENGLISH_TERMS["minigame.wouldYouLikeToUnlock"],
+  "minigame.unlockAttempts": ENGLISH_TERMS["minigame.unlockAttempts"],
+  "minigame.missionComplete": ENGLISH_TERMS["minigame.missionComplete"],
+  "minigame.missionFailed": ENGLISH_TERMS["minigame.missionFailed"],
+};
+
 export const PORTUGUESE_TERMS: Record<TranslationKeys, string> = {
   ...achievementTerms,
   ...auction,
@@ -4902,6 +4925,7 @@ export const PORTUGUESE_TERMS: Record<TranslationKeys, string> = {
   ...lostSunflorian,
   ...megaStore,
   ...milestoneMessages,
+  ...minigame,
   ...modalDescription,
   ...noaccount,
   ...noBumpkin,

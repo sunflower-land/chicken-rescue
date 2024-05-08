@@ -20,7 +20,6 @@ import {
 } from "./components/ChickenRescueRules";
 import { ChickenRescueGame } from "./ChickenRescueGame";
 import { ITEM_DETAILS } from "features/game/types/images";
-import { MinigamePrize } from "features/game/types/game";
 
 import lock from "assets/skills/lock.png";
 import sfl from "assets/icons/sfl.webp";
@@ -65,8 +64,8 @@ export const ChickenRescue: React.FC = () => {
           portalService.send("PURCHASED");
         }
       } else {
-        // If the origin is not trusted, handle it accordingly
-        console.log("Received message from untrusted origin:", event.origin);
+        // eslint-disable-next-line no-console
+        console.error("Received message from untrusted origin:", event.origin);
       }
     };
 
@@ -80,7 +79,7 @@ export const ChickenRescue: React.FC = () => {
     };
   }, []);
 
-  if (portalState.matches("loading") || !gameState) {
+  if (portalState.matches("loading")) {
     return (
       <Modal show>
         <Panel>
@@ -91,7 +90,6 @@ export const ChickenRescue: React.FC = () => {
   }
 
   const dateKey = new Date().toISOString().slice(0, 10);
-  console.log({ state: gameState });
   const minigame = gameState.minigames.games["chicken-rescue"];
   const history = minigame?.history ?? {};
 
@@ -148,21 +146,21 @@ export const ChickenRescue: React.FC = () => {
             <div className="p-1">
               <div className="flex justify-between items-center mb-2">
                 <Label icon={lock} type="danger">
-                  No attempts remaining
+                  {t("minigame.noAttemptsRemaining")}
                 </Label>
                 <Label
                   icon={sfl}
                   type={gameState.balance.lt(10) ? "danger" : "default"}
                 >
-                  10 SFL required
+                  {`10 ${t("minigame.sflRequired")}`}
                 </Label>
               </div>
 
               <p className="text-sm mb-2">
-                You have ran out of daily attempts.
+                {t("minigame.youHaveRunOutOfAttempts")}
               </p>
               <p className="text-sm mb-2">
-                Would you like to unlock unlimited attempts for 7 days?
+                {t("minigame.wouldYouLikeToUnlock")}
               </p>
             </div>
             <div className="flex">
@@ -171,13 +169,13 @@ export const ChickenRescue: React.FC = () => {
                 onClick={goHome}
                 className="mr-1"
               >
-                Exit
+                {t("exit")}
               </Button>
               <Button
                 disabled={gameState.balance.lt(10)}
                 onClick={() => purchase({ sfl: 10 })}
               >
-                Unlock attempts
+                {t("minigame.unlockAttempts")}
               </Button>
             </div>
           </Panel>
@@ -202,7 +200,7 @@ export const ChickenRescue: React.FC = () => {
               <div>
                 <div className="w-full relative flex justify-between p-1 items-center">
                   <Label type="default" icon={ITEM_DETAILS["Chicken"].image}>
-                    Chicken Rescue
+                    {t("minigame.chickenRescue")}
                   </Label>
                   <MinigameAttempts
                     attemptsLeft={attemptsLeft}
@@ -248,7 +246,7 @@ export const ChickenRescue: React.FC = () => {
               <div>
                 <div className="w-full relative flex justify-between p-1">
                   <Label type="success" icon={SUNNYSIDE.icons.confirm}>
-                    Mission Complete
+                    {t("minigame.missionComplete")}
                   </Label>
                   <MinigameAttempts
                     attemptsLeft={attemptsLeft}
@@ -282,7 +280,7 @@ export const ChickenRescue: React.FC = () => {
           <Panel bumpkinParts={NPC_WEARABLES.chicken}>
             <div className="w-full relative flex justify-between p-1 items-center">
               <Label type="default" icon={SUNNYSIDE.icons.death}>
-                Chicken Rescue
+                {t("minigame.chickenRescue")}
               </Label>
               <MinigameAttempts
                 attemptsLeft={attemptsLeft}
@@ -313,7 +311,7 @@ export const ChickenRescue: React.FC = () => {
           <Panel bumpkinParts={NPC_WEARABLES.chicken}>
             <div className="w-full relative flex justify-between p-1 items-center">
               <Label type="danger" icon={SUNNYSIDE.icons.death}>
-                Mission failed
+                {t("minigame.missionFailed")}
               </Label>
               <MinigameAttempts
                 attemptsLeft={attemptsLeft}

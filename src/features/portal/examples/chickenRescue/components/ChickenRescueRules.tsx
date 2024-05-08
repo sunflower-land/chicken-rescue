@@ -1,10 +1,7 @@
 import React, { useContext } from "react";
 
-import tutorial from "assets/announcements/chicken_rescue_rules.png";
-
 import { SUNNYSIDE } from "assets/sunnyside";
 import { Button } from "components/ui/Button";
-import { ITEM_DETAILS } from "features/game/types/images";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { Label } from "components/ui/Label";
 import { OuterPanel } from "components/ui/Panel";
@@ -20,7 +17,6 @@ import {
 import { secondsToString } from "lib/utils/time";
 import { PortalContext } from "../lib/PortalProvider";
 import { useActor } from "@xstate/react";
-import { InlineDialogue } from "features/world/ui/TypingMessage";
 
 interface Props {
   onAcknowledged: () => void;
@@ -31,19 +27,19 @@ export const MinigamePrizeUI: React.FC<{
   prize?: MinigamePrize;
   history?: MinigameHistory;
 }> = ({ prize, history }) => {
+  const { t } = useAppTranslation();
   if (!prize) {
     return (
       <OuterPanel>
         <div className="px-1">
           <Label type="danger" icon={SUNNYSIDE.icons.sad}>
-            No daily prize available
+            {t("minigame.noPrizeAvailable")}
           </Label>
         </div>
       </OuterPanel>
     );
   }
 
-  console.log({ history, prize });
   const isComplete = history && history.highscore > prize.score;
   const secondsLeft = (prize.endAt - Date.now()) / 1000;
 
@@ -54,7 +50,7 @@ export const MinigamePrizeUI: React.FC<{
         <div className="flex justify-between mt-2 flex-wrap">
           {isComplete ? (
             <Label type="success" icon={SUNNYSIDE.icons.confirm}>
-              Completed
+              {t("minigame.completed")}
             </Label>
           ) : (
             <Label type="info" icon={SUNNYSIDE.icons.stopwatch}>
@@ -83,6 +79,8 @@ export const MinigameAttempts: React.FC<{
   attemptsLeft: number;
   purchases: Minigame["purchases"];
 }> = ({ attemptsLeft, purchases = [] }) => {
+  const { t } = useAppTranslation();
+
   // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
   const hasUnlimitedAttempts = purchases.some(
     (purchase) => purchase.purchasedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
@@ -91,14 +89,18 @@ export const MinigameAttempts: React.FC<{
   const hasMoreAttempts = attemptsLeft > 0;
 
   if (hasUnlimitedAttempts) {
-    return <Label type="success">{`Unlimited attempts`}</Label>;
+    return <Label type="success">{t("minigame.unlimitedAttempts")}</Label>;
   }
 
   if (hasMoreAttempts) {
-    return <Label type="vibrant">{`${attemptsLeft} Attempts Remaining`}</Label>;
+    return (
+      <Label type="vibrant">{`${attemptsLeft}  ${t(
+        "minigame.attemptsRemaining"
+      )}`}</Label>
+    );
   }
 
-  return <Label type="danger">{`No attempts remaining`}</Label>;
+  return <Label type="danger">{t("minigame.noAttemptsRemaining")}</Label>;
 };
 
 export const ChickenRescueRules: React.FC<Props> = ({
@@ -126,7 +128,7 @@ export const ChickenRescueRules: React.FC<Props> = ({
       <div>
         <div className="w-full relative flex justify-between p-1 items-center mb-2">
           <Label type="default" icon={factions}>
-            Chicken Rescue
+            {t("minigame.chickenRescue")}
           </Label>
 
           <MinigameAttempts

@@ -3,23 +3,12 @@ import { GameState } from "features/game/types/game";
 import { assign, createMachine, Interpreter, State } from "xstate";
 import { loadPortal } from "../actions/loadPortal";
 import { CONFIG } from "lib/config";
-import { claimArcadeToken } from "../actions/claimArcadeToken";
-import { PortalName } from "features/game/types/portals";
-import { Client, Room } from "colyseus.js";
-import { PlazaRoomState } from "features/world/types/Room";
-import { SPAWNS } from "features/world/lib/spawn";
 import { decodeToken } from "features/auth/actions/login";
 import { played } from "./portalUtil";
 import { purchaseMinigameItem } from "features/game/events/minigames/purchaseMinigameItem";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
-
-  return code;
-};
-
-const getServer = () => {
-  const code = new URLSearchParams(window.location.search).get("server");
 
   return code;
 };
@@ -129,10 +118,7 @@ export const portalMachine = createMachine({
             highscore: 0,
           };
 
-          console.log({ history, dateKey, dailyAttempt, minigame });
-
           const attemptsLeft = 3 - dailyAttempt.attempts;
-          console.log({ SetHer: attemptsLeft });
 
           return { game, farmId, attemptsLeft };
         },
@@ -156,7 +142,7 @@ export const portalMachine = createMachine({
       on: {
         PURCHASED: {
           target: "introduction",
-          actions: assign({
+          actions: assign<Context>({
             state: (context: Context) =>
               purchaseMinigameItem({
                 state: context.state,
@@ -166,7 +152,7 @@ export const portalMachine = createMachine({
                   type: "minigame.itemPurchased",
                 },
               }),
-          }),
+          }) as any,
         },
       },
     },
@@ -210,7 +196,7 @@ export const portalMachine = createMachine({
       on: {
         START: {
           target: "playing",
-          actions: assign({
+          actions: assign<Context>({
             endAt: () => Date.now() + GAME_SECONDS * 1000,
             attemptsLeft: (context: Context) => context.attemptsLeft - 1,
           }) as any,
@@ -224,13 +210,15 @@ export const portalMachine = createMachine({
             score: (context: any, event) => {
               return context.score + (event as ChickenRescuedEvent).points;
             },
-          }),
+          }) as any,
         },
         GAME_OVER: {
           target: "gameOver",
-          actions: (context: Context) => {
-            played({ score: context.score });
-          },
+          actions: assign({
+            state: (context: any) => {
+              return played({ score: context.score });
+            },
+          }) as any,
         },
       },
     },
@@ -244,8 +232,6 @@ export const portalMachine = createMachine({
 
             const minigame = context.state?.minigames.games["chicken-rescue"];
             const history = minigame?.history ?? {};
-
-            console.log({ history, today: history[dateKey] });
 
             return !!history[dateKey]?.prizeClaimedAt;
           },

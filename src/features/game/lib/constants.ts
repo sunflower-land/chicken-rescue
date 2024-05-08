@@ -316,6 +316,10 @@ export const TEST_FARM: GameState = {
   previousWardrobe: {},
   createdAt: new Date().getTime(),
   conversations: [],
+  minigames: {
+    games: {},
+    prizes: {},
+  },
   mailbox: {
     read: [],
   },
@@ -472,6 +476,10 @@ export const EMPTY: GameState = {
   },
   previousInventory: {},
   chickens: {},
+  minigames: {
+    games: {},
+    prizes: {},
+  },
   stock: {},
   stockExpiry: {},
   wardrobe: {},

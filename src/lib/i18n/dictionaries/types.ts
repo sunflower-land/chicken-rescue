@@ -3225,6 +3225,25 @@ export type GameOptions =
   | "gameOptions.logout"
   | "gameOptions.confirmLogout";
 
+export type Minigame =
+  | "minigame.playNow"
+  | "minigame.chickenRescue"
+  | "minigame.completed"
+  | "minigame.noPrizeAvailable"
+  | "minigame.confirm"
+  | "minigame.purchase"
+  | "minigame.comingSoon"
+  | "minigame.chickenRescueHelp"
+  | "minigame.unlimitedAttempts"
+  | "minigame.attemptsRemaining"
+  | "minigame.noAttemptsRemaining"
+  | "minigame.sflRequired"
+  | "minigame.youHaveRunOutOfAttempts"
+  | "minigame.wouldYouLikeToUnlock"
+  | "minigame.unlockAttempts"
+  | "minigame.missionComplete"
+  | "minigame.missionFailed";
+
 export type TranslationKeys =
   | AchievementsTerms
   | Auction
@@ -3321,6 +3340,7 @@ export type TranslationKeys =
   | LostSunflorian
   | MegaStore
   | MilestoneMessages
+  | Minigame
   | ModalDescription
   | Noaccount
   | NoBumpkin

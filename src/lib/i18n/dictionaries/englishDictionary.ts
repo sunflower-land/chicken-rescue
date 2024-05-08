@@ -172,6 +172,7 @@ import {
   RemoveHungryCaterpillar,
   Leaderboard,
   GameOptions,
+  Minigame,
 } from "./types";
 
 const generalTerms: Record<GeneralTerms, string> = {
@@ -4726,6 +4727,27 @@ const gameOptions: Record<GameOptions, string> = {
   "gameOptions.plazaSettings.changeServer": "Change server",
 };
 
+const minigame: Record<Minigame, string> = {
+  "minigame.chickenRescue": "Minigame - Chicken Rescue",
+  "minigame.comingSoon": "Coming soon...",
+  "minigame.completed": "Complete",
+  "minigame.confirm": "Are you sure you want to spend ",
+  "minigame.noPrizeAvailable": "No daily prize available",
+  "minigame.playNow": "Play now",
+  "minigame.purchase": "Purchase",
+  "minigame.chickenRescueHelp": "Can you help me rescue the chickens?",
+  "minigame.attemptsRemaining": "attempts remaining",
+  "minigame.noAttemptsRemaining": "No attempts remaining",
+  "minigame.unlimitedAttempts": "Unlimited attempts",
+  "minigame.sflRequired": "SFL required",
+  "minigame.youHaveRunOutOfAttempts": "You have run out of attempts",
+  "minigame.wouldYouLikeToUnlock":
+    "Would you like to unlock unlimited attempts for 7 days?",
+  "minigame.unlockAttempts": "Unlock attempts",
+  "minigame.missionComplete": "Mission complete",
+  "minigame.missionFailed": "Mission failed",
+};
+
 export const ENGLISH_TERMS: Record<TranslationKeys, string> = {
   ...achievementTerms,
   ...addSFL,
@@ -4823,6 +4845,7 @@ export const ENGLISH_TERMS: Record<TranslationKeys, string> = {
   ...lostSunflorian,
   ...megaStore,
   ...milestoneMessages,
+  ...minigame,
   ...modalDescription,
   ...nftminting,
   ...noaccount,

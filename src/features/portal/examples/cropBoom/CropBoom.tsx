@@ -10,14 +10,8 @@ import { Ocean } from "features/world/ui/Ocean";
 import { CropBoomHud } from "features/portal/examples/cropBoom/components/CropBoomHud";
 import { CropBoomPhaser } from "./CropBoomPhaser";
 import { Label } from "components/ui/Label";
-import { SUNNYSIDE } from "assets/sunnyside";
 import { NPC_WEARABLES } from "lib/npcs";
-import { secondsTillReset } from "features/helios/components/hayseedHank/HayseedHankV2";
-import { secondsToString } from "lib/utils/time";
-import {
-  authorisePortal,
-  goHome,
-} from "features/portal/examples/cropBoom/lib/portalUtil";
+import { authorisePortal } from "features/portal/examples/cropBoom/lib/portalUtil";
 import { CropBoomRules } from "./components/CropBoomRules";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
@@ -88,38 +82,6 @@ export const CropBoom: React.FC = () => {
             <CropBoomRules
               onAcknowledged={() => portalService.send("CONTINUE")}
             />
-          </Panel>
-        </Modal>
-      )}
-
-      {portalState.matches("claiming") && (
-        <Modal show>
-          <Panel>
-            <p className="loading">{t("loading")}</p>
-          </Panel>
-        </Modal>
-      )}
-
-      {portalState.matches("completed") && (
-        <Modal show>
-          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
-            <div className="p-2">
-              <p className="mb-2">
-                {`Congratulations, you have completed today's challenge.`}
-              </p>
-              <p className="text-sm mb-1">{t("crop.boom.back.puzzle")}</p>
-              <Label type="info" icon={SUNNYSIDE.icons.timer}>
-                {secondsToString(secondsTillReset(), { length: "medium" })}
-              </Label>
-            </div>
-            <div className="flex">
-              <Button onClick={goHome} className="mr-1">
-                {t("go.home")}
-              </Button>
-              <Button onClick={() => portalService.send("CONTINUE")}>
-                {t("play.again")}
-              </Button>
-            </div>
           </Panel>
         </Modal>
       )}

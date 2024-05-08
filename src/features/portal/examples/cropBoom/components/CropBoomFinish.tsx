@@ -13,13 +13,8 @@ export const CropBoomFinish: React.FC<Props> = ({ onClose }) => {
   const { t } = useAppTranslation();
 
   const claim = async () => {
-    portalService.send("CLAIM");
     onClose();
   };
-
-  if (portalState.matches("claiming")) {
-    return <span className="loading">{t("loading")}</span>;
-  }
 
   return (
     <ClaimReward
