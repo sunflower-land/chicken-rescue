@@ -10,7 +10,7 @@ import { Label } from "components/ui/Label";
 import { OuterPanel } from "components/ui/Panel";
 
 import coins from "assets/icons/coins.webp";
-import sfl from "assets/icons/sfl.webp";
+import factions from "assets/icons/factions.webp";
 import flagIcon from "assets/icons/faction_point.webp";
 import {
   Minigame,
@@ -125,7 +125,7 @@ export const ChickenRescueRules: React.FC<Props> = ({
     <>
       <div>
         <div className="w-full relative flex justify-between p-1 items-center mb-2">
-          <Label type="default" icon={ITEM_DETAILS["Chicken"].image}>
+          <Label type="default" icon={factions}>
             Chicken Rescue
           </Label>
 
