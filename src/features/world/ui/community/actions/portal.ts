@@ -1,4 +1,3 @@
-import { CONFIG } from "lib/config";
 import { ERRORS } from "lib/errors";
 
 type Request = {
@@ -7,14 +6,23 @@ type Request = {
   farmId: number;
 };
 
-const API_URL = CONFIG.API_URL;
+// Network is passed in through the iframe
+const getUrl = () => {
+  const network = new URLSearchParams(window.location.search).get("network");
+
+  if (network === "mainnet") {
+    return "https://api.sunflower-land.com";
+  }
+
+  return "https://api-dev.sunflower-land.com";
+};
 
 export async function portal(request: Request) {
   // TODO check cache for valid token;
 
   // Uses same autosave event driven endpoint
   const response = await window.fetch(
-    `${API_URL}/portal/${request.portalId}/login`,
+    `${getUrl()}/portal/${request.portalId}/login`,
     {
       method: "POST",
       headers: {

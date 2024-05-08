@@ -3,10 +3,18 @@ import { initReactI18next } from "react-i18next";
 import { resources } from "lib/i18n/dictionaries/dictionary";
 
 if (process.env.NODE_ENV !== "metadata") {
+  const language =
+    // Passed in through URL
+    new URLSearchParams(window.location.search).get("network") ||
+    // Save in local storage
+    localStorage.getItem("language") ||
+    // Default to english
+    "en";
+
   i18n.use(initReactI18next).init(
     {
       resources,
-      lng: localStorage.getItem("language") || "en",
+      lng: language,
       keySeparator: false,
       interpolation: {
         escapeValue: false,
