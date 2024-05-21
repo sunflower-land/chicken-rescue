@@ -6,6 +6,7 @@ import { CONFIG } from "lib/config";
 import { decodeToken } from "features/auth/actions/login";
 import { purchaseMinigameItem } from "features/game/events/minigames/purchaseMinigameItem";
 import { playMinigame } from "features/game/events/minigames/playMinigame";
+import { played } from "./portalUtil";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
@@ -216,6 +217,7 @@ export const portalMachine = createMachine({
           target: "gameOver",
           actions: assign({
             state: (context: any) => {
+              played({ score: context.score });
               return playMinigame({
                 state: context.state,
                 action: {
