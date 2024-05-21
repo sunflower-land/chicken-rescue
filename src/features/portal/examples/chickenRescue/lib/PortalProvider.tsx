@@ -1,6 +1,6 @@
 import React from "react";
 import { useInterpret } from "@xstate/react";
-import { MachineInterpreter, portalMachine } from "./portalMachine";
+import { MachineInterpreter, portalMachine } from "./chickenRescueMachine";
 
 interface PortalContext {
   portalService: MachineInterpreter;

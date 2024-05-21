@@ -5,7 +5,7 @@ import { resources } from "lib/i18n/dictionaries/dictionary";
 if (process.env.NODE_ENV !== "metadata") {
   const language =
     // Passed in through URL
-    new URLSearchParams(window.location.search).get("network") ||
+    new URLSearchParams(window.location.search).get("language") ||
     // Save in local storage
     localStorage.getItem("language") ||
     // Default to english

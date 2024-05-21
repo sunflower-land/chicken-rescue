@@ -24,7 +24,7 @@ import { ITEM_DETAILS } from "features/game/types/images";
 import lock from "assets/skills/lock.png";
 import sfl from "assets/icons/sfl.webp";
 import { authorisePortal, complete, goHome, purchase } from "./lib/portalUtil";
-import { PortalMachineState } from "./lib/portalMachine";
+import { PortalMachineState } from "./lib/chickenRescueMachine";
 
 export const ChickenRescueApp: React.FC = () => {
   return (

@@ -5,12 +5,11 @@ import { BaseScene } from "features/world/scenes/BaseScene";
 import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SQUARE_WIDTH } from "features/game/lib/constants";
-import { MachineInterpreter } from "./lib/portalMachine";
+import { MachineInterpreter } from "./lib/chickenRescueMachine";
 import { SUNNYSIDE } from "assets/sunnyside";
 import {
   BoundingBox,
   isOverlapping,
-  pickEmptyPosition,
   randomEmptyPosition,
 } from "features/game/expansion/placeable/lib/collisionDetection";
 import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
@@ -134,7 +133,6 @@ export class ChickenRescueScene extends BaseScene {
       key: "chicken_rescue",
     });
 
-    console.log("CREATE");
     super.create();
 
     this.setupMobileControls();
@@ -279,7 +277,7 @@ export class ChickenRescueScene extends BaseScene {
       height: 1,
     }));
 
-    let goblinPathPositions: Coordinates[] = [];
+    const goblinPathPositions: Coordinates[] = [];
     this.goblins
       .filter((goblin) => goblin.moveTo)
       // Fill in all positions between the goblin and the moveTo
@@ -333,8 +331,6 @@ export class ChickenRescueScene extends BaseScene {
     return coordinates;
   }
 
-  getAvailableDestination({ x, y }: Coordinates) {}
-
   addGoblin() {
     const coordinates = this.pickEmptyGridPosition({
       width: 1,
@@ -345,12 +341,11 @@ export class ChickenRescueScene extends BaseScene {
     //   y: FENCE_BOUNDS.y,
     // };
     if (!coordinates) {
-      console.log("No available positions for enemy");
       return;
     }
 
-    let x = coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2;
-    let y = coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2;
+    const x = coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2;
+    const y = coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2;
 
     const goblin = new BumpkinContainer({
       clothing: {
@@ -399,7 +394,6 @@ export class ChickenRescueScene extends BaseScene {
       y: Math.floor(goblin.container.y / SQUARE_WIDTH),
     };
 
-    console.log({ coordinates });
     // Find point to move to
     const boxes = this.getBoundingBoxes();
     const potentialPoints: Coordinates[] = [];
@@ -410,7 +404,6 @@ export class ChickenRescueScene extends BaseScene {
       coordX < FENCE_BOUNDS.x + FENCE_BOUNDS.width;
       coordX++
     ) {
-      console.log({ coordX });
       const isEmpty = boxes.every(
         (box) =>
           !isOverlapping(
@@ -506,7 +499,6 @@ export class ChickenRescueScene extends BaseScene {
       if (!isEmpty) {
         break;
       }
-      console.log({ empty: coordY });
 
       potentialPoints.push({
         x: coordinates.x,
@@ -546,7 +538,6 @@ export class ChickenRescueScene extends BaseScene {
     const coordinates = this.pickEmptyGridPosition({ width: 1, height: 1 });
 
     if (!coordinates) {
-      console.log("NO AVAILABLE POSITIONS!");
       return;
     }
 
@@ -616,7 +607,6 @@ export class ChickenRescueScene extends BaseScene {
     const coordinates = this.pickEmptyGridPosition(dimensions);
 
     if (!coordinates) {
-      console.log("No available positions for enemy");
       return;
     }
 
@@ -675,8 +665,6 @@ export class ChickenRescueScene extends BaseScene {
     this.following.forEach((follower, index) => {
       setInterval(() => follower?.disappear(), (index + 1) * 100);
     });
-
-    console.log("DEAD!");
 
     await new Promise((res) => setTimeout(res, 1000));
 
@@ -850,7 +838,6 @@ export class ChickenRescueScene extends BaseScene {
   }
 
   start() {
-    console.log("START IT!");
     this.portalService?.send("START");
 
     setInterval(() => {
@@ -875,7 +862,7 @@ export class ChickenRescueScene extends BaseScene {
 
     setInterval(() => {
       // Every 10 score, add a goblin
-      let limit = Math.floor(this.score / 10);
+      const limit = Math.floor(this.score / 10);
 
       if (this.goblins.length < limit) {
         this.addGoblin();
@@ -957,7 +944,6 @@ export class ChickenRescueScene extends BaseScene {
 
     this.direction = direction;
 
-    console.log("MOVE AND SHIFT");
     this.nextMove = undefined;
   }
 
@@ -1087,7 +1073,6 @@ export class ChickenRescueScene extends BaseScene {
             0,
             0
           );
-          console.log("REACHED!");
           goblin.container.idle();
           // Reached it!
         }

@@ -4,8 +4,8 @@ import { assign, createMachine, Interpreter, State } from "xstate";
 import { loadPortal } from "../actions/loadPortal";
 import { CONFIG } from "lib/config";
 import { decodeToken } from "features/auth/actions/login";
-import { played } from "./portalUtil";
 import { purchaseMinigameItem } from "features/game/events/minigames/purchaseMinigameItem";
+import { playMinigame } from "features/game/events/minigames/playMinigame";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
@@ -216,7 +216,14 @@ export const portalMachine = createMachine({
           target: "gameOver",
           actions: assign({
             state: (context: any) => {
-              return played({ score: context.score });
+              return playMinigame({
+                state: context.state,
+                action: {
+                  type: "minigame.played",
+                  score: context.score,
+                  id: "chicken-rescue",
+                },
+              });
             },
           }) as any,
         },
