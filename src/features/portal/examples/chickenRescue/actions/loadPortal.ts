@@ -8,12 +8,24 @@ type Request = {
   token: string;
 };
 
-const API_URL = CONFIG.API_URL;
+const getUrl = () => {
+  const network = new URLSearchParams(window.location.search).get("network");
+
+  if (network && network === "mainnet") {
+    return "https://api.sunflower-land.com";
+  }
+
+  if (network) {
+    return "https://api-dev.sunflower-land.com";
+  }
+
+  return CONFIG.API_URL;
+};
 
 export async function loadPortal(request: Request) {
   // Uses same autosave event driven endpoint
   const response = await window.fetch(
-    `${API_URL}/portal/${request.portalId}/player`,
+    `${getUrl()}/portal/${request.portalId}/player`,
     {
       method: "GET",
       headers: {
