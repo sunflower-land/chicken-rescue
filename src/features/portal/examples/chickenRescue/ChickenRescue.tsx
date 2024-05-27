@@ -79,6 +79,36 @@ export const ChickenRescue: React.FC = () => {
     };
   }, []);
 
+  if (portalState.matches("error")) {
+    return (
+      <Modal show>
+        <Panel>
+          <div className="p-2">
+            <Label type="danger">{t("error")}</Label>
+            <span className="text-sm my-2">{t("error.wentWrong")}</span>
+          </div>
+          <Button onClick={() => portalService.send("RETRY")}>
+            {t("retry")}
+          </Button>
+        </Panel>
+      </Modal>
+    );
+  }
+
+  if (portalState.matches("unauthorised")) {
+    return (
+      <Modal show>
+        <Panel>
+          <div className="p-2">
+            <Label type="danger">{t("error")}</Label>
+            <span className="text-sm my-2">{t("session.expired")}</span>
+          </div>
+          <Button onClick={goHome}>{t("close")}</Button>
+        </Panel>
+      </Modal>
+    );
+  }
+
   if (portalState.matches("loading")) {
     return (
       <Modal show>
@@ -104,32 +134,6 @@ export const ChickenRescue: React.FC = () => {
 
   return (
     <div>
-      {portalState.matches("error") && (
-        <Modal show>
-          <Panel>
-            <div className="p-2">
-              <Label type="danger">{t("error")}</Label>
-              <span className="text-sm my-2">{t("error.wentWrong")}</span>
-            </div>
-            <Button onClick={() => portalService.send("RETRY")}>
-              {t("retry")}
-            </Button>
-          </Panel>
-        </Modal>
-      )}
-
-      {portalState.matches("unauthorised") && (
-        <Modal show>
-          <Panel>
-            <div className="p-2">
-              <Label type="danger">{t("error")}</Label>
-              <span className="text-sm my-2">{t("session.expired")}</span>
-            </div>
-            <Button onClick={authorisePortal}>{t("welcome.login")}</Button>
-          </Panel>
-        </Modal>
-      )}
-
       {portalState.matches("idle") && (
         <Modal show>
           <Panel>

@@ -1,7 +1,7 @@
 import { OFFLINE_FARM } from "features/game/lib/landData";
 import { GameState } from "features/game/types/game";
 import { assign, createMachine, Interpreter, State } from "xstate";
-import { loadPortal } from "../actions/loadPortal";
+import { getUrl, loadPortal } from "../actions/loadPortal";
 import { CONFIG } from "lib/config";
 import { decodeToken } from "features/auth/actions/login";
 import { purchaseMinigameItem } from "features/game/events/minigames/purchaseMinigameItem";
@@ -10,7 +10,7 @@ import { played } from "./portalUtil";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
-
+  console.log({ code, params: new URLSearchParams(window.location.search) });
   return code;
 };
 
@@ -97,7 +97,7 @@ export const portalMachine = createMachine({
       id: "loading",
       invoke: {
         src: async (context) => {
-          if (!CONFIG.API_URL) {
+          if (!getUrl()) {
             return { game: OFFLINE_FARM, attemptsLeft: 1 };
           }
 
@@ -108,6 +108,8 @@ export const portalMachine = createMachine({
             portalId: CONFIG.PORTAL_APP,
             token: context.jwt as string,
           });
+
+          console.log({ game });
 
           const dateKey = new Date().toISOString().slice(0, 10);
 
