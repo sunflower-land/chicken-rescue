@@ -18,6 +18,7 @@ export const maxItems: Inventory = {
   Pumpkin: new Decimal("16000"),
   Carrot: new Decimal("14000"),
   Cabbage: new Decimal("12000"),
+  Soybean: new Decimal("12000"),
   Beetroot: new Decimal("10000"),
   Cauliflower: new Decimal("10000"),
   Parsnip: new Decimal("8000"),
@@ -32,6 +33,10 @@ export const maxItems: Inventory = {
   Blueberry: new Decimal("900"),
   Banana: new Decimal("600"),
 
+  Olive: new Decimal("250"),
+  Grape: new Decimal("250"),
+  Rice: new Decimal("250"),
+
   Chicken: new Decimal("20"),
   Egg: new Decimal("800"),
 
@@ -40,6 +45,7 @@ export const maxItems: Inventory = {
   "Fat Chicken": new Decimal("5"),
   "Banana Chicken": new Decimal("5"),
   "Crim Peckster": new Decimal("5"),
+  "Knight Chicken": new Decimal("5"),
 
   // Seed limits + buffer
   "Sunflower Seed": new Decimal(1250),
@@ -47,6 +53,7 @@ export const maxItems: Inventory = {
   "Pumpkin Seed": new Decimal(530),
   "Carrot Seed": new Decimal(350),
   "Cabbage Seed": new Decimal(350),
+  "Soybean Seed": new Decimal(350),
   "Beetroot Seed": new Decimal(320),
   "Cauliflower Seed": new Decimal(290),
   "Parsnip Seed": new Decimal(230),
@@ -62,6 +69,9 @@ export const maxItems: Inventory = {
   "Sunpetal Seed": new Decimal(100),
   "Bloom Seed": new Decimal(100),
   "Lily Seed": new Decimal(100),
+  "Olive Seed": new Decimal(100),
+  "Grape Seed": new Decimal(100),
+  "Rice Seed": new Decimal(100),
 
   "Red Pansy": new Decimal("80"),
   "Yellow Pansy": new Decimal("80"),
@@ -104,7 +114,7 @@ export const maxItems: Inventory = {
   Stone: new Decimal("1600"),
   Wood: new Decimal("8000"),
   "Wild Mushroom": new Decimal("100"),
-  Honey: new Decimal("80"),
+  Honey: new Decimal("220"),
 
   "War Bond": new Decimal(500),
   "Human War Banner": new Decimal(1),
@@ -114,12 +124,20 @@ export const maxItems: Inventory = {
   "Red Envelope": new Decimal(100),
   "Love Letter": new Decimal(400),
 
+  // Emblems
+  "Goblin Emblem": new Decimal(90_000),
+  "Bumpkin Emblem": new Decimal(90_000),
+  "Sunflorian Emblem": new Decimal(90_000),
+  "Nightshade Emblem": new Decimal(90_000),
+  Mark: new Decimal(500),
+
   // Stock limits
   Axe: new Decimal("900"),
   Pickaxe: new Decimal("300"),
   "Stone Pickaxe": new Decimal("150"),
   "Iron Pickaxe": new Decimal("50"),
   "Gold Pickaxe": new Decimal("50"),
+  "Oil Drill": new Decimal("50"),
   "Rusty Shovel": new Decimal("100"),
   "Sand Shovel": new Decimal(50),
   "Sand Drill": new Decimal(30),
@@ -150,6 +168,7 @@ export const maxItems: Inventory = {
   "Crow Feather": new Decimal(750),
   "Mermaid Scale": new Decimal(1500),
   "Tulip Bulb": new Decimal(1500),
+  Scroll: new Decimal(1500),
   "Bud Ticket": new Decimal(1),
 
   // Potion House
@@ -187,6 +206,7 @@ export const maxItems: Inventory = {
   // Seasonal decorations - Dawnbreaker
   Clementine: new Decimal(1),
   Blossombeard: new Decimal(1),
+  "Desert Gnome": new Decimal(1),
   Cobalt: new Decimal(1),
   "Eggplant Grill": new Decimal(1),
   "Giant Dawn Mushroom": new Decimal(5),

@@ -37,7 +37,6 @@ import land from "assets/land/islands/island.webp";
 import { IslandNotFound } from "./components/IslandNotFound";
 import { Rules } from "../components/Rules";
 import { Introduction } from "./components/Introduction";
-import { SpecialOffer } from "./components/SpecialOffer";
 import { Purchasing } from "../components/Purchasing";
 import { Transacting } from "../components/Transacting";
 import { Minting } from "../components/Minting";
@@ -67,6 +66,10 @@ import { PersonhoodContent } from "features/retreat/components/personhood/Person
 import { hasFeatureAccess } from "lib/flags";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { PriceChange } from "../components/PriceChange";
+import { VIPOffer } from "../components/modal/components/VIPItems";
+import { GreenhouseInside } from "features/greenhouse/GreenhouseInside";
+import { useSound } from "lib/utils/hooks/useSound";
+import { FontReward } from "./components/FontReward";
 
 export const AUTO_SAVE_INTERVAL = 1000 * 30; // autosave every 30 seconds
 const SHOW_MODAL: Record<StateValues, boolean> = {
@@ -96,7 +99,8 @@ const SHOW_MODAL: Record<StateValues, boolean> = {
   buyingSFL: true,
   depositing: true,
   introduction: false,
-  specialOffer: false,
+  specialOffer: true,
+  fontReward: false,
   transacting: true,
   minting: true,
   auctionResults: false,
@@ -175,12 +179,15 @@ const isPromoing = (state: MachineState) => state.matches("promo");
 const isBlacklisted = (state: MachineState) => state.matches("blacklisted");
 const hasAirdrop = (state: MachineState) => state.matches("airdrop");
 const hasSpecialOffer = (state: MachineState) => state.matches("specialOffer");
+const hasFontReward = (state: MachineState) => state.matches("fontReward");
 const isPlaying = (state: MachineState) => state.matches("playing");
 const isProvingPersonhood = (state: MachineState) =>
   state.matches("provingPersonhood");
 
 const GameContent = () => {
   const { gameService } = useContext(Context);
+
+  useSound("desert", true);
 
   const visiting = useSelector(gameService, isVisiting);
   const landToVisitNotFound = useSelector(gameService, isLandToVisitNotFound);
@@ -238,6 +245,7 @@ const GameContent = () => {
           {/* Legacy route */}
           <Route path="/farm" element={<Land />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/greenhouse" element={<GreenhouseInside />} />
           <Route path="/helios" element={<Helios key="helios" />} />
           <Route path="*" element={<IslandNotFound />} />
         </Routes>
@@ -300,6 +308,7 @@ export const GameWrapper: React.FC = ({ children }) => {
   const blacklisted = useSelector(gameService, isBlacklisted);
   const airdrop = useSelector(gameService, hasAirdrop);
   const specialOffer = useSelector(gameService, hasSpecialOffer);
+  const fontReward = useSelector(gameService, hasFontReward);
   const playing = useSelector(gameService, isPlaying);
 
   const showPWAInstallPrompt = useSelector(authService, _showPWAInstallPrompt);
@@ -387,7 +396,7 @@ export const GameWrapper: React.FC = ({ children }) => {
                     <img id="logo" src={logo} className="w-full" />
                   )}
                   <div className="flex justify-center">
-                    <Label type="default">
+                    <Label type="default" className="font-secondary">
                       {CONFIG.RELEASE_VERSION?.split("-")[0]}
                     </Label>
                     {hasFeatureAccess(TEST_FARM, "EASTER") && (
@@ -462,16 +471,17 @@ export const GameWrapper: React.FC = ({ children }) => {
             {minting && <Minting />}
             {promo && <Promo />}
             {airdrop && <AirdropPopup />}
-            {specialOffer && <SpecialOffer />}
+            {specialOffer && <VIPOffer />}
             {withdrawing && <Withdrawing />}
             {withdrawn && <Withdrawn />}
           </Panel>
         </Modal>
 
+        <Modal show={!!fontReward}>{fontReward && <FontReward />}</Modal>
+
         {claimingAuction && <ClaimAuction />}
         {refundAuction && <RefundAuction />}
 
-        <SpecialOffer />
         <Introduction />
         <NewMail />
 

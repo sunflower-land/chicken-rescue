@@ -8,6 +8,8 @@ import { getKeys } from "features/game/types/craftables";
 import { BumpkinEquip } from "features/bumpkins/components/BumpkinEquip";
 import { Context } from "features/game/GameProvider";
 import { PlayerNPC } from "features/island/bumpkin/components/PlayerNPC";
+import { SUNNYSIDE } from "assets/sunnyside";
+import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
 interface Props {
   game: GameState;
@@ -21,17 +23,19 @@ export const HomeBumpkins: React.FC<Props> = ({ game }) => {
 
   const farmHands = game.farmHands.bumpkins;
 
+  const { t } = useAppTranslation();
+
   return (
     <>
       <div className="flex w-full">
-        <div className="mr-2 relative" style={{ width: `${GRID_WIDTH_PX}px` }}>
+        <div className="mr-1 relative" style={{ width: `${GRID_WIDTH_PX}px` }}>
           <PlayerNPC parts={bumpkin.equipped} />
         </div>
 
         {getKeys(farmHands).map((id) => (
           <div
             key={id}
-            className="mr-2 cursor-pointer relative hover:img-highlight"
+            className="mr-1 cursor-pointer relative hover:img-highlight"
             onClick={() => setSelectedFarmHandId(id)}
             style={{ width: `${GRID_WIDTH_PX}px` }}
           >
@@ -46,9 +50,17 @@ export const HomeBumpkins: React.FC<Props> = ({ game }) => {
       <Modal
         show={!!selectedFarmHandId}
         onHide={() => setSelectedFarmHandId(undefined)}
+        size="lg"
       >
         <CloseButtonPanel
           bumpkinParts={farmHands[selectedFarmHandId as string]?.equipped}
+          onClose={() => setSelectedFarmHandId(undefined)}
+          tabs={[
+            {
+              icon: SUNNYSIDE.icons.wardrobe,
+              name: t("equip"),
+            },
+          ]}
         >
           <BumpkinEquip
             game={game}

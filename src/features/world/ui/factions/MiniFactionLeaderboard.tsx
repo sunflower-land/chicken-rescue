@@ -5,6 +5,7 @@ import { TicketTable } from "features/game/expansion/components/leaderboard/Tick
 import { FactionLeaderboard } from "features/game/expansion/components/leaderboard/actions/leaderboard";
 import { FactionName } from "features/game/types/game";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { formatNumber } from "lib/utils/formatNumber";
 import { getRelativeTime } from "lib/utils/time";
 import React from "react";
 
@@ -35,6 +36,7 @@ export const MiniFactionLeaderboard: React.FC<LeaderboardProps> = ({
     );
 
   const topTen = data.topTens[faction];
+  const totalMembers = data.totalMembers?.[faction];
 
   return (
     <>
@@ -43,7 +45,7 @@ export const MiniFactionLeaderboard: React.FC<LeaderboardProps> = ({
           0,
           -1
         )} ${t("leaderboard.leaderboard")}`}</Label>
-        <p className="text-[12px]">
+        <p className="text-xs">
           {t("last.updated")} {getRelativeTime(data.lastUpdated)}
         </p>
       </div>
@@ -73,6 +75,13 @@ export const MiniFactionLeaderboard: React.FC<LeaderboardProps> = ({
             <TicketTable rankings={topTen} id={id} />
           </div>
         )}
+        <div className="flex justify-end">
+          <p className="text-xs">
+            {`${t("leaderboard.factionMembers")}: ${formatNumber(
+              totalMembers ?? 0
+            )}`}
+          </p>
+        </div>
       </div>
     </>
   );

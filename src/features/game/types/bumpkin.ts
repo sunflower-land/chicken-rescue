@@ -31,6 +31,7 @@ export type BumpkinBody =
   | "Elf Potion";
 
 export type BumpkinHair =
+  | "Royal Braids"
   | "Basic Hair"
   | "Rancher Hair"
   | "Explorer Hair"
@@ -56,6 +57,7 @@ export type BumpkinHair =
   | "Brown Rancher Hair";
 
 export type BumpkinShirt =
+  | "Pixel Perfect Hoodie"
   | "Red Farmer Shirt"
   | "Yellow Farmer Shirt"
   | "Blue Farmer Shirt"
@@ -110,12 +112,19 @@ export type BumpkinShirt =
   | "Daisy Tee"
   | "Blue Monarch Shirt"
   | "Green Monarch Shirt"
-  | "Orange Monarch Shirt";
+  | "Orange Monarch Shirt"
+  | "Gift Giver"
+  | "Olive Royalty Shirt"
+  | "Goblin Armor"
+  | "Nightshade Armor"
+  | "Bumpkin Armor"
+  | "Sunflorian Armor";
 
 export type BumpkinCoat =
   | "Chef Apron"
   | "Fruit Picker Apron"
-  | "Pirate General Coat";
+  | "Pirate General Coat"
+  | "Royal Robe";
 
 export type BumpkinTool =
   | "Farmer Pitchfork"
@@ -150,7 +159,14 @@ export type BumpkinTool =
   | "Candy Cane"
   | "Beehive Staff"
   | "Bee Smoker"
-  | "Crimstone Hammer";
+  | "Crimstone Hammer"
+  | "Oil Can"
+  | "Pan"
+  | "Royal Scepter"
+  | "Goblin Axe"
+  | "Nightshade Sword"
+  | "Bumpkin Sword"
+  | "Sunflorian Sword";
 
 export type BumpkinShoe =
   | "Black Farmer Boots"
@@ -166,7 +182,11 @@ export type BumpkinShoe =
   | "Wellies"
   | "Elf Shoes"
   | "Crimstone Boots"
-  | "Fairy Sandals";
+  | "Fairy Sandals"
+  | "Goblin Sabaton"
+  | "Nightshade Sabaton"
+  | "Sunflorian Sabaton"
+  | "Bumpkin Sabaton";
 
 export type BumpkinNecklace =
   | "Sunflower Amulet"
@@ -178,6 +198,9 @@ export type BumpkinNecklace =
   | "Crimstone Amulet";
 
 export type BumpkinHat =
+  | "Queen's Crown"
+  | "Knight Gambit"
+  | "Cap n Bells"
   | "Farmer Hat"
   | "Chef Hat"
   | "Warrior Helmet"
@@ -238,7 +261,14 @@ export type BumpkinHat =
   | "Queen Bee Crown"
   | "Lucky Red Hat"
   | "Chicken Hat"
-  | "Love's Topper";
+  | "Love's Topper"
+  | "Non La Hat"
+  | "Crown"
+  | "Tofu Mask"
+  | "Goblin Helmet"
+  | "Nightshade Helmet"
+  | "Bumpkin Helmet"
+  | "Sunflorian Helmet";
 
 export type BumpkinPant =
   | "Farmer Overalls"
@@ -266,9 +296,14 @@ export type BumpkinPant =
   | "Tiki Pants"
   | "Short Shorts"
   | "Gardening Overalls"
-  | "Crimstone Pants";
+  | "Crimstone Pants"
+  | "Goblin Pants"
+  | "Nightshade Pants"
+  | "Bumpkin Pants"
+  | "Sunflorian Pants";
 
 export type BumpkinDress =
+  | "Royal Dress"
   | "Cupid Dress"
   | "Beach Sarong"
   | "Tropical Sarong"
@@ -292,7 +327,9 @@ export type BumpkinSecondaryTool =
   | "Fish Trap"
   | "Saw Fish"
   | "Tackle Box"
-  | "Honeycomb Shield";
+  | "Honeycomb Shield"
+  | "Olive Shield"
+  | "Paw Shield";
 
 // Goes over clothes + head
 export type BumpkinOnesie =
@@ -305,10 +342,12 @@ export type BumpkinOnesie =
   | "Eggplant Onesie"
   | "Corn Onesie"
   | "Stockeye Salmon Onesie"
-  | "Banana Onesie";
+  | "Banana Onesie"
+  | "Soybean Onesie";
 
 // Goes over clothes
 export type BumpkinSuit =
+  | "Motley"
   | "Reindeer Suit"
   | "Imp Costume"
   | "Ox Costume"
@@ -652,6 +691,45 @@ export const ITEM_IDS: Record<BumpkinItem, number> = {
   "Lucky Red Suit": 305,
   "Valentine's Field Background": 306,
   "Love's Topper": 307,
+  "Oil Can": 308,
+  "Non La Hat": 309,
+  "Olive Shield": 310,
+  "Paw Shield": 311,
+  "Royal Robe": 312,
+  Crown: 313,
+  Pan: 314,
+  "Soybean Onesie": 315,
+  "Gift Giver": 316,
+  "Olive Royalty Shirt": 317,
+  "Royal Scepter": 318,
+  "Tofu Mask": 319,
+  "Goblin Armor": 320,
+  "Goblin Helmet": 321,
+  "Goblin Pants": 322,
+  "Goblin Sabaton": 323,
+  "Goblin Axe": 324,
+  "Nightshade Armor": 325,
+  "Nightshade Helmet": 326,
+  "Nightshade Pants": 327,
+  "Nightshade Sabaton": 328,
+  "Nightshade Sword": 329,
+  "Bumpkin Armor": 330,
+  "Bumpkin Helmet": 331,
+  "Bumpkin Sword": 332,
+  "Bumpkin Pants": 333,
+  "Bumpkin Sabaton": 334,
+  "Sunflorian Armor": 335,
+  "Sunflorian Sword": 336,
+  "Sunflorian Helmet": 337,
+  "Sunflorian Pants": 338,
+  "Sunflorian Sabaton": 339,
+  "Cap n Bells": 340,
+  "Knight Gambit": 341,
+  "Pixel Perfect Hoodie": 342,
+  "Queen's Crown": 343,
+  "Royal Dress": 344,
+  Motley: 345,
+  "Royal Braids": 346,
 };
 
 // The reverse of above
@@ -716,6 +794,7 @@ export const BUMPKIN_ITEMS: Record<string, number> = Object.assign(
 export const BUMPKIN_ITEMS_IDS = Object.values(ITEM_IDS);
 
 export const BUMPKIN_ITEM_PART: Record<BumpkinItem, keyof Wallet> = {
+  "Soybean Onesie": "onesie",
   "Beige Farmer Potion": "body",
   "Dark Brown Farmer Potion": "body",
   "Light Brown Farmer Potion": "body",
@@ -1018,4 +1097,42 @@ export const BUMPKIN_ITEM_PART: Record<BumpkinItem, keyof Wallet> = {
   "Lucky Red Suit": "suit",
   "Love's Topper": "hat",
   "Valentine's Field Background": "background",
+  "Non La Hat": "hat",
+  "Oil Can": "tool",
+  "Olive Shield": "secondaryTool",
+  "Paw Shield": "secondaryTool",
+  "Royal Robe": "coat",
+  Crown: "hat",
+  Pan: "tool",
+  "Gift Giver": "shirt",
+  "Olive Royalty Shirt": "shirt",
+  "Royal Scepter": "tool",
+  "Tofu Mask": "hat",
+  "Bumpkin Armor": "shirt",
+  "Bumpkin Helmet": "hat",
+  "Bumpkin Sword": "tool",
+  "Bumpkin Pants": "pants",
+  "Bumpkin Sabaton": "shoes",
+  "Sunflorian Armor": "shirt",
+  "Sunflorian Sword": "tool",
+  "Sunflorian Helmet": "hat",
+  "Sunflorian Pants": "pants",
+  "Sunflorian Sabaton": "shoes",
+  "Goblin Armor": "shirt",
+  "Goblin Helmet": "hat",
+  "Goblin Pants": "pants",
+  "Goblin Sabaton": "shoes",
+  "Goblin Axe": "tool",
+  "Nightshade Armor": "shirt",
+  "Nightshade Helmet": "hat",
+  "Nightshade Pants": "pants",
+  "Nightshade Sabaton": "shoes",
+  "Nightshade Sword": "tool",
+  "Cap n Bells": "hat",
+  "Knight Gambit": "hat",
+  "Pixel Perfect Hoodie": "shirt",
+  "Queen's Crown": "hat",
+  "Royal Dress": "dress",
+  Motley: "suit",
+  "Royal Braids": "hair",
 };

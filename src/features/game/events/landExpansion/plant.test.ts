@@ -4,7 +4,7 @@ import { CROPS } from "features/game/types/crops";
 import { INITIAL_BUMPKIN, TEST_FARM } from "../../lib/constants";
 import { GameState, CropPlot } from "../../types/game";
 import {
-  getCropTime,
+  getCropPlotTime,
   getCropYieldAmount,
   getPlantedAt,
   isPlotFertile,
@@ -1456,6 +1456,48 @@ describe("plant", () => {
     expect((plots as Record<number, CropPlot>)[0].crop?.amount).toEqual(1.1);
   });
 
+  it("applies the Tofu Mask Boost", () => {
+    const state = plant({
+      state: {
+        ...GAME_STATE,
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            hat: "Tofu Mask",
+          },
+        },
+        inventory: {
+          "Soybean Seed": new Decimal(1),
+          "Water Well": new Decimal(1),
+        },
+        crops: {
+          0: {
+            createdAt: Date.now(),
+            height: 1,
+            width: 1,
+            x: 0,
+            y: -2,
+          },
+        },
+      },
+      action: {
+        type: "seed.planted",
+        cropId: "1",
+        index: "0",
+
+        item: "Soybean Seed",
+      },
+      createdAt: dateNow,
+    });
+
+    const plots = state.crops;
+
+    expect(plots).toBeDefined();
+
+    expect((plots as Record<number, CropPlot>)[0].crop?.amount).toEqual(1.1);
+  });
+
   it("applies a bud yield boost", () => {
     const state: GameState = plant({
       state: {
@@ -1560,7 +1602,7 @@ describe("getCropTime", () => {
   const plot = GAME_STATE.crops[firstCropId];
 
   it("applies a 5% speed boost with Cultivator skill", () => {
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Carrot",
       game: {
         ...TEST_FARM,
@@ -1575,7 +1617,7 @@ describe("getCropTime", () => {
   });
 
   it("reduces in 20% carrot time when Bumpkin is wearing Carrot Amulet", () => {
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Carrot",
       inventory: {},
       buds: {},
@@ -1593,7 +1635,7 @@ describe("getCropTime", () => {
 
   it("applies a 10% speed boost with Lunar Calendar placed.", () => {
     const carrotHarvestSeconds = CROPS()["Carrot"].harvestSeconds;
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Carrot",
       inventory: {},
       buds: {},
@@ -1618,7 +1660,7 @@ describe("getCropTime", () => {
 
   it("grows cabbage twice as fast with Cabbage Girl placed.", () => {
     const cabbageHarvestSeconds = CROPS()["Cabbage"].harvestSeconds;
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Cabbage",
       buds: {},
       game: {
@@ -1643,7 +1685,7 @@ describe("getCropTime", () => {
 
   it("applies a 25% speed boost with Obie placed", () => {
     const baseHarvestSeconds = CROPS()["Eggplant"].harvestSeconds;
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Eggplant",
       inventory: {},
       game: {
@@ -1669,7 +1711,6 @@ describe("getCropTime", () => {
   it("applies the eggplant boost when wearing the onesie", () => {
     const amount = getCropYieldAmount({
       crop: "Eggplant",
-      inventory: {},
       game: {
         ...TEST_FARM,
         bumpkin: {
@@ -1680,7 +1721,6 @@ describe("getCropTime", () => {
           },
         },
       },
-      buds: {},
       plot,
     });
 
@@ -1690,7 +1730,6 @@ describe("getCropTime", () => {
   it("applies the corn boost when wearing the corn onesie", () => {
     const amount = getCropYieldAmount({
       crop: "Corn",
-      inventory: {},
       game: {
         ...TEST_FARM,
         bumpkin: {
@@ -1701,7 +1740,6 @@ describe("getCropTime", () => {
           },
         },
       },
-      buds: {},
       plot,
     });
 
@@ -1710,7 +1748,7 @@ describe("getCropTime", () => {
 
   it("applies a 25% speed boost with Kernaldo placed", () => {
     const baseHarvestSeconds = CROPS()["Corn"].harvestSeconds;
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Corn",
       inventory: {},
       game: {
@@ -1736,7 +1774,7 @@ describe("getCropTime", () => {
   it("applies a 20% speed boost with Basic Scarecrow placed, plot is within AOE and crop is Sunflower", () => {
     const sunflowerHarvestSeconds = CROPS()["Sunflower"].harvestSeconds;
 
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Sunflower",
       inventory: {},
       buds: {},
@@ -1762,7 +1800,7 @@ describe("getCropTime", () => {
   it("applies a 20% speed boost with Basic Scarecrow placed, plot is within AOE and crop is Potato", () => {
     const potatoHarvestSeconds = CROPS()["Potato"].harvestSeconds;
 
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Potato",
       inventory: {},
       game: {
@@ -1788,7 +1826,7 @@ describe("getCropTime", () => {
   it("applies a 20% speed boost with Basic Scarecrow placed, plot is within AOE and crop is Pumpkin", () => {
     const pumpkinHarvestSeconds = CROPS()["Pumpkin"].harvestSeconds;
 
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Pumpkin",
       inventory: {},
       game: {
@@ -1814,7 +1852,7 @@ describe("getCropTime", () => {
   it("does not apply boost with Basic Scarecrow if not basic crop", () => {
     const beetrootHarvestSeconds = CROPS()["Beetroot"].harvestSeconds;
 
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Beetroot",
       inventory: {},
       game: {
@@ -1840,7 +1878,7 @@ describe("getCropTime", () => {
   it("does not apply boost with Basic Scarecrow placed, if plot is outside AOE", () => {
     const sunflowerHarvestSeconds = CROPS()["Sunflower"].harvestSeconds;
 
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Sunflower",
       inventory: {},
       game: {
@@ -1866,7 +1904,7 @@ describe("getCropTime", () => {
   it("does not apply boost with Basic Scarecrow placed, if it was moved within 10min", () => {
     const sunflowerHarvestSeconds = CROPS()["Sunflower"].harvestSeconds;
 
-    const time = getCropTime({
+    const time = getCropPlotTime({
       crop: "Sunflower",
       inventory: {},
       game: {
@@ -1887,6 +1925,80 @@ describe("getCropTime", () => {
     });
 
     expect(time).toEqual(sunflowerHarvestSeconds);
+  });
+
+  it("plants a normal soybean", () => {
+    const state = plant({
+      state: {
+        ...GAME_STATE,
+        island: {
+          type: "desert",
+        },
+        inventory: {
+          "Soybean Seed": new Decimal(1),
+        },
+      },
+      createdAt: dateNow,
+      action: {
+        type: "seed.planted",
+        cropId: "123",
+        index: "0",
+        item: "Soybean Seed",
+      },
+    });
+
+    const plots = state.crops;
+
+    expect(plots).toBeDefined();
+    expect((plots as Record<number, CropPlot>)[0].crop).toEqual(
+      expect.objectContaining({
+        name: "Soybean",
+        plantedAt: expect.any(Number),
+        amount: 1,
+      })
+    );
+  });
+
+  it("adds +1 soybean with Soybliss placed", () => {
+    const state = plant({
+      state: {
+        ...GAME_STATE,
+        island: {
+          type: "desert",
+        },
+        inventory: {
+          "Soybean Seed": new Decimal(1),
+        },
+        collectibles: {
+          Soybliss: [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: dateNow - 10000,
+              readyAt: dateNow - 10000,
+              id: "123",
+            },
+          ],
+        },
+      },
+      createdAt: dateNow,
+      action: {
+        type: "seed.planted",
+        cropId: "123",
+        index: "0",
+        item: "Soybean Seed",
+      },
+    });
+
+    const plots = state.crops;
+
+    expect(plots).toBeDefined();
+    expect((plots as Record<number, CropPlot>)[0].crop).toEqual(
+      expect.objectContaining({
+        name: "Soybean",
+        plantedAt: expect.any(Number),
+        amount: 2,
+      })
+    );
   });
 });
 
@@ -2073,8 +2185,6 @@ describe("getCropYield", () => {
           ],
         },
       },
-      inventory: {},
-      buds: {},
       plot: { createdAt: 0, height: 1, width: 1, x: 2, y: 3 },
     });
 
@@ -2097,8 +2207,6 @@ describe("getCropYield", () => {
           ],
         },
       },
-      inventory: {},
-      buds: {},
       plot: { createdAt: 0, height: 1, width: 1, x: 5, y: 6 },
     });
 

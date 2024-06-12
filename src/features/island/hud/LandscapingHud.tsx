@@ -30,6 +30,9 @@ import { hasRemoveRestriction } from "features/game/types/removeables";
 import { BudName } from "features/game/types/buds";
 import { CollectibleLocation } from "features/game/types/collectibles";
 import { HudContainer } from "components/ui/HudContainer";
+import { RemoveHungryCaterpillarModal } from "../collectibles/RemoveHungryCaterpillarModal";
+import { useSound } from "lib/utils/hooks/useSound";
+import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
 const compareBalance = (prev: Decimal, next: Decimal) => {
   return prev.eq(next);
@@ -51,10 +54,13 @@ const isIdle = (state: MachineState) => state.matches({ editing: "idle" });
 const LandscapingHudComponent: React.FC<{
   location: CollectibleLocation;
 }> = ({ location }) => {
+  const { t } = useAppTranslation();
   const { gameService } = useContext(Context);
 
   const [showDecorations, setShowDecorations] = useState(false);
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
+
+  const button = useSound("button");
 
   const child = gameService.state.children.landscaping as MachineInterpreter;
 
@@ -129,11 +135,14 @@ const LandscapingHudComponent: React.FC<{
                 marginBottom: `${PIXEL_SCALE * 25}px`,
                 width: `${PIXEL_SCALE * 22}px`,
                 right: `${PIXEL_SCALE * 3}px`,
-                top: `${PIXEL_SCALE * 38}px`,
+                top: `${PIXEL_SCALE * 31}px`,
               }}
             >
               <div
-                onClick={() => child.send("CANCEL")}
+                onClick={() => {
+                  button.play();
+                  child.send("CANCEL");
+                }}
                 className="w-full z-10 cursor-pointer hover:img-highlight relative"
                 style={{
                   width: `${PIXEL_SCALE * 22}px`,
@@ -161,7 +170,9 @@ const LandscapingHudComponent: React.FC<{
 
               {location === "farm" && (
                 <div
-                  onClick={() => setShowDecorations(true)}
+                  onClick={() => {
+                    setShowDecorations(true);
+                  }}
                   className="w-full z-10 cursor-pointer hover:img-highlight relative"
                   style={{
                     width: `${PIXEL_SCALE * 22}px`,
@@ -213,6 +224,13 @@ const LandscapingHudComponent: React.FC<{
           onRemove={() => remove()}
         />
       )}
+      {showRemoveConfirmation &&
+        selectedItem?.name === "Hungry Caterpillar" && (
+          <RemoveHungryCaterpillarModal
+            onClose={() => setShowRemoveConfirmation(false)}
+            onRemove={() => remove()}
+          />
+        )}
       {showRemove && (
         <div
           onClick={() => !isRestricted && remove()}
@@ -233,7 +251,7 @@ const LandscapingHudComponent: React.FC<{
             }}
           >
             <Label type="danger">
-              {isRestricted ? restrictionReason : "Remove"}
+              {isRestricted ? restrictionReason : t("remove")}
             </Label>
           </div>
           <img
@@ -300,7 +318,9 @@ const Chest: React.FC<{
   return (
     <>
       <div
-        onClick={() => setShowChest(true)}
+        onClick={() => {
+          setShowChest(true);
+        }}
         className="z-50 cursor-pointer hover:img-highlight relative"
         style={{
           width: `${PIXEL_SCALE * 22}px`,

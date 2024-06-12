@@ -1,7 +1,7 @@
 import Decimal from "decimal.js-light";
 import { InventoryItemName } from "features/game/types/game";
 import React from "react";
-import { Label } from "./Label";
+import { LABEL_STYLES, Label } from "./Label";
 import { SquareIcon } from "./SquareIcon";
 import { ITEM_DETAILS } from "features/game/types/images";
 import levelup from "assets/icons/level_up.png";
@@ -11,6 +11,7 @@ import { secondsToString } from "lib/utils/time";
 import classNames from "classnames";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { setPrecision } from "lib/utils/formatNumber";
+import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
 /**
  * The props for SFL requirement label. Use this when the item costs SFL.
@@ -123,6 +124,7 @@ interface HarvestsProps {
  */
 interface defaultProps {
   className?: string;
+  textColor?: string;
 }
 
 type Props = (
@@ -144,6 +146,8 @@ type Props = (
  * @props The component props.
  */
 export const RequirementLabel: React.FC<Props> = (props) => {
+  const { t } = useAppTranslation();
+
   const getIcon = () => {
     switch (props.type) {
       case "coins":
@@ -187,13 +191,16 @@ export const RequirementLabel: React.FC<Props> = (props) => {
       }
       case "xp": {
         const roundedDownXp = setPrecision(props.xp, 1);
-        return `${roundedDownXp} XP`;
+        return `${roundedDownXp}XP`;
       }
       case "level": {
-        return `Level ${props.requirement}`;
+        return `${t("level.number", { level: props.requirement })}`;
       }
       case "harvests": {
-        return `${props.minHarvest}-${props.maxHarvest} harvests`;
+        return `${t("harvest.number", {
+          minHarvest: props.minHarvest,
+          maxHarvest: props.maxHarvest,
+        })}`;
       }
     }
   };
@@ -219,20 +226,30 @@ export const RequirementLabel: React.FC<Props> = (props) => {
   const requirementMet = isRequirementMet();
 
   return (
-    <div className={props.className ?? "flex justify-between"}>
+    <div className={classNames(props.className, "flex justify-between")}>
       <div className="flex items-center">
         <SquareIcon icon={getIcon()} width={7} />
         {props.type === "sfl" && props.showLabel && (
-          <span className="text-xs ml-1">{"SFL"}</span>
+          <span className="text-xs ml-1 ">{"SFL"}</span>
         )}
         {props.type === "item" && props.showLabel && (
-          <span className="text-xs ml-1">{props.item}</span>
+          <span className="text-xs ml-1 ">{props.item}</span>
+        )}
+        {props.type === "coins" && props.showLabel && (
+          <span className="text-xs ml-1 ">{t("coins")}</span>
         )}
       </div>
 
       <Label
-        className={classNames("whitespace-nowrap", { "ml-1": !requirementMet })}
+        className={classNames("whitespace-nowrap font-secondary relative", {
+          "ml-1": !requirementMet,
+        })}
         type={requirementMet ? "transparent" : "danger"}
+        style={{
+          color:
+            props.textColor ??
+            LABEL_STYLES[requirementMet ? "transparent" : "danger"].textColour,
+        }}
       >
         {getText()}
       </Label>

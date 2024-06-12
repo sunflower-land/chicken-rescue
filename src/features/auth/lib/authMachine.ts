@@ -6,12 +6,12 @@ import { saveReferrerId } from "../actions/createAccount";
 import { login, Token, decodeToken } from "../actions/login";
 import { oauthorise } from "../actions/oauth";
 import { randomID } from "lib/utils/random";
-import { getOnboardingComplete } from "../actions/onboardingComplete";
 import { onboardingAnalytics } from "lib/onboardingAnalytics";
 import { loadSession, savePromoCode } from "features/game/actions/loadSession";
 import { getToken, removeJWT, saveJWT } from "../actions/social";
 import { signUp } from "../actions/signup";
 import { claimFarm } from "../actions/claimFarm";
+import { removeMinigameJWTs } from "features/world/ui/community/actions/portal";
 
 export const ART_MODE = !CONFIG.API_URL;
 
@@ -194,10 +194,6 @@ export const authMachine = createMachine(
           },
           {
             target: "welcome",
-            cond: () => !getOnboardingComplete(),
-          },
-          {
-            target: "signIn",
           },
         ],
         on: {
@@ -489,6 +485,7 @@ export const authMachine = createMachine(
       }),
       clearSession: () => {
         removeJWT();
+        removeMinigameJWTs();
       },
       deleteFarmIdUrl: deleteFarmUrl,
       setTransactionId: assign<Context, any>({

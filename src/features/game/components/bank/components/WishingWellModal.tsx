@@ -34,6 +34,7 @@ import { Label } from "components/ui/Label";
 import giftIcon from "assets/icons/gift.png";
 import { Context } from "features/game/GameProvider";
 import { BumpkinParts, tokenUriBuilder } from "lib/utils/tokenUriBuilder";
+import { Loading } from "features/auth/components";
 
 type GrantedArgs = Pick<WishingWellTokens, "lockedTime"> & {
   onClose: () => void;
@@ -96,13 +97,11 @@ const GrantWish = ({ totalTokensInWell, onClick }: GrantWishArgs) => {
           <img src={wisingWell} alt="wishing well" className="w-16 mb-2" />
         </div>
         <p className="mb-4 text-sm">
-          {`${t("there.currently")} ${Number(
-            fromWei(totalTokensInWell.toString())
-          ).toFixed(2)} SFL ${t("statements.wishing.well.worthwell")}`}
+          {t("statements.wishing.well.worthwell", {
+            rewards: Number(fromWei(totalTokensInWell.toString())).toFixed(2),
+          })}
         </p>
-        <p className="mb-2 text-sm">{`${t(
-          "statements.wishing.well.lucky"
-        )}`}</p>
+        <p className="mb-2 text-sm">{t("statements.wishing.well.lucky")}</p>
       </div>
       <div className="flex">
         <Button onClick={onClick}>{t("grant.wish")}</Button>
@@ -120,8 +119,8 @@ const ZeroTokens = ({ onClick }: ZeroTokensArgs) => {
           <h1 className="text-lg mb-4 text-center">{t("uhOh")}</h1>
           <img src={goblinHead} alt="skeleton death" className="w-16 mb-2" />
         </div>
-        <p className="mb-4 text-sm">{`${t("wishingWell.noReward")}`}</p>
-        <p className="mb-2 text-sm">{`${t("wishingWell.wish.lucky")}`}</p>
+        <p className="mb-4 text-sm">{t("wishingWell.noReward")}</p>
+        <p className="mb-2 text-sm">{t("wishingWell.wish.lucky")}</p>
       </div>
       <div className="flex">
         <Button className="whitespace-nowrap" onClick={onClick}>
@@ -184,9 +183,9 @@ const NoWish = ({ totalTokensInWell, hasLPTokens, onClick }: NoWishArgs) => {
           </a>
         </p>
         <p className="mb-4 text-sm">
-          {`${t("there.currently")} ${Number(
-            fromWei(totalTokensInWell.toString())
-          ).toFixed(2)} SFL ${t("statements.wishing.well.worthwell")}`}
+          {t("statements.wishing.well.worthwell", {
+            rewards: Number(fromWei(totalTokensInWell.toString())).toFixed(2),
+          })}
         </p>
         <div className="flex justify-center items-center mb-4">
           <img
@@ -194,7 +193,7 @@ const NoWish = ({ totalTokensInWell, hasLPTokens, onClick }: NoWishArgs) => {
             alt="player address"
             className="w-6"
           />
-          <span className="ml-2">
+          <span className="ml-2 font-secondary">
             {shortAddress(wallet.myAccount as string)}
           </span>
         </div>
@@ -202,7 +201,7 @@ const NoWish = ({ totalTokensInWell, hasLPTokens, onClick }: NoWishArgs) => {
           <p className="mb-2 text-sm">{t("wishingWell.info.three")}</p>
         ) : (
           <p className="mb-2 text-sm">
-            {`${t("statements.wishing.well.look.like")}`}
+            {`${t("statements.wishing.well.look.like")} `}
             <a
               className="underline"
               href="https://docs.sunflower-land.com/fundamentals/wishing-well#what-is-in-the-wishing-well"
@@ -305,15 +304,11 @@ export const WishingWellModal: React.FC<Props> = ({ onClose }) => {
             </div>
           )}
         >
-          {machine.matches("loading") && (
-            <span className="loading mt-1">{t("loading")}</span>
-          )}
+          {machine.matches("loading") && <Loading />}
           {(machine.matches("granting") || machine.matches("signing")) && (
-            <span className="loading mt-1">{t("granting.wish")}</span>
+            <Loading text={t("granting.wish")} />
           )}
-          {machine.matches("wishing") && (
-            <span className="loading mt-1">{t("making.wish")}</span>
-          )}
+          {machine.matches("wishing") && <Loading text={t("making.wish")} />}
           {machine.matches("error") && (
             <div>
               {errorCode === "NO_TOKENS" ? (

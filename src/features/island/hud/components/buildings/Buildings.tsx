@@ -16,6 +16,10 @@ import { Label } from "components/ui/Label";
 import { ITEM_ICONS } from "../inventory/Chest";
 import { getBumpkinLevel } from "features/game/lib/level";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { hasFeatureAccess } from "lib/flags";
+import { hasRequiredIslandExpansion } from "features/game/lib/hasRequiredIslandExpansion";
+import { IslandType } from "features/game/types/game";
+import { capitalize } from "lib/utils/capitalize";
 
 interface Props {
   onClose: () => void;
@@ -33,6 +37,8 @@ const VALID_BUILDINGS: BuildingName[] = [
   "Compost Bin" as BuildingName,
   "Turbo Composter" as BuildingName,
   "Premium Composter" as BuildingName,
+  "Greenhouse" as BuildingName,
+  "Crop Machine" as BuildingName,
 ].sort(
   (a, b) => BUILDINGS[a][0].unlocksAtLevel - BUILDINGS[b][0].unlocksAtLevel
 );
@@ -95,27 +101,50 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
     onClose();
   };
 
-  const landLocked = () => {
-    return (
-      <div className="flex flex-col w-full justify-center">
-        <div className="flex items-center justify-center ">
-          <Label
-            type="danger"
-            icon={SUNNYSIDE.icons.player}
-          >{`Level ${nextLockedLevel} required`}</Label>
-        </div>
-      </div>
-    );
-  };
+  const getAction = () => {
+    if (
+      !hasRequiredIslandExpansion(
+        state.island.type,
+        buildingBlueprints[nextBlueprintIndex].requiredIsland
+      )
+    ) {
+      return (
+        <Label type="danger">
+          {t("islandupgrade.requiredIsland", {
+            islandType:
+              buildingBlueprints[nextBlueprintIndex].requiredIsland === "spring"
+                ? "Petal Paradise"
+                : t("islandupgrade.otherIsland", {
+                    island: capitalize(
+                      buildingBlueprints[nextBlueprintIndex]
+                        .requiredIsland as IslandType
+                    ),
+                  }),
+          })}
+        </Label>
+      );
+    }
 
-  const action = () => {
     const hasMaxNumberOfBuildings =
       buildingsInInventory.gte(numOfBuildingAllowed);
     // Hasn't unlocked the first
-    if (nextLockedLevel && hasMaxNumberOfBuildings) return landLocked();
+    if (nextLockedLevel && hasMaxNumberOfBuildings)
+      return (
+        <div className="flex flex-col w-full justify-center">
+          <div className="flex items-center justify-center ">
+            <Label type="danger" icon={SUNNYSIDE.icons.player}>
+              {t("warning.level.required", { lvl: nextLockedLevel })}
+            </Label>
+          </div>
+        </div>
+      );
 
     if (isAlreadyCrafted) {
-      return <p className="text-xxs text-center mb-1">{t("alr.crafted")}</p>;
+      return (
+        <p className="text-xxs text-center mb-1 font-secondary">
+          {t("alr.crafted")}
+        </p>
+      );
     }
 
     return (
@@ -148,12 +177,18 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
               {}
             ),
           }}
-          actionView={action()}
+          actionView={getAction()}
         />
       }
       content={
         <>
-          {VALID_BUILDINGS.map((name: BuildingName) => {
+          {VALID_BUILDINGS.filter((name) => {
+            if (name === "Crop Machine") {
+              return hasFeatureAccess(state, "CROP_MACHINE");
+            }
+
+            return true;
+          }).map((name: BuildingName) => {
             const blueprints = BUILDINGS[name];
             const inventoryCount = inventory[name] || new Decimal(0);
             const nextIndex = blueprints[inventoryCount.toNumber()]
@@ -177,7 +212,10 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
                 isSelected={selectedName === name}
                 key={name}
                 onClick={() => setSelectedName(name)}
-                image={ITEM_ICONS[name] ?? ITEM_DETAILS[name].image}
+                image={
+                  ITEM_ICONS(state.island.type)[name] ??
+                  ITEM_DETAILS[name].image
+                }
                 secondaryImage={secondaryIcon}
                 showOverlay={isLocked}
               />

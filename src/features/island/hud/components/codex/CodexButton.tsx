@@ -14,8 +14,6 @@ import { MachineState } from "features/game/lib/gameMachine";
 import { getBumpkinLevel } from "features/game/lib/level";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { useSelector } from "@xstate/react";
-import { hud } from "lib/utils/sfx";
-import { hasFeatureAccess } from "lib/flags";
 
 const _delivery = (state: MachineState) => state.context.state.delivery;
 const _level = (state: MachineState) =>
@@ -29,7 +27,11 @@ export const CodexButton: React.FC = () => {
   const deliveries = useSelector(gameService, _delivery);
   const level = useSelector(gameService, _level);
 
-  const hasDeliveries = hasNewOrders(deliveries) && level >= 2;
+  const hasDeliveries =
+    // Show if any new orders has popped up (but not for new players)
+    (hasNewOrders(deliveries) && level >= 2) ||
+    // For new players, always show until they fulfill a delivery
+    (level >= 2 && deliveries.fulfilledCount === 0);
 
   const { t } = useAppTranslation();
 
@@ -44,8 +46,6 @@ export const CodexButton: React.FC = () => {
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
-          hasFeatureAccess(gameService.state.context.state, "SOUND") &&
-            hud.play();
           setIsOpen(true);
         }}
       >
@@ -65,68 +65,79 @@ export const CodexButton: React.FC = () => {
         />
 
         {hasDeliveries && (
-          <div
-            className="absolute "
-            style={{
-              width: `${PIXEL_SCALE * 68}px`,
-              left: `${PIXEL_SCALE * 13}px`,
-              top: `${PIXEL_SCALE * 5}px`,
-            }}
-          >
+          <>
             <div
-              className={"absolute uppercase"}
+              className="absolute hidden sm:block"
               style={{
-                fontFamily: "Teeny",
-                color: "black",
-                textShadow: "none",
-                top: `${PIXEL_SCALE * -8}px`,
-                left: `${PIXEL_SCALE * 6}px`,
-
-                borderImage: `url(${speechBubble})`,
-                borderStyle: "solid",
-                borderTopWidth: `${PIXEL_SCALE * 2}px`,
-                borderRightWidth: `${PIXEL_SCALE * 2}px`,
-                borderBottomWidth: `${PIXEL_SCALE * 4}px`,
-                borderLeftWidth: `${PIXEL_SCALE * 5}px`,
-
-                borderImageSlice: "2 2 4 5 fill",
-                imageRendering: "pixelated",
-                borderImageRepeat: "stretch",
-                fontSize: "8px",
+                width: `${PIXEL_SCALE * 68}px`,
+                left: `${PIXEL_SCALE * 13}px`,
+                top: `${PIXEL_SCALE * 5}px`,
               }}
             >
               <div
+                className={"absolute uppercase"}
                 style={{
-                  height: "12px",
-                  minWidth: "50px",
-                  paddingRight: "14px",
+                  fontFamily: "Teeny",
+                  color: "black",
+                  textShadow: "none",
+                  top: `${PIXEL_SCALE * -8}px`,
+                  left: `${PIXEL_SCALE * 6}px`,
+
+                  borderImage: `url(${speechBubble})`,
+                  borderStyle: "solid",
+                  borderTopWidth: `${PIXEL_SCALE * 2}px`,
+                  borderRightWidth: `${PIXEL_SCALE * 2}px`,
+                  borderBottomWidth: `${PIXEL_SCALE * 4}px`,
+                  borderLeftWidth: `${PIXEL_SCALE * 5}px`,
+
+                  borderImageSlice: "2 2 4 5 fill",
+                  imageRendering: "pixelated",
+                  borderImageRepeat: "stretch",
+                  fontSize: "8px",
                 }}
               >
-                <span
-                  className="whitespace-nowrap"
+                <div
                   style={{
-                    fontSize: "10px",
-                    position: "relative",
-                    bottom: "4px",
-                    left: "4px",
-                    wordSpacing: "-4px",
-                    color: "#262b45",
+                    height: "12px",
+                    minWidth: "50px",
+                    paddingRight: "14px",
                   }}
                 >
-                  {t("deliveries.new")}
-                </span>
-                <img
-                  src={coins}
-                  className="absolute animate-pulsate"
-                  style={{
-                    width: "30px",
-                    top: "-12px",
-                    right: "-22px",
-                  }}
-                />
+                  <span
+                    className="whitespace-nowrap"
+                    style={{
+                      fontSize: "10px",
+                      position: "relative",
+                      bottom: "4px",
+                      left: "4px",
+                      wordSpacing: "-4px",
+                      color: "#262b45",
+                    }}
+                  >
+                    {t("deliveries.new")}
+                  </span>
+                  <img
+                    src={coins}
+                    className="absolute animate-pulsate"
+                    style={{
+                      width: "30px",
+                      top: "-12px",
+                      right: "-22px",
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+            <img
+              src={coins}
+              className="absolute animate-pulsate sm:hidden"
+              style={{
+                width: "30px",
+                top: "-2px",
+                right: "-10px",
+              }}
+            />
+          </>
         )}
       </div>
 

@@ -11,6 +11,7 @@ import {
 } from "features/game/types/consumables";
 import { MachineInterpreter } from "features/island/buildings/lib/craftingMachine";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
+import { OuterPanel } from "components/ui/Panel";
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface Props {
   crafting: boolean;
   itemInProgress?: CookableName;
   craftingService?: MachineInterpreter;
+  buildingId: string;
 }
 export const BakeryModal: React.FC<Props> = ({
   isOpen,
@@ -27,9 +29,10 @@ export const BakeryModal: React.FC<Props> = ({
   crafting,
   itemInProgress,
   craftingService,
+  buildingId,
 }) => {
   const cakeRecipes = Object.values(BAKERY_COOKABLES).sort(
-    (a, b) => a.cookingSeconds - b.cookingSeconds // Future proofing for future foods released
+    (a, b) => a.cookingSeconds - b.cookingSeconds // Sorts Foods based on their cooking time
   );
   const [selected, setSelected] = useState<Cookable>(
     cakeRecipes.find((recipe) => recipe.name === itemInProgress) ||
@@ -51,6 +54,7 @@ export const BakeryModal: React.FC<Props> = ({
         }}
         tabs={[{ icon: chefHat, name: "Bakery" }]}
         onClose={onClose}
+        container={OuterPanel}
       >
         <Recipes
           selected={selected}
@@ -60,6 +64,9 @@ export const BakeryModal: React.FC<Props> = ({
           onClose={onClose}
           crafting={crafting}
           craftingService={craftingService}
+          buildingId={buildingId}
+          buildingName="Bakery"
+          currentlyCooking={selected.name}
         />
       </CloseButtonPanel>
     </Modal>

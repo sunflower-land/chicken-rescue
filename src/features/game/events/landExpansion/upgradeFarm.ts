@@ -11,6 +11,7 @@ import {
 
 import cloneDeep from "lodash.clonedeep";
 import { translate } from "lib/i18n/translate";
+import { Coordinates } from "features/game/expansion/components/MapPlacement";
 
 export type UpgradeFarmAction = {
   type: "farm.upgraded";
@@ -22,18 +23,9 @@ type Options = {
   createdAt?: number;
 };
 
-const INITIAL_LAND: Pick<
+const INITIAL_SPRING_LAND: Pick<
   GameState,
-  | "buildings"
-  | "crops"
-  | "fruitPatches"
-  | "stones"
-  | "iron"
-  | "gold"
-  | "trees"
-  | "flowers"
-  | "beehives"
-  | "crimstones"
+  "buildings" | "crops" | "fruitPatches" | "stones" | "iron" | "gold" | "trees"
 > = {
   buildings: {
     House: [
@@ -330,17 +322,319 @@ const INITIAL_LAND: Pick<
       width: 1,
     },
   },
-  flowers: {
-    discovered: {},
-    flowerBeds: {},
-  },
-  beehives: {},
-  crimstones: {},
 };
+
+const INITIAL_DESERT_LAND: Pick<
+  GameState,
+  "buildings" | "crops" | "fruitPatches" | "stones" | "iron" | "gold" | "trees"
+> = {
+  buildings: {
+    Manor: [
+      {
+        id: "1",
+        readyAt: 0,
+        coordinates: {
+          x: -1,
+          y: 5,
+        },
+        createdAt: 0,
+      },
+    ],
+    Workbench: [
+      {
+        id: "1",
+        readyAt: 0,
+        coordinates: {
+          x: 6,
+          y: 6,
+        },
+        createdAt: 0,
+      },
+    ],
+    Market: [
+      {
+        id: "1",
+        readyAt: 0,
+        coordinates: {
+          x: 6,
+          y: 3,
+        },
+        createdAt: 0,
+      },
+    ],
+    "Fire Pit": [
+      {
+        id: "1123",
+        readyAt: 0,
+        coordinates: {
+          x: 6,
+          y: 0,
+        },
+        createdAt: 0,
+      },
+    ],
+  },
+  crops: {
+    "1": {
+      createdAt: 1703364823336,
+      crop: {
+        name: "Sunflower",
+        plantedAt: 0,
+        amount: 1,
+      },
+      x: -2,
+      y: 0,
+      height: 1,
+      width: 1,
+    },
+    "2": {
+      createdAt: 1703364823336,
+      crop: {
+        name: "Sunflower",
+        plantedAt: 0,
+        amount: 1,
+      },
+      x: -1,
+      y: 0,
+      height: 1,
+      width: 1,
+    },
+    "3": {
+      createdAt: 1703364823336,
+      crop: {
+        name: "Sunflower",
+        plantedAt: 0,
+        amount: 1,
+      },
+      x: 0,
+      y: 0,
+      height: 1,
+      width: 1,
+    },
+    "4": {
+      createdAt: 1703364823336,
+      x: -2,
+      y: -1,
+      height: 1,
+      width: 1,
+    },
+    "5": {
+      createdAt: 1703364823336,
+      x: -1,
+      y: -1,
+      height: 1,
+      width: 1,
+    },
+    "6": {
+      createdAt: 1703364823336,
+      x: 0,
+      y: -1,
+      height: 1,
+      width: 1,
+    },
+    "7": {
+      createdAt: 1703364823336,
+      x: -2,
+      y: 1,
+      height: 1,
+      width: 1,
+    },
+    "8": {
+      createdAt: 1703364823336,
+      x: -1,
+      y: 1,
+      height: 1,
+      width: 1,
+    },
+    "9": {
+      createdAt: 1703364823336,
+      x: 0,
+      y: 1,
+      height: 1,
+      width: 1,
+    },
+    "10": {
+      createdAt: 1703365405829,
+      x: 1,
+      y: 1,
+      width: 1,
+      height: 1,
+    },
+    "11": {
+      createdAt: 1703365405976,
+      x: 1,
+      y: 0,
+      width: 1,
+      height: 1,
+    },
+    12: {
+      createdAt: 1703365406093,
+      x: 1,
+      y: -1,
+      width: 1,
+      height: 1,
+    },
+    13: {
+      createdAt: 1703365409614,
+      x: 2,
+      y: 1,
+      width: 1,
+      height: 1,
+    },
+    "14": {
+      createdAt: 1703365409776,
+      x: 2,
+      y: 0,
+      width: 1,
+      height: 1,
+    },
+    "15": {
+      createdAt: 1703365409926,
+      x: 2,
+      y: -1,
+      width: 1,
+      height: 1,
+    },
+    "16": {
+      createdAt: 1703365428830,
+      x: 3,
+      y: 1,
+      width: 1,
+      height: 1,
+    },
+    "17": {
+      createdAt: 1703365429062,
+      x: 3,
+      y: 0,
+      width: 1,
+      height: 1,
+    },
+    18: {
+      createdAt: 1703365429630,
+      x: 3,
+      y: -1,
+      width: 1,
+      height: 1,
+    },
+  },
+  fruitPatches: {
+    "1": {
+      fruit: {
+        amount: 2,
+        name: "Apple",
+        harvestedAt: 0,
+        harvestsLeft: 3,
+        plantedAt: 0,
+      },
+      x: 0,
+      y: 9,
+      height: 2,
+      width: 2,
+    },
+    "2": {
+      fruit: {
+        amount: 1,
+        name: "Apple",
+        harvestedAt: 0,
+        harvestsLeft: 3,
+        plantedAt: 0,
+      },
+      x: -2,
+      y: 9,
+      height: 2,
+      width: 2,
+    },
+  },
+  trees: {
+    "1": {
+      wood: {
+        amount: 2,
+        choppedAt: 0,
+      },
+      x: 4,
+      y: 6,
+      height: 2,
+      width: 2,
+    },
+    "2": {
+      wood: {
+        amount: 1,
+        choppedAt: 0,
+      },
+      x: 4,
+      y: 4,
+      height: 2,
+      width: 2,
+    },
+    "3": {
+      wood: {
+        amount: 2,
+        choppedAt: 0,
+      },
+      x: 7,
+      y: 9,
+      height: 2,
+      width: 2,
+    },
+  },
+  gold: {
+    1: {
+      x: 3,
+      y: 9,
+      width: 1,
+      height: 1,
+      stone: {
+        amount: 2,
+        minedAt: 0,
+      },
+    },
+  },
+  iron: {
+    "1": {
+      x: 5,
+      y: 8,
+      width: 1,
+      height: 1,
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+    },
+  },
+  stones: {
+    "1": {
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+      x: -3,
+      y: 5,
+      height: 1,
+      width: 1,
+    },
+    "2": {
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+      x: -2,
+      y: 3,
+      height: 1,
+      width: 1,
+    },
+  },
+};
+
+const SUNSTONE_RELOCATION: Coordinates[] = [
+  { x: -3, y: 7 },
+  { x: 0, y: 7 },
+  { x: 4, y: 2 },
+  { x: 4, y: 0 },
+];
 
 export const ISLAND_UPGRADE: Record<
   IslandType,
-  { items: Inventory; expansions: number; upgrade: IslandType }
+  { items: Inventory; expansions: number; upgrade: IslandType | null }
 > = {
   basic: {
     expansions: 9,
@@ -352,7 +646,7 @@ export const ISLAND_UPGRADE: Record<
   spring: {
     expansions: 16,
     items: {
-      Gold: new Decimal(9999999999), // TODO
+      Crimstone: new Decimal(20),
     },
     upgrade: "desert",
   },
@@ -362,7 +656,7 @@ export const ISLAND_UPGRADE: Record<
     items: {
       Gold: new Decimal(9999999999),
     },
-    upgrade: "desert",
+    upgrade: null,
   },
 };
 
@@ -375,7 +669,8 @@ function springUpgrade(state: GameState) {
   game.inventory.House = new Decimal(1);
 
   // Ensure they have the minimum resources to start the island with
-  const minimum = TOTAL_EXPANSION_NODES.spring[4];
+  // Do not give bonus sunstones
+  const minimum = { ...TOTAL_EXPANSION_NODES.spring[4], "Sunstone Rock": 0 };
 
   Object.entries(minimum).forEach(([name, amount]) => {
     const item = game.inventory[name as InventoryItemName] ?? new Decimal(0);
@@ -432,21 +727,62 @@ export function expireItems({
   return game;
 }
 
-function desertUpgrade(_: GameState) {
-  throw new Error("Not implemented");
+function desertUpgrade(state: GameState) {
+  const game = cloneDeep(state) as GameState;
+  // Clear the house
+  delete game.inventory["Town Center"];
+  delete game.inventory["House"];
 
-  return _;
+  // Add new resources
+  game.inventory.Manor = new Decimal(1);
+
+  // Ensure they have the minimum resources to start the island with
+  // Do not give bonus sunstones
+  const minimum = { ...TOTAL_EXPANSION_NODES.desert[4], "Sunstone Rock": 0 };
+
+  Object.entries(minimum).forEach(([name, amount]) => {
+    const item = game.inventory[name as InventoryItemName] ?? new Decimal(0);
+    if (item.lt(amount)) {
+      game.inventory[name as InventoryItemName] = new Decimal(amount);
+    }
+  });
+
+  game.airdrops = [
+    ...(game.airdrops ?? []),
+    {
+      id: "desert-island-upgrade-reward",
+      coordinates: {
+        x: -1,
+        y: 7,
+      },
+      createdAt: 0,
+      items: {
+        "Desert Gnome": 1,
+      },
+      sfl: 0,
+      coins: 0,
+      wearables: {},
+      message: translate("islandupgrade.welcomeDesertIsland"),
+    },
+  ];
+
+  return game;
 }
+
 export function upgrade({ state, action, createdAt = Date.now() }: Options) {
   let game = cloneDeep(state) as GameState;
 
   const upcoming = ISLAND_UPGRADE[game.island.type];
 
+  if (upcoming.upgrade === null) {
+    throw new Error("Not implemented");
+  }
+
   if (game.inventory["Basic Land"]?.lt(upcoming.expansions)) {
     throw new Error("Player has not met the expansion requirements");
   }
 
-  // Check & burnthe requirements
+  // Check & burn the requirements
   Object.entries(upcoming.items).forEach(([name, required]) => {
     const amount = game.inventory[name as InventoryItemName] ?? new Decimal(0);
     if (amount.lt(required)) {
@@ -480,12 +816,33 @@ export function upgrade({ state, action, createdAt = Date.now() }: Options) {
     }),
     game.buds
   );
+  game.crimstones = {};
+  game.beehives = {};
+  game.flowers.flowerBeds = {};
+  game.oilReserves = {};
+
+  Object.keys(game.sunstones).forEach((key, i) => {
+    game.sunstones[key].x = SUNSTONE_RELOCATION[i].x;
+    game.sunstones[key].y = SUNSTONE_RELOCATION[i].y;
+  });
+
+  const previousExpansions = game.inventory["Basic Land"]?.toNumber() ?? 0;
+  const sunstonesForExpansion =
+    TOTAL_EXPANSION_NODES[game.island.type][previousExpansions][
+      "Sunstone Rock"
+    ] ?? 0;
+
+  const maxSunstones = Math.max(
+    sunstonesForExpansion,
+    game.island.sunstones ?? 0
+  );
 
   // Set the island
   game.island = {
-    type: "spring",
+    type: upcoming.upgrade,
     upgradedAt: createdAt,
-    previousExpansions: game.inventory["Basic Land"]?.toNumber() ?? 0,
+    previousExpansions,
+    sunstones: maxSunstones,
   };
 
   if (upcoming.upgrade === "spring") {
@@ -497,14 +854,21 @@ export function upgrade({ state, action, createdAt = Date.now() }: Options) {
   }
 
   // Reset expansions
-  game.inventory["Basic Land"] = new Decimal(4);
-
-  game =
-    // Place initial resources
+  if (upcoming.upgrade === "spring") {
+    game.inventory["Basic Land"] = new Decimal(4);
     game = {
       ...game,
-      ...INITIAL_LAND,
+      ...INITIAL_SPRING_LAND,
     };
+  }
+
+  if (upcoming.upgrade === "desert") {
+    game.inventory["Basic Land"] = new Decimal(4);
+    game = {
+      ...game,
+      ...INITIAL_DESERT_LAND,
+    };
+  }
 
   return {
     ...game,

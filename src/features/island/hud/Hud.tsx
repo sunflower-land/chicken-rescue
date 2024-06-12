@@ -22,6 +22,8 @@ import { PIXEL_SCALE } from "features/game/lib/constants";
 import Decimal from "decimal.js-light";
 import { BuyCurrenciesModal } from "./components/BuyCurrenciesModal";
 import { MachineState } from "features/game/lib/gameMachine";
+import { useSound } from "lib/utils/hooks/useSound";
+import { EmblemAirdropCountdown } from "./EmblemAirdropCountdown";
 
 const _farmAddress = (state: MachineState) => state.context.farmAddress;
 const _xp = (state: MachineState) =>
@@ -45,6 +47,9 @@ const HudComponent: React.FC<{
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showBuyCurrencies, setShowBuyCurrencies] = useState(false);
 
+  const sfl = useSound("sfl");
+  const button = useSound("button");
+
   const autosaving = gameState.matches("autosaving");
 
   const handleDeposit = (
@@ -54,6 +59,7 @@ const HudComponent: React.FC<{
   };
 
   const handleBuyCurrenciesModal = () => {
+    sfl.play();
     setShowBuyCurrencies(!showBuyCurrencies);
   };
 
@@ -66,6 +72,7 @@ const HudComponent: React.FC<{
           {isFarming && (
             <div
               onClick={() => {
+                button.play();
                 if (isFarming) {
                   gameService.send("LANDSCAPE");
                 }
@@ -81,7 +88,7 @@ const HudComponent: React.FC<{
                 marginBottom: `${PIXEL_SCALE * 25}px`,
                 width: `${PIXEL_SCALE * 22}px`,
                 right: `${PIXEL_SCALE * 3}px`,
-                top: `${PIXEL_SCALE * 38}px`,
+                top: `${PIXEL_SCALE * 31}px`,
               }}
             >
               <img
@@ -158,6 +165,7 @@ const HudComponent: React.FC<{
         >
           <AuctionCountdown />
           <HalveningCountdown />
+          <EmblemAirdropCountdown />
         </div>
 
         <div

@@ -50,6 +50,7 @@ export type ShopDecorationName =
 
 export type SeasonalDecorationName =
   | "Blossombeard"
+  | "Desert Gnome"
   | "Clementine"
   | "Cobalt"
   | "Dawn Umbrella Seat"
@@ -67,7 +68,14 @@ export type SeasonalDecorationName =
   | "Hideaway Herman"
   | "Shifty Sheldon"
   | "Tiki Torch"
-  | "Beach Umbrella";
+  | "Beach Umbrella"
+  | "Gaucho Rug"
+  | "Battlecry Drum"
+  | "Golden Gallant"
+  | "Golden Guardian"
+  | "Rookie Rook"
+  | "Silver Sentinel"
+  | "Silver Stallion";
 
 export type EventDecorationName =
   | "Community Egg"
@@ -108,6 +116,35 @@ export type DecorationName =
   | InteriorDecorationName;
 
 export const DECORATION_DIMENSIONS: Record<DecorationName, Dimensions> = {
+  "Gaucho Rug": {
+    width: 3,
+    height: 2,
+  },
+  "Battlecry Drum": {
+    width: 2,
+    height: 2,
+  },
+  "Golden Gallant": {
+    width: 1,
+    height: 1,
+  },
+  "Golden Guardian": {
+    width: 1,
+    height: 1,
+  },
+  "Rookie Rook": {
+    width: 1,
+    height: 1,
+  },
+  "Silver Sentinel": {
+    width: 1,
+    height: 1,
+  },
+
+  "Silver Stallion": {
+    width: 1,
+    height: 1,
+  },
   "Hungry Hare": {
     width: 2,
     height: 2,
@@ -130,6 +167,10 @@ export const DECORATION_DIMENSIONS: Record<DecorationName, Dimensions> = {
     height: 2,
   },
   Blossombeard: {
+    width: 1,
+    height: 1,
+  },
+  "Desert Gnome": {
     width: 1,
     height: 1,
   },

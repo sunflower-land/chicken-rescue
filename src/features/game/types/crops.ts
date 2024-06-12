@@ -14,7 +14,8 @@ export type CropName =
   | "Corn"
   | "Radish"
   | "Wheat"
-  | "Kale";
+  | "Kale"
+  | "Soybean";
 
 export type Crop = {
   sellPrice: number;
@@ -24,6 +25,59 @@ export type Crop = {
   bumpkinLevel: number;
   disabled?: boolean;
 };
+
+export type GreenHouseCropName = "Olive" | "Rice";
+
+export type GreenHouseCrop = {
+  sellPrice: number;
+  harvestSeconds: number;
+  name: GreenHouseCropName;
+  description: string;
+  bumpkinLevel: number;
+  disabled?: boolean;
+};
+
+export const GREENHOUSE_CROPS: () => Record<
+  GreenHouseCropName,
+  GreenHouseCrop
+> = () => ({
+  Rice: {
+    sellPrice: 320,
+    harvestSeconds: 32 * 60 * 60,
+    name: "Rice",
+    description: "A staple food for many.",
+    bumpkinLevel: 10,
+  },
+  Olive: {
+    sellPrice: 400,
+    harvestSeconds: 44 * 60 * 60,
+    name: "Olive",
+    description: "Zesty with a rich history.",
+    bumpkinLevel: 10,
+  },
+});
+
+export const GREENHOUSE_SEEDS: () => Record<
+  GreenHouseCropSeedName,
+  Seed
+> = () => ({
+  "Rice Seed": {
+    price: 240,
+    description: "A staple food for many.",
+    bumpkinLevel: 40,
+    plantSeconds: 32 * 60 * 60,
+    requiredIsland: "desert",
+  },
+  "Olive Seed": {
+    price: 320,
+    description: "Zesty with a rich history.",
+    bumpkinLevel: 40,
+    plantSeconds: 44 * 60 * 60,
+    requiredIsland: "desert",
+  },
+});
+
+export type GreenHouseCropSeedName = `${GreenHouseCropName} Seed`;
 
 /**
  * Crops and their original prices
@@ -63,6 +117,13 @@ export const CROPS: () => Record<CropName, Crop> = () => ({
     sellPrice: 1.5,
     bumpkinLevel: 3,
     harvestSeconds: 2 * 60 * 60,
+  },
+  Soybean: {
+    sellPrice: 2.3,
+    harvestSeconds: 3 * 60 * 60,
+    name: "Soybean",
+    description: translate("description.soybean"),
+    bumpkinLevel: 10,
   },
   Beetroot: {
     name: "Beetroot",
@@ -159,6 +220,13 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 3,
     plantSeconds: 2 * 60 * 60,
     yield: "Cabbage",
+  },
+  "Soybean Seed": {
+    price: 1.5,
+    description: translate("description.soybean"),
+    bumpkinLevel: 10,
+    plantSeconds: 3 * 60 * 60,
+    yield: "Soybean",
   },
   "Beetroot Seed": {
     description: translate("description.beetroot"),

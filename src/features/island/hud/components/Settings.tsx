@@ -18,6 +18,7 @@ import {
 import { SUNNYSIDE } from "assets/sunnyside";
 import { useLocation } from "react-router-dom";
 import { GameOptionsModal } from "./settings-menu/GameOptions";
+import { useSound } from "lib/utils/hooks/useSound";
 
 const buttonWidth = PIXEL_SCALE * 22;
 const buttonHeight = PIXEL_SCALE * 23;
@@ -32,6 +33,9 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   const [openAudioMenu, setOpenAudioMenu] = useState(false);
   const [openSettingsMenu, setOpenSettingsMenu] = useState(false);
   const { pathname } = useLocation();
+
+  const button = useSound("button");
+
   // The actions included in this more buttons should not be shown if the player is in goblin retreat or visiting another farm
   const showLimitedButtons =
     pathname.includes("retreat") || pathname.includes("visit");
@@ -64,7 +68,7 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   // music controls
 
   const [songIndex, setSongIndex] = useState<number>(0);
-  const musicPlayer = useRef<any>(null);
+  const musicPlayer = useRef<HTMLAudioElement>(null);
 
   const getSongCount = () => {
     return isFarming ? getFarmingSongCount() : getGoblinSongCount();
@@ -133,7 +137,10 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   const gearButton = (index: number) =>
     settingButton(
       index,
-      () => setShowMoreButtons(!showMoreButtons),
+      () => {
+        button.play();
+        setShowMoreButtons(!showMoreButtons);
+      },
       <img
         src={settings}
         className="absolute"
@@ -148,7 +155,9 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   const audioButton = (index: number) =>
     settingButton(
       index,
-      () => setOpenAudioMenu(true),
+      () => {
+        setOpenAudioMenu(true);
+      },
       <img
         src={sound_on}
         className="absolute"
@@ -163,7 +172,10 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   const progressBarButton = (index: number) =>
     settingButton(
       index,
-      toggleTimers,
+      () => {
+        button.play();
+        toggleTimers();
+      },
       <div
         className="absolute"
         style={{
@@ -181,7 +193,9 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   const moreButton = (index: number) =>
     settingButton(
       index,
-      () => setOpenSettingsMenu(true),
+      () => {
+        setOpenSettingsMenu(true);
+      },
       <img
         src={more}
         className="absolute"

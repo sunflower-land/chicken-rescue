@@ -6,13 +6,15 @@ import Spritesheet, {
 
 import shakeSheet from "assets/resources/tree/shake_sheet.png";
 import springShakeSheet from "assets/resources/tree/spring_shake_sheet.png";
+import desertShakeSheet from "assets/resources/tree/desert_shake_sheet.webp";
+import cacti from "assets/resources/tree/cacti.webp";
 
 import { PIXEL_SCALE } from "features/game/lib/constants";
 
 import { Bar } from "components/ui/ProgressBar";
 import { InnerPanel } from "components/ui/Panel";
 import classNames from "classnames";
-import { chopAudio } from "lib/utils/sfx";
+import { chopAudio, loadAudio } from "lib/utils/sfx";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { ZoomContext } from "components/ZoomProvider";
 import { IslandType } from "features/game/types/game";
@@ -33,13 +35,13 @@ interface Props {
 const SHAKE_SHEET: Record<IslandType, string> = {
   basic: shakeSheet,
   spring: springShakeSheet,
-  desert: shakeSheet,
+  desert: desertShakeSheet,
 };
 
 const TREE_IMAGE: Record<IslandType, string> = {
   basic: SUNNYSIDE.resource.tree,
   spring: SUNNYSIDE.resource.spring_tree,
-  desert: SUNNYSIDE.resource.tree,
+  desert: cacti,
 };
 
 const RecoveredTreeComponent: React.FC<Props> = ({
@@ -54,6 +56,8 @@ const RecoveredTreeComponent: React.FC<Props> = ({
 
   const shakeGif = useRef<SpriteSheetInstance>();
   const { t } = useAppTranslation();
+
+  loadAudio([chopAudio]);
 
   // prevent performing react state update on an unmounted component
   useEffect(() => {

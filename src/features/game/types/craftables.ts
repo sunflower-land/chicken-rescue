@@ -93,7 +93,8 @@ export type MutantChicken =
   | "Ayam Cemani"
   | "El Pollo Veloz"
   | "Banana Chicken"
-  | "Crim Peckster";
+  | "Crim Peckster"
+  | "Knight Chicken";
 
 export interface LimitedItem extends CraftableItem {
   maxSupply?: number;
@@ -218,7 +219,8 @@ export type ToolName =
   | "Iron Pickaxe"
   | "Gold Pickaxe"
   | "Hammer"
-  | "Rod";
+  | "Rod"
+  | "Oil Drill";
 
 export type Shovel = "Rusty Shovel" | "Shovel";
 
@@ -554,6 +556,21 @@ export const TOOLS: Record<ToolName, CraftableItem> = {
       },
     ],
   },
+  "Oil Drill": {
+    name: "Oil Drill",
+    description: translate("description.oil.drill"),
+    price: 2240,
+    ingredients: [
+      {
+        item: "Wood",
+        amount: new Decimal(25),
+      },
+      {
+        item: "Iron",
+        amount: new Decimal(10),
+      },
+    ],
+  },
   Hammer: {
     name: "Hammer",
     description: translate("coming.soon"),
@@ -775,6 +792,11 @@ export const MUTANT_CHICKENS: Record<MutantChicken, LimitedItem> = {
   "Crim Peckster": {
     name: "Crim Peckster",
     description: translate("description.crim.peckster"),
+    type: LimitedItemType.MutantChicken,
+  },
+  "Knight Chicken": {
+    name: "Knight Chicken",
+    description: translate("description.knight.chicken"),
     type: LimitedItemType.MutantChicken,
   },
 };
@@ -1122,6 +1144,7 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "El Pollo Veloz": { width: 1, height: 1 },
   "Banana Chicken": { width: 1, height: 2 },
   "Crim Peckster": { width: 1, height: 1 },
+  "Knight Chicken": { width: 1, height: 1 },
   // War Tent Items
   "War Skull": { width: 1, height: 1 },
   "War Tombstone": { width: 1, height: 1 },
@@ -1242,6 +1265,7 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Gilded Swordfish": { width: 2, height: 1 },
   "Kraken Tentacle": { width: 1, height: 1 },
   "Crimson Carp": { width: 2, height: 1 },
+  "Battle Fish": { width: 2, height: 1 },
 
   // Catch the Kraken SFTs
   Walrus: { width: 2, height: 2 },
@@ -1272,6 +1296,27 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Prism Petal": { width: 1, height: 1 },
   "Celestial Frostbloom": { width: 1, height: 1 },
   "Primula Enigma": { width: 1, height: 1 },
+
+  // Clash of Factions
+  "Turbo Sprout": { width: 2, height: 2 },
+  Soybliss: { width: 1, height: 2 },
+  "Grape Granny": { width: 1, height: 1 },
+  "Royal Throne": { width: 2, height: 2 },
+  "Lily Egg": { width: 1, height: 2 },
+  Goblet: { width: 1, height: 1 },
+  Vinny: { width: 1, height: 1 },
+  Clock: { width: 1, height: 1 },
+  "Fancy Rug": { width: 3, height: 2 },
+  "Bullseye Board": { width: 2, height: 2 },
+  "Chess Rug": { width: 4, height: 4 },
+  "Twister Rug": { width: 3, height: 2 },
+  Cluckapult: { width: 2, height: 2 },
+  "Trainee Target": { width: 1, height: 1 },
+  "Golden Garrison": { width: 1, height: 1 },
+  "Novice Knight": { width: 1, height: 1 },
+  "Regular Pawn": { width: 1, height: 1 },
+  "Silver Squire": { width: 1, height: 1 },
+  "Rice Panda": { width: 1, height: 2 },
 };
 
 export const ANIMAL_DIMENSIONS: Record<"Chicken", Dimensions> = {

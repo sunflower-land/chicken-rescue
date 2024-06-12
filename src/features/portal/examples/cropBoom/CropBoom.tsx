@@ -14,6 +14,7 @@ import { NPC_WEARABLES } from "lib/npcs";
 import { authorisePortal } from "features/portal/examples/cropBoom/lib/portalUtil";
 import { CropBoomRules } from "./components/CropBoomRules";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { Loading } from "features/auth/components";
 
 export const CropBoomApp: React.FC = () => {
   return (
@@ -49,7 +50,7 @@ export const CropBoom: React.FC = () => {
       {portalState.matches("loading") && (
         <Modal show>
           <Panel>
-            <span className="loading">{t("loading")}</span>
+            <Loading />
           </Panel>
         </Modal>
       )}
@@ -82,6 +83,38 @@ export const CropBoom: React.FC = () => {
             <CropBoomRules
               onAcknowledged={() => portalService.send("CONTINUE")}
             />
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("claiming") && (
+        <Modal show>
+          <Panel>
+            <Loading />
+          </Panel>
+        </Modal>
+      )}
+
+      {portalState.matches("completed") && (
+        <Modal show>
+          <Panel bumpkinParts={NPC_WEARABLES.wizard}>
+            <div className="p-2">
+              <p className="mb-2">
+                {`Congratulations, you have completed today's challenge.`}
+              </p>
+              <p className="text-sm mb-1">{t("crop.boom.back.puzzle")}</p>
+              <Label type="info" icon={SUNNYSIDE.icons.timer}>
+                {secondsToString(secondsTillReset(), { length: "medium" })}
+              </Label>
+            </div>
+            <div className="flex">
+              <Button onClick={goHome} className="mr-1">
+                {t("go.home")}
+              </Button>
+              <Button onClick={() => portalService.send("CONTINUE")}>
+                {t("play.again")}
+              </Button>
+            </div>
           </Panel>
         </Modal>
       )}

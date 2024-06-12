@@ -1,7 +1,6 @@
 import Decimal from "decimal.js-light";
 import { isCollectibleBuilt } from "features/game/lib/collectibleBuilt";
 import { getBudYieldBoosts } from "features/game/lib/getBudYieldBoosts";
-import { Equipped } from "features/game/types/bumpkin";
 import {
   BumpkinActivityName,
   trackActivity,
@@ -11,6 +10,7 @@ import {
   FruitName,
   FRUIT_SEEDS,
   Fruit,
+  GreenHouseFruitName,
 } from "features/game/types/fruits";
 import { Bumpkin, GameState, PlantedFruit } from "features/game/types/game";
 import cloneDeep from "lodash.clonedeep";
@@ -19,7 +19,6 @@ import { FruitPatch } from "features/game/types/game";
 import { FruitCompostName } from "features/game/types/composters";
 import { getPlantedAt } from "./fruitPlanted";
 import { isWearableActive } from "features/game/lib/wearables";
-import { translate } from "lib/i18n/translate";
 
 export type HarvestFruitAction = {
   type: "fruit.harvested";
@@ -50,10 +49,8 @@ export const isFruitReadyToHarvest = (
 };
 
 type FruitYield = {
-  name: FruitName;
+  name: FruitName | GreenHouseFruitName;
   game: GameState;
-  buds: NonNullable<GameState["buds"]>;
-  wearables: Equipped;
   fertiliser?: FruitCompostName;
 };
 
@@ -76,14 +73,9 @@ export function isFruitGrowing(patch: FruitPatch) {
   return growingTimeLeft > 0;
 }
 
-export function getFruitYield({
-  game,
-  buds,
-  name,
-  wearables,
-  fertiliser,
-}: FruitYield) {
+export function getFruitYield({ name, game, fertiliser }: FruitYield) {
   let amount = 1;
+
   if (name === "Apple" && isCollectibleBuilt({ name: "Lady Bug", game })) {
     amount += 0.25;
   }
@@ -120,7 +112,15 @@ export function getFruitYield({
     amount += 0.1;
   }
 
-  amount += getBudYieldBoosts(buds, name);
+  // Grape
+  if (name === "Grape" && isCollectibleBuilt({ name: "Vinny", game })) {
+    amount += 0.25;
+  }
+
+  if (name === "Grape" && isCollectibleBuilt({ name: "Grape Granny", game })) {
+    amount += 1;
+  }
+  amount += getBudYieldBoosts(game.buds ?? {}, name);
 
   return amount;
 }
@@ -134,7 +134,7 @@ export function harvestFruit({
   const { fruitPatches, bumpkin, collectibles } = stateCopy;
 
   if (!bumpkin) {
-    throw new Error(translate("no.have.bumpkin"));
+    throw new Error("You do not have a Bumpkin!");
   }
 
   const patch = fruitPatches[action.index];
@@ -177,8 +177,6 @@ export function harvestFruit({
 
   patch.fruit.amount = getFruitYield({
     game: stateCopy,
-    buds: stateCopy.buds ?? {},
-    wearables: bumpkin.equipped,
     name,
     fertiliser: patch.fertiliser?.name,
   });

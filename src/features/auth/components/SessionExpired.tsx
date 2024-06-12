@@ -14,14 +14,14 @@ export const SessionExpired: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-col text-center text-shadow items-center p-1">
+      <div className="flex flex-col text-center items-center p-1">
         <div className="flex mb-3 items-center ml-8">
           <img src={humanDeath} alt="Warning" className="w-full" />
         </div>
         <p className="text-center mb-3">{t("session.expired")}</p>
 
         <p className="text-center mb-4 text-xs">
-          {`${t("statements.session.expired")}`}
+          {t("statements.session.expired")}
         </p>
       </div>
       <Button

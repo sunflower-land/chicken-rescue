@@ -24,6 +24,7 @@ import { Bumpkin } from "features/game/types/game";
 import classNames from "classnames";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { SpringValue } from "@react-spring/web";
+import { useSound } from "lib/utils/hooks/useSound";
 
 const DIMENSIONS = {
   original: 80,
@@ -45,8 +46,8 @@ const DIMENSIONS = {
   level: {
     width: 24,
     height: 12,
-    marginLeft: 108,
-    marginTop: 84,
+    marginLeft: 109,
+    marginTop: 82.5,
   },
   username: {
     width: 200,
@@ -167,7 +168,7 @@ export const BumpkinAvatar: React.FC<AvatarProps> = ({
           }}
         />
         <div
-          className={`col-start-1 row-start-1 flex justify-center text-white text-xxs z-20`}
+          className={`col-start-1 row-start-1 flex justify-center   z-20 text-xs`}
           style={{
             width: `${DIMENSIONS.level.width}px`,
             height: `${DIMENSIONS.level.height}px`,
@@ -177,19 +178,7 @@ export const BumpkinAvatar: React.FC<AvatarProps> = ({
         >
           {level}
         </div>
-        {username && (
-          <div
-            className={`col-start-1 row-start-1 flex justify-center text-white text-xxs z-20`}
-            style={{
-              width: `${DIMENSIONS.username.width}px`,
-              height: `${DIMENSIONS.username.height}px`,
-              marginLeft: `${DIMENSIONS.username.marginLeft}px`,
-              marginTop: `${DIMENSIONS.username.marginTop}px`,
-            }}
-          >
-            {username}
-          </div>
-        )}
+
         {showSkillPointAlert && (
           <img
             src={SUNNYSIDE.icons.expression_alerted}
@@ -216,6 +205,8 @@ export const BumpkinProfile: React.FC<{
   const [viewSkillsPage, setViewSkillsPage] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const profile = useSound("profile");
+
   const { gameService } = useContext(Context);
   const [gameState] = useActor(gameService);
   const {
@@ -232,6 +223,7 @@ export const BumpkinProfile: React.FC<{
   }, [level, experience]);
 
   const handleShowHomeModal = () => {
+    profile.play();
     setViewSkillsPage(showSkillPointAlert);
     setShowModal(true);
     if (showSkillPointAlert) {

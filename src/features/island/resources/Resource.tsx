@@ -27,6 +27,16 @@ import { Beehive } from "features/game/expansion/components/resources/beehive/Be
 import { FlowerBed } from "../flowers/FlowerBed";
 import { Sunstone } from "features/game/expansion/components/resources/sunstone/Sunstone";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { OilReserve } from "features/game/expansion/components/resources/oilReserve/OilReserve";
+import { IslandType } from "features/game/types/game";
+
+import cacti from "assets/resources/tree/cacti.webp";
+
+export const TREE_VARIANTS: Record<IslandType, string> = {
+  basic: SUNNYSIDE.resource.tree,
+  spring: SUNNYSIDE.resource.tree,
+  desert: cacti,
+};
 
 export interface ResourceProps {
   name: ResourceName;
@@ -39,10 +49,9 @@ export interface ResourceProps {
 }
 
 // Used for placing
-export const READONLY_RESOURCE_COMPONENTS: Record<
-  ResourceName,
-  React.FC<ResourceProps>
-> = {
+export const READONLY_RESOURCE_COMPONENTS: (
+  island: IslandType
+) => Record<ResourceName, React.FC<ResourceProps>> = (island) => ({
   "Crop Plot": () => (
     <div
       className="relative"
@@ -106,31 +115,29 @@ export const READONLY_RESOURCE_COMPONENTS: Record<
       src={ITEM_DETAILS["Crimstone Rock"].image}
       className="relative"
       style={{
-        width: `${PIXEL_SCALE * 14}px`,
+        width: `${PIXEL_SCALE * 24}px`,
         top: `${PIXEL_SCALE * 3}px`,
-        left: `${PIXEL_SCALE * 1}px`,
+        left: `${PIXEL_SCALE * 4}px`,
       }}
     />
   ),
   "Oil Reserve": () => (
     <img
       src={ITEM_DETAILS["Oil Reserve"].image}
-      className="relative"
+      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
       style={{
         width: `${PIXEL_SCALE * 30}px`,
-        top: `${PIXEL_SCALE * 3}px`,
-        left: `${PIXEL_SCALE * 1}px`,
       }}
     />
   ),
   Tree: () => (
     <img
-      src={SUNNYSIDE.resource.tree}
+      src={TREE_VARIANTS[island]}
       className="relative"
       style={{
         width: `${PIXEL_SCALE * 26}px`,
-        bottom: `${PIXEL_SCALE * 2}px`,
-        right: `${PIXEL_SCALE * 3}px`,
+        bottom: `${PIXEL_SCALE * 3}px`,
+        left: `${PIXEL_SCALE * 3}px`,
       }}
     />
   ),
@@ -184,7 +191,7 @@ export const READONLY_RESOURCE_COMPONENTS: Record<
       }}
     />
   ),
-};
+});
 
 export const RESOURCE_COMPONENTS: Record<
   ResourceName,
@@ -201,7 +208,7 @@ export const RESOURCE_COMPONENTS: Record<
   Beehive: Beehive,
   "Flower Bed": FlowerBed,
   "Sunstone Rock": Sunstone,
-  "Oil Reserve": () => null,
+  "Oil Reserve": OilReserve,
 };
 
 const isLandscaping = (state: MachineState) => state.matches("landscaping");
@@ -274,18 +281,22 @@ const LandscapingResource: React.FC<ResourceProps> = (props) => {
       const plot = crops[props.id];
       return isPlotLocked(plot, collectibles, Date.now());
     }
+
     if (isStone) {
       const stoneRock = stones[props.id];
       return isStoneLocked(stoneRock, collectibles, Date.now());
     }
+
     if (isIron) {
       const ironRock = iron[props.id];
       return isIronLocked(ironRock, collectibles, Date.now());
     }
+
     if (isGold) {
       const goldRock = gold[props.id];
       return isGoldLocked(goldRock, collectibles, Date.now());
     }
+
     return false;
   };
 

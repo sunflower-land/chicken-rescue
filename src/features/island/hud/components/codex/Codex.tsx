@@ -20,10 +20,11 @@ import { Deliveries } from "./pages/Deliveries";
 import { Chores } from "./pages/Chores";
 import { Label } from "components/ui/Label";
 import classNames from "classnames";
-import { closeButton, tab } from "lib/utils/sfx";
+import { useSound } from "lib/utils/hooks/useSound";
 
 import trophy from "assets/icons/trophy.png";
 import factions from "assets/icons/factions.webp";
+import chores from "assets/icons/chores.webp";
 import { TicketsLeaderboard } from "./pages/TicketsLeaderboard";
 import { Leaderboards } from "features/game/expansion/components/leaderboard/actions/cache";
 import { fetchLeaderboardData } from "features/game/expansion/components/leaderboard/actions/leaderboard";
@@ -48,6 +49,8 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
   const [showMilestoneReached, setShowMilestoneReached] = useState(false);
   const [milestoneName, setMilestoneName] = useState<MilestoneName>();
 
+  const tab = useSound("tab");
+
   const [data, setData] = useState<Leaderboards | null | undefined>(undefined);
 
   useEffect(() => {
@@ -69,12 +72,11 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
   }, [show]);
 
   const handleTabClick = (index: number) => {
-    hasFeatureAccess(gameService.state.context.state, "SOUND") && tab.play();
+    tab.play();
     setCurrentTab(index);
   };
 
   const handleHide = () => {
-    closeButton.play();
     onHide();
   };
 
@@ -108,7 +110,7 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
     },
     {
       name: "Chores",
-      icon: SUNNYSIDE.icons.hammer,
+      icon: chores,
       count: incompleteChores,
     },
     {
@@ -174,17 +176,22 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
                   <OuterPanel
                     key={`${tab}-${index}`}
                     className={classNames(
-                      "flex items-center relative p-0.5 mb-1 cursor-pointer",
-                      {
-                        "bg-[#ead4aa]": currentTab === index,
-                      }
+                      "flex items-center relative p-0.5 mb-1 cursor-pointer"
                     )}
                     onClick={() => handleTabClick(index)}
+                    style={{
+                      background: currentTab === index ? "#ead4aa" : undefined,
+                    }}
                   >
                     {!!tab.count && (
                       <Label
                         type="default"
                         className="absolute -top-3 left-3 z-10"
+                        style={{
+                          paddingLeft: "2.5px",
+                          paddingRight: "1.5px",
+                          height: "24px",
+                        }}
                       >
                         {tab.count}
                       </Label>
@@ -196,39 +203,51 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
               </div>
             </div>
             {/* Content */}
-            <InnerPanel
+            {/* <InnerPanel
               className={classNames("flex flex-col h-full overflow-hidden", {
                 "overflow-y-auto scrollable": currentTab !== 5,
               })}
-            >
-              {currentTab === 0 && <Deliveries />}
-              {currentTab === 1 && <Chores />}
-              {currentTab === 2 && (
-                <Fish onMilestoneReached={handleMilestoneReached} />
-              )}
-              {currentTab === 3 && (
-                <Flowers onMilestoneReached={handleMilestoneReached} />
-              )}
-              {currentTab === 4 && (
+            > */}
+            {currentTab === 0 && <Deliveries />}
+            {currentTab === 1 && <Chores farmId={farmId} />}
+            {currentTab === 2 && (
+              <Fish onMilestoneReached={handleMilestoneReached} />
+            )}
+            {currentTab === 3 && (
+              <Flowers onMilestoneReached={handleMilestoneReached} />
+            )}
+            {currentTab === 4 && (
+              <InnerPanel
+                className={classNames(
+                  "flex flex-col h-full overflow-hidden overflow-y-auto scrollable"
+                )}
+              >
                 <TicketsLeaderboard
                   id={id}
                   isLoading={data === undefined}
                   data={data?.tickets ?? null}
                 />
-              )}
-              {currentTab === 5 && state.faction && (
+              </InnerPanel>
+            )}
+            {currentTab === 5 && state.faction && (
+              <InnerPanel
+                className={classNames(
+                  "flex flex-col h-full overflow-hidden overflow-y-auto scrollable"
+                )}
+              >
                 <FactionsLeaderboard
                   id={id}
                   faction={state.faction.name}
                   isLoading={data === undefined}
                   data={data?.factions ?? null}
                 />
-              )}
-            </InnerPanel>
+              </InnerPanel>
+            )}
+            {/* </InnerPanel> */}
           </div>
         </OuterPanel>
         {showMilestoneReached && (
-          <div className="absolute w-full sm:w-5/6 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute w-full sm:w-5/6 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[200]">
             <MilestoneReached
               milestoneName={milestoneName as MilestoneName}
               onClose={handleCloseMilestoneReached}

@@ -11,16 +11,14 @@ import {
 } from "../../game/lib/audio";
 import { PlaceableContainer } from "../containers/PlaceableContainer";
 import { budImageDomain } from "features/island/collectibles/components/Bud";
-import { Page } from "../containers/Page";
 import { BumpkinContainer } from "../containers/BumpkinContainer";
 import { SOUNDS } from "assets/sound-effects/soundEffects";
-import { getSeasonWeek } from "lib/utils/getSeasonWeek";
-import { npcModalManager } from "../ui/NPCModals";
-import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { hasFeatureAccess } from "lib/flags";
 import { NPCName, NPC_WEARABLES } from "lib/npcs";
 import { FactionName, GameState } from "features/game/types/game";
 import { capitalize } from "lib/utils/capitalize";
+import { translate } from "lib/i18n/translate";
+import { FACTION_POINT_CUTOFF } from "features/game/events/landExpansion/donateToFaction";
 
 const FAN_NPCS: { name: FanArtNPC; x: number; y: number }[] = [
   {
@@ -45,7 +43,7 @@ const FAN_NPCS: { name: FanArtNPC; x: number; y: number }[] = [
   },
 ];
 
-type FactionNPC = {
+export type FactionNPC = {
   npc: NPCName;
   x: number;
   y: number;
@@ -68,7 +66,7 @@ const FACTION_NPCS: FactionNPC[] = [
   },
   {
     x: 32,
-    y: 98,
+    y: 96,
     npc: "grommy",
     faction: "goblins",
   },
@@ -153,8 +151,8 @@ export const PLAZA_BUMPKINS: NPCBumpkin[] = [
     direction: "left",
   },
   {
-    x: 208,
-    y: 402,
+    x: 188,
+    y: 362,
     npc: "billy",
   },
   {
@@ -169,191 +167,6 @@ export const PLAZA_BUMPKINS: NPCBumpkin[] = [
     direction: "left",
   },
 ];
-
-const PAGE_POSITIONS: Record<number, Coordinates[]> = {
-  1: [
-    {
-      x: 400,
-      y: 420,
-    },
-    {
-      x: 800,
-      y: 300,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  2: [
-    {
-      x: 775,
-      y: 350,
-    },
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 150,
-      y: 445,
-    },
-  ],
-  3: [
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 300,
-      y: 320,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  4: [
-    {
-      x: 400,
-      y: 420,
-    },
-    {
-      x: 800,
-      y: 300,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  5: [
-    {
-      x: 775,
-      y: 350,
-    },
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 150,
-      y: 445,
-    },
-  ],
-  6: [
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 300,
-      y: 320,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  7: [
-    {
-      x: 400,
-      y: 420,
-    },
-    {
-      x: 800,
-      y: 300,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  8: [
-    {
-      x: 775,
-      y: 350,
-    },
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 150,
-      y: 445,
-    },
-  ],
-  9: [
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 300,
-      y: 320,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  10: [
-    {
-      x: 400,
-      y: 420,
-    },
-    {
-      x: 800,
-      y: 300,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  11: [
-    {
-      x: 775,
-      y: 350,
-    },
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 150,
-      y: 445,
-    },
-  ],
-  12: [
-    {
-      x: 750,
-      y: 140,
-    },
-    {
-      x: 300,
-      y: 320,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-  13: [
-    {
-      x: 400,
-      y: 420,
-    },
-    {
-      x: 800,
-      y: 300,
-    },
-    {
-      x: 55,
-      y: 200,
-    },
-  ],
-};
 
 export class PlazaScene extends BaseScene {
   sceneId: SceneId = "plaza";
@@ -391,6 +204,7 @@ export class PlazaScene extends BaseScene {
   preload() {
     this.load.audio("chime", SOUNDS.notifications.chime);
 
+    this.load.image("vip_gift", "world/vip_gift.png");
     this.load.image("rabbit_1", "world/rabbit_1.png");
     this.load.image("rabbit_2", "world/rabbit_2.png");
     this.load.image("rabbit_3", "world/rabbit_3.png");
@@ -404,6 +218,16 @@ export class PlazaScene extends BaseScene {
     this.load.image("shop_icon", "world/shop_disc.png");
     this.load.image("timer_icon", "world/timer_icon.png");
     this.load.image("trade_icon", "world/trade_icon.png");
+
+    this.load.spritesheet("easter_egg", "world/easter_donation.png", {
+      frameWidth: 16,
+      frameHeight: 19,
+    });
+
+    this.load.spritesheet("portal", "world/portal_well_sheet.png", {
+      frameWidth: 20,
+      frameHeight: 25,
+    });
 
     this.load.spritesheet("plaza_bud", "world/plaza_bud.png", {
       frameWidth: 15,
@@ -457,8 +281,8 @@ export class PlazaScene extends BaseScene {
     this.load.image("luxury_key_disc", "world/luxury_key_disc.png");
 
     // Stella Megastore items
-    this.load.image("flower_cart", "world/flower_cart.png");
-    this.load.image("queen_bee", "world/queen_bee.png");
+    this.load.image("vinny", "world/vinny.webp");
+    this.load.image("non_la", "world/non_la.webp");
 
     this.load.image("banner", "world/clash_of_factions_banner.webp");
 
@@ -567,7 +391,7 @@ export class PlazaScene extends BaseScene {
     this.bumpkinsBanner = this.add
       .image(15, 125, "bumpkins_banner")
       .setDepth(125);
-    this.goblinsBanner = this.add.image(15, 90, "goblins_banner").setDepth(90);
+    this.goblinsBanner = this.add.image(16, 88, "goblins_banner").setDepth(90);
     this.nightshadesBanner = this.add
       .image(15, 197, "nightshades_banner")
       .setDepth(190);
@@ -733,7 +557,10 @@ export class PlazaScene extends BaseScene {
     super.create();
 
     // Faction setup
-    if (hasFeatureAccess(this.gameState, "FACTIONS")) {
+    if (
+      hasFeatureAccess(this.gameState, "FACTIONS") &&
+      Date.now() < FACTION_POINT_CUTOFF.getTime()
+    ) {
       this.chosenFaction = this.gameService.state.context.state?.faction?.name;
       this.setUpFactionBanners();
       this.setUpFactionNPCS();
@@ -747,62 +574,26 @@ export class PlazaScene extends BaseScene {
 
     const tradingBoard = this.add.sprite(725, 260, "trading_board");
     tradingBoard.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-      interactableModalManager.open("trading_board");
+      if (this.checkDistanceToSprite(tradingBoard, 75)) {
+        interactableModalManager.open("trading_board");
+      } else {
+        this.currentPlayer?.speak(translate("base.iam.far.away"));
+      }
     });
 
     const tradingBoardIcon = this.add.sprite(745, 240, "trade_icon");
     tradingBoardIcon
       .setInteractive({ cursor: "pointer" })
       .on("pointerdown", () => {
-        interactableModalManager.open("trading_board");
+        if (this.checkDistanceToSprite(tradingBoardIcon, 75)) {
+          interactableModalManager.open("trading_board");
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
       });
     tradingBoardIcon.setDepth(1000000);
 
     this.initialiseNPCs(PLAZA_BUMPKINS);
-
-    let week: number | undefined = undefined;
-    try {
-      week = getSeasonWeek();
-    } catch {
-      // eslint-disable-next-line no-console
-      console.error("Error getting week");
-    }
-
-    if (week) {
-      (PAGE_POSITIONS[week] ?? []).forEach(({ x, y }, index) => {
-        const pageNumber = index + 1;
-
-        const collectedFlowerPages =
-          this.gameState?.springBlossom?.[week!]?.collectedFlowerPages;
-
-        if (
-          collectedFlowerPages &&
-          !collectedFlowerPages.includes(pageNumber)
-        ) {
-          const page = new Page({ x, y, scene: this });
-          page.setDepth(1000000);
-          this.physics.world.enable(page);
-
-          this.physics.add.collider(
-            this.currentPlayer as BumpkinContainer,
-            page,
-            (obj1, obj2) => {
-              page.sprite?.destroy();
-              page.destroy();
-
-              const chime = this.sound.add("chime");
-              chime.play({ loop: false, volume: 0.1 });
-
-              interactableModalManager.open("page_discovered");
-              this.gameService.send("flowerPage.discovered", {
-                id: pageNumber,
-              });
-              this.gameService.send("SAVE");
-            }
-          );
-        }
-      });
-    }
 
     if (!this.joystick && !localStorage.getItem("mmo_introduction.read")) {
       this.arrows = this.add
@@ -814,21 +605,38 @@ export class PlazaScene extends BaseScene {
         .setDepth(1000000000000);
     }
 
+    const vipGift = this.add.sprite(379, 240, "vip_gift");
+    vipGift.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
+      interactableModalManager.open("vip_chest");
+    });
+
     if (this.gameState.inventory["Treasure Key"]) {
       this.add.sprite(152, 140, "key_disc").setDepth(1000000000);
     } else {
       this.add.sprite(152, 140, "locked_disc").setDepth(1000000000);
     }
 
+    // Sprites
     const basicChest = this.add.sprite(152, 160, "basic_chest");
     basicChest.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-      interactableModalManager.open("basic_chest");
+      if (this.checkDistanceToSprite(basicChest, 75)) {
+        interactableModalManager.open("basic_chest");
+      } else {
+        this.currentPlayer?.speak(translate("base.iam.far.away"));
+      }
     });
 
     const luxuryChest = this.add.sprite(825, 70, "luxury_chest");
     luxuryChest.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-      interactableModalManager.open("luxury_chest");
+      if (this.checkDistanceToSprite(luxuryChest, 75)) {
+        interactableModalManager.open("luxury_chest");
+      } else {
+        this.currentPlayer?.speak(translate("base.iam.far.away"));
+      }
     });
+
+    this.add.sprite(321.5, 230, "shop_icon");
+    const auctionIcon = this.add.sprite(608, 220, "timer_icon");
 
     if (this.gameState.inventory["Luxury Key"]) {
       this.add.sprite(825, 50, "luxury_key_disc").setDepth(1000000000);
@@ -836,15 +644,6 @@ export class PlazaScene extends BaseScene {
       this.add.sprite(825, 50, "locked_disc").setDepth(1000000000);
     }
 
-    const shopIcon = this.add.sprite(321.5, 230, "shop_icon");
-    shopIcon.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-      npcModalManager.open("stella");
-    });
-
-    const auctionIcon = this.add.sprite(608, 220, "timer_icon");
-    auctionIcon.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-      npcModalManager.open("hammerin harry");
-    });
     auctionIcon.setDepth(1000000);
 
     const clubHouseLabel = new Label(this, "CLUBHOUSE", "brown");
@@ -865,7 +664,11 @@ export class PlazaScene extends BaseScene {
     });
     fatChicken.play("fat_chicken_animation", true);
     fatChicken.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-      interactableModalManager.open("fat_chicken");
+      if (this.checkDistanceToSprite(fatChicken, 75)) {
+        interactableModalManager.open("fat_chicken");
+      } else {
+        this.currentPlayer?.speak(translate("base.iam.far.away"));
+      }
     });
 
     // Plaza Bud
@@ -883,7 +686,11 @@ export class PlazaScene extends BaseScene {
       .play("plaza_bud_animation", true)
       .setInteractive({ cursor: "pointer" })
       .on("pointerdown", () => {
-        interactableModalManager.open("bud");
+        if (this.checkDistanceToSprite(bud, 75)) {
+          interactableModalManager.open("bud");
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
       });
 
     // Art NPCs
@@ -909,7 +716,11 @@ export class PlazaScene extends BaseScene {
 
       // On click
       fanNPC.setInteractive({ cursor: "pointer" }).on("pointerdown", () => {
-        interactableModalManager.open(npc.name);
+        if (this.checkDistanceToSprite(fanNPC, 75)) {
+          interactableModalManager.open(npc.name);
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
       });
     });
 
@@ -939,7 +750,11 @@ export class PlazaScene extends BaseScene {
       .play("plaza_bud_animation_3", true)
       .setInteractive({ cursor: "pointer" })
       .on("pointerdown", () => {
-        interactableModalManager.open("bud");
+        if (this.checkDistanceToSprite(bud3, 75)) {
+          interactableModalManager.open("bud");
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
       });
 
     const turtle = this.add.sprite(119, 293, "turtle_bud");
@@ -957,7 +772,11 @@ export class PlazaScene extends BaseScene {
       .play("turtle_bud_anim", true)
       .setInteractive({ cursor: "pointer" })
       .on("pointerdown", () => {
-        interactableModalManager.open("bud");
+        if (this.checkDistanceToSprite(turtle, 75)) {
+          interactableModalManager.open("bud");
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
       });
 
     const snowHornBud = this.add.sprite(128, 235, "snow_horn_bud");
@@ -978,12 +797,37 @@ export class PlazaScene extends BaseScene {
       .setVisible(false)
       .setInteractive({ cursor: "pointer" })
       .on("pointerdown", () => {
-        interactableModalManager.open("clubhouse_reward");
+        if (this.checkDistanceToSprite(chest, 75)) {
+          interactableModalManager.open("clubhouse_reward");
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
+      });
+
+    const chickenRescuePortal = this.add.sprite(210, 375, "portal");
+    this.anims.create({
+      key: "portal_anim",
+      frames: this.anims.generateFrameNumbers("portal", {
+        start: 0,
+        end: 8,
+      }),
+      repeat: -1,
+      frameRate: 10,
+    });
+    chickenRescuePortal.play("portal_anim", true);
+    chickenRescuePortal
+      .setInteractive({ cursor: "pointer" })
+      .on("pointerdown", () => {
+        if (this.checkDistanceToSprite(chickenRescuePortal, 40)) {
+          interactableModalManager.open("chicken_rescue");
+        } else {
+          this.currentPlayer?.speak(translate("base.iam.far.away"));
+        }
       });
 
     // Stella Collectible of the Month
-    this.add.image(248, 244, "flower_cart");
-    this.add.image(288, 248, "queen_bee");
+    this.add.image(248, 244, "vinny");
+    this.add.image(288.5, 248, "non_la");
 
     const door = this.colliders
       ?.getChildren()

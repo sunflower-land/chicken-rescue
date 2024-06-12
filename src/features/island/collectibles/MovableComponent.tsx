@@ -36,7 +36,8 @@ import { InnerPanel } from "components/ui/Panel";
 import { RemoveKuebikoModal } from "./RemoveKuebikoModal";
 import { hasRemoveRestriction } from "features/game/types/removeables";
 import { CollectibleLocation } from "features/game/types/collectibles";
-import { RemoveHungryCatepillarModal } from "./RemoveHungryCatepillarModal";
+import { RemoveHungryCaterpillarModal } from "./RemoveHungryCaterpillarModal";
+import { RemoveCropMachineModal } from "./RemoveCropMachineModal";
 
 export const RESOURCE_MOVE_EVENTS: Record<
   ResourceName,
@@ -85,11 +86,21 @@ function getMoveAction(
 export function getRemoveAction(
   name: InventoryItemName | "Bud"
 ): GameEventName<PlacementEvent> | null {
-  if (name in BUILDINGS_DIMENSIONS) {
+  if (
+    name in BUILDINGS_DIMENSIONS &&
+    name !== "Manor" &&
+    name !== "Town Center" &&
+    name !== "House"
+  ) {
     return "building.removed";
   }
 
-  if (name in RESOURCES) {
+  if (
+    name in RESOURCES ||
+    name === "Manor" ||
+    name === "House" ||
+    name === "Town Center"
+  ) {
     return null;
   }
 
@@ -373,8 +384,14 @@ export const MoveableComponent: React.FC<MovableProps> = ({
                 onRemove={() => remove()}
               />
             )}
+            {showRemoveConfirmation && name === "Crop Machine" && (
+              <RemoveCropMachineModal
+                onClose={() => setShowRemoveConfirmation(false)}
+                onRemove={() => remove()}
+              />
+            )}
             {showRemoveConfirmation && name === "Hungry Caterpillar" && (
-              <RemoveHungryCatepillarModal
+              <RemoveHungryCaterpillarModal
                 onClose={() => setShowRemoveConfirmation(false)}
                 onRemove={() => remove()}
               />

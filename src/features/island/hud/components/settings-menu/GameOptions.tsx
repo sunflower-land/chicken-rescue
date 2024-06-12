@@ -41,12 +41,18 @@ import { PlazaSettings } from "./plaza-settings/PlazaSettingsModal";
 import { AmoyTestnetActions } from "./amoy-actions/AmoyTestnetActions";
 import { Discord } from "./general-settings/DiscordModal";
 import { DepositWrapper } from "features/goblins/bank/components/Deposit";
+import { useSound } from "lib/utils/hooks/useSound";
+import { AppearanceSettings } from "./general-settings/AppearanceSettings";
 
 export interface ContentComponentProps {
   onSubMenuClick: (id: SettingMenuId) => void;
+  onClose: () => void;
 }
 
-const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
+const GameOptions: React.FC<ContentComponentProps> = ({
+  onSubMenuClick,
+  onClose,
+}) => {
   const { gameService } = useContext(GameContext);
   const { authService } = useContext(Auth.Context);
   const { walletService } = useContext(WalletContext);
@@ -54,6 +60,9 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
   const { t } = useAppTranslation();
 
   const [isConfirmLogoutModalOpen, showConfirmLogoutModal] = useState(false);
+
+  const copypaste = useSound("copypaste");
+  const button = useSound("button");
 
   const isPWA = useIsPWA();
   const isWeb3MobileBrowser = isMobile && !!window.ethereum;
@@ -75,6 +84,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
 
   const refreshSession = () => {
     gameService.send("RESET");
+    onClose();
   };
 
   const onLogout = () => {
@@ -82,6 +92,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
     authService.send("LOGOUT");
     walletService.send("RESET");
   };
+
   return (
     <>
       {/* Root menu */}
@@ -92,6 +103,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
             icon={SUNNYSIDE.icons.search}
             className="mb-1 mr-4"
             onClick={() => {
+              copypaste.play();
               clipboard.copy(
                 gameService.state?.context?.farmId.toString() as string
               );
@@ -107,6 +119,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
               icon={SUNNYSIDE.icons.search}
               className="mb-1 mr-4"
               onClick={() => {
+                copypaste.play();
                 clipboard.copy(
                   gameService.state?.context?.nftId?.toString() || ""
                 );
@@ -123,6 +136,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
               className="mb-1 mr-4"
               icon={walletIcon}
               onClick={() => {
+                copypaste.play();
                 clipboard.copy(
                   gameService.state?.context?.linkedWallet as string
                 );
@@ -135,7 +149,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
         </div>
       </>
       {!isPWA && (
-        <Button className="p-1 mb-2" onClick={handleInstallApp}>
+        <Button className="p-1 mb-1" onClick={handleInstallApp}>
           <span>{t("install.app")}</span>
         </Button>
       )}
@@ -152,27 +166,36 @@ const GameOptions: React.FC<ContentComponentProps> = ({ onSubMenuClick }) => {
                     </div>
                   </Button>
                   </li> */}
-      <Button className="p-1 mb-2" onClick={refreshSession}>
+      <Button className="p-1 mb-1" onClick={refreshSession}>
         {t("gameOptions.blockchainSettings.refreshChain")}
       </Button>
       {CONFIG.NETWORK === "amoy" && (
-        <Button className="p-1 mb-2" onClick={() => onSubMenuClick("amoy")}>
+        <Button className="p-1 mb-1" onClick={() => onSubMenuClick("amoy")}>
           <span>{t("gameOptions.amoyActions")}</span>
         </Button>
       )}
-      <Button className="p-1 mb-2" onClick={() => onSubMenuClick("blockchain")}>
+      <Button className="p-1 mb-1" onClick={() => onSubMenuClick("blockchain")}>
         <span>{t("gameOptions.blockchainSettings")}</span>
       </Button>
-      <Button className="p-1 mb-2" onClick={() => onSubMenuClick("general")}>
+      <Button className="p-1 mb-1" onClick={() => onSubMenuClick("general")}>
         <span>{t("gameOptions.generalSettings")}</span>
       </Button>
-      <Button className="p-1 mb-2" onClick={() => onSubMenuClick("plaza")}>
+      <Button className="p-1 mb-1" onClick={() => onSubMenuClick("plaza")}>
         <span>{t("gameOptions.plazaSettings")}</span>
       </Button>
-      <Button className="p-1 mb-2" onClick={() => showConfirmLogoutModal(true)}>
+      <Button className="p-1 mb-1" onClick={() => showConfirmLogoutModal(true)}>
         {t("gameOptions.logout")}
       </Button>
-      <p className="mx-1 text-xxs">{CONFIG.RELEASE_VERSION?.split("-")[0]}</p>
+      <p className="mx-1 text-xxs">
+        <a
+          href="https://github.com/sunflower-land/sunflower-land/releases"
+          className="underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {CONFIG.RELEASE_VERSION?.split("-")[0]}
+        </a>
+      </p>
       <Modal
         show={isConfirmLogoutModalOpen}
         onHide={() => showConfirmLogoutModal(false)}
@@ -224,7 +247,7 @@ export const GameOptionsModal: React.FC<GameOptionsModalProps> = ({
         }
         onClose={onHide}
       >
-        <SelectedComponent onSubMenuClick={setSelected} />
+        <SelectedComponent onSubMenuClick={setSelected} onClose={onHide} />
       </CloseButtonPanel>
     </Modal>
   );
@@ -249,7 +272,8 @@ export type SettingMenuId =
   // General Settings
   | "discord"
   | "changeLanguage"
-  | "share";
+  | "share"
+  | "appearance";
 
 interface SettingMenu {
   title: string;
@@ -332,5 +356,10 @@ export const settingMenus: Record<SettingMenuId, SettingMenu> = {
     title: translate("share.ShareYourFarmLink"),
     parent: "general",
     content: Share,
+  },
+  appearance: {
+    title: translate("gameOptions.generalSettings.appearance"),
+    parent: "general",
+    content: AppearanceSettings,
   },
 };

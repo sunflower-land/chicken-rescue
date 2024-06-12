@@ -56,6 +56,7 @@ import { CollectibleLocation, PurchasableItems } from "../types/collectibles";
 import {
   getGameRulesLastRead,
   getIntroductionRead,
+  getSeasonPassRead,
 } from "features/announcements/announcementsStorage";
 import { depositToFarm } from "lib/blockchain/Deposit";
 import Decimal from "decimal.js-light";
@@ -84,7 +85,6 @@ import { deleteListingRequest } from "../actions/deleteListing";
 import { fulfillTradeListingRequest } from "../actions/fulfillTradeListing";
 import {
   withdrawBuds,
-  withdrawBumpkin,
   withdrawItems,
   withdrawSFL,
   withdrawWearables,
@@ -95,6 +95,8 @@ import {
   sellMarketResourceRequest,
 } from "../actions/sellMarketResource";
 import { setCachedMarketPrices } from "features/world/ui/market/lib/marketCache";
+import { MinigameName } from "../types/minigames";
+import { getBumpkinLevel } from "./level";
 
 const getPortal = () => {
   const code = new URLSearchParams(window.location.search).get("portal");
@@ -454,6 +456,7 @@ export type BlockchainState = {
     | "transacting"
     | "depositing"
     | "landscaping"
+    | "fontReward"
     | "specialOffer"
     | "promo"
     | "trading"
@@ -565,25 +568,11 @@ export function startGame(authContext: AuthContext) {
       id: "gameMachine",
       initial: "loading",
       context: {
-        farmId: 0,
+        farmId: Math.floor(Math.random() * 1000),
         actions: [],
         state: EMPTY,
         sessionId: INITIAL_SESSION,
-        announcements: {
-          coins: {
-            content: [
-              {
-                text: "Hello",
-              },
-            ],
-            reward: {
-              coins: 100,
-              items: {},
-            },
-            from: "betty",
-            headline: "reward",
-          },
-        },
+        announcements: {},
         moderation: {
           muted: [],
           kicked: [],
@@ -677,7 +666,7 @@ export function startGame(authContext: AuthContext) {
           id: "portalling",
           invoke: {
             src: async (context) => {
-              const portalId = getPortal() as string;
+              const portalId = getPortal() as MinigameName;
               const { token } = await portal({
                 portalId,
                 token: authContext.user.rawToken as string,
@@ -789,6 +778,7 @@ export function startGame(authContext: AuthContext) {
                 );
               },
             },
+
             // TODO - FIX
             // {
             //   target: "mailbox",
@@ -799,13 +789,13 @@ export function startGame(authContext: AuthContext) {
               target: "swarming",
               cond: () => isSwarming(),
             },
-            // {
-            //   target: "specialOffer",
-            //   cond: (context) =>
-            //     (context.state.bumpkin?.experience ?? 0) > 100 &&
-            //     !context.state.collectibles["Spring Blossom Banner"] &&
-            //     !getSeasonPassRead(),
-            // },
+            {
+              target: "specialOffer",
+              cond: (context) =>
+                (context.state.bumpkin?.experience ?? 0) > 100 &&
+                !context.state.collectibles["Clash of Factions Banner"] &&
+                !getSeasonPassRead(),
+            },
             // EVENTS THAT TARGET NOTIFYING OR LOADING MUST GO ABOVE THIS LINE
 
             // EVENTS THAT TARGET PLAYING MUST GO BELOW THIS LINE
@@ -826,6 +816,22 @@ export function startGame(authContext: AuthContext) {
                 );
 
                 return !!airdrop;
+              },
+            },
+
+            {
+              target: "fontReward",
+              cond: (context) => {
+                return (
+                  // Not a new account
+                  context.state.createdAt < new Date("2024-06-09").getTime() &&
+                  // Claims before period ends
+                  Date.now() < new Date("2024-06-15").getTime() &&
+                  // Has played a bit
+                  getBumpkinLevel(context.state.bumpkin?.experience ?? 0) >=
+                    10 &&
+                  !context.state.wardrobe["Pixel Perfect Hoodie"]
+                );
               },
             },
 
@@ -857,6 +863,14 @@ export function startGame(authContext: AuthContext) {
             ],
             ACKNOWLEDGE: {
               target: "notifying",
+            },
+          },
+        },
+        fontReward: {
+          on: {
+            "bonus.claimed": (GAME_EVENT_HANDLERS as any)["bonus.claimed"],
+            ACKNOWLEDGE: {
+              target: "autosaving",
             },
           },
         },
@@ -1945,19 +1959,6 @@ export function startGame(authContext: AuthContext) {
                   ids: wearableIds,
                   captcha,
                   transactionId: context.transactionId as string,
-                });
-
-                return {
-                  sessionId,
-                };
-              }
-
-              if (bumpkinId) {
-                const { sessionId } = await withdrawBumpkin({
-                  farmId: Number(context.farmId),
-                  token: authContext.user.rawToken as string,
-                  transactionId: context.transactionId as string,
-                  bumpkinId: bumpkinId,
                 });
 
                 return {

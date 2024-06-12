@@ -91,7 +91,11 @@ const PLACEABLE_DIMENSIONS = {
   ...RESOURCE_DIMENSIONS,
 };
 
-function detectPlaceableCollision(state: GameState, boundingBox: BoundingBox) {
+function detectPlaceableCollision(
+  state: GameState,
+  boundingBox: BoundingBox,
+  name: InventoryItemName
+) {
   const {
     collectibles,
     buildings,
@@ -106,6 +110,7 @@ function detectPlaceableCollision(state: GameState, boundingBox: BoundingBox) {
     buds,
     beehives,
     flowers: { flowerBeds },
+    oilReserves,
   } = state;
 
   const placed = {
@@ -113,7 +118,15 @@ function detectPlaceableCollision(state: GameState, boundingBox: BoundingBox) {
     ...buildings,
   };
 
-  const placeableBounds = getKeys(placed).flatMap((name) => {
+  if (NON_COLLIDING_OBJECTS.includes(name)) {
+    return false;
+  }
+
+  const collidingItems = getKeys(placed).filter(
+    (name) => !NON_COLLIDING_OBJECTS.includes(name)
+  );
+
+  const placeableBounds = collidingItems.flatMap((name) => {
     const items = placed[name] as PlacedItem[];
     const dimensions = PLACEABLE_DIMENSIONS[name];
 
@@ -136,6 +149,7 @@ function detectPlaceableCollision(state: GameState, boundingBox: BoundingBox) {
     ...Object.values(fruitPatches),
     ...Object.values(beehives),
     ...Object.values(flowerBeds),
+    ...Object.values(oilReserves),
   ];
 
   const resourceBoundingBoxes = resources.map((item) => ({
@@ -189,11 +203,15 @@ export const HOME_BOUNDS: Record<IslandType, BoundingBox> = {
 };
 
 const NON_COLLIDING_OBJECTS: InventoryItemName[] = [
+  "Chess Rug",
+  "Twister Rug",
   "Rug",
   "Sunrise Bloom Rug",
   "Flower Rug",
   "Tea Rug",
   "Green Field Rug",
+  "Fancy Rug",
+  "Gaucho Rug",
 ];
 function detectHomeCollision({
   state,
@@ -429,7 +447,7 @@ export function detectCollision({
 
   return (
     detectWaterCollision(expansions, position) ||
-    detectPlaceableCollision(state, position) ||
+    detectPlaceableCollision(state, position, name) ||
     detectLandCornerCollision(expansions, position) ||
     detectChickenCollision(state, position) ||
     detectMushroomCollision(state, position)

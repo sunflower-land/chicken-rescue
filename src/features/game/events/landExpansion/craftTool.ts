@@ -15,7 +15,7 @@ import {
   PURCHASEABLE_BAIT,
   PurchaseableBait,
 } from "features/game/types/fishing";
-import { translate } from "lib/i18n/translate";
+import { hasRequiredIslandExpansion } from "features/game/lib/hasRequiredIslandExpansion";
 
 type CraftableToolName =
   | WorkbenchToolName
@@ -50,12 +50,16 @@ export function craftTool({ state, action }: Options) {
     throw new Error("Tool does not exist");
   }
 
+  if (!hasRequiredIslandExpansion(stateCopy.island.type, tool.requiredIsland)) {
+    throw new Error("You do not have the required island expansion");
+  }
+
   if (stateCopy.stock[action.tool]?.lt(1)) {
     throw new Error("Not enough stock");
   }
 
   if (bumpkin === undefined) {
-    throw new Error(translate("no.have.bumpkin"));
+    throw new Error("You do not have a Bumpkin!");
   }
   const price = tool.price * amount;
 

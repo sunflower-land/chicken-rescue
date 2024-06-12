@@ -14,6 +14,22 @@ import cloneDeep from "lodash.clonedeep";
 import { getKeys } from "features/game/types/craftables";
 import { pickEmptyPosition } from "features/game/expansion/placeable/lib/collisionDetection";
 import { isCollectibleBuilt } from "features/game/lib/collectibleBuilt";
+import { CRIMSTONE_RECOVERY_TIME } from "features/game/lib/constants";
+import { CropName } from "features/game/types/crops";
+
+// Preloaded crops that will appear on plots when they reveal
+const EXPANSION_CROPS: Record<number, CropName> = {
+  4: "Sunflower",
+  5: "Potato", // We need Potatos at expansion 5 for cooking
+  6: "Pumpkin",
+  7: "Carrot",
+  8: "Cabbage",
+  9: "Cauliflower",
+  10: "Kale",
+  11: "Radish",
+  12: "Eggplant",
+  13: "Parsnip",
+};
 
 export type RevealLandAction = {
   type: "land.revealed";
@@ -131,8 +147,14 @@ export function revealLand({
       width: 1,
       x: coords.x + origin.x,
       y: coords.y + origin.y,
+      crop: {
+        name: EXPANSION_CROPS[landCount] ?? "Sunflower",
+        amount: 1,
+        plantedAt: 0,
+      },
     };
   });
+
   inventory["Crop Plot"] = (inventory["Crop Plot"] || new Decimal(0)).add(
     land.plots?.length ?? 0
   );
@@ -159,7 +181,7 @@ export function revealLand({
 
   // Add sun stones
   land.sunstones?.forEach((coords) => {
-    const id = Object.keys(game.sunstones).length;
+    const id = randomUUID();
     game.sunstones[id] = {
       height: 2,
       width: 2,
@@ -175,7 +197,7 @@ export function revealLand({
 
   // Add bee hives
   land.beehives?.forEach((coords) => {
-    const id = Object.keys(game.beehives).length;
+    const id = randomUUID();
     game.beehives[id] = {
       height: 1,
       width: 1,
@@ -192,7 +214,7 @@ export function revealLand({
 
   // Add flower beds
   land.flowerBeds?.forEach((coords) => {
-    const id = Object.keys(game.flowers.flowerBeds).length;
+    const id = randomUUID();
     game.flowers.flowerBeds[id] = {
       height: 1,
       width: 3,
@@ -203,6 +225,25 @@ export function revealLand({
   });
   inventory["Flower Bed"] = (inventory["Flower Bed"] || new Decimal(0)).add(
     land.flowerBeds?.length ?? 0
+  );
+
+  land.oilReserves?.forEach((coords) => {
+    const id = randomUUID();
+    game.oilReserves[id] = {
+      height: 2,
+      width: 2,
+      x: coords.x + origin.x,
+      y: coords.y + origin.y,
+      createdAt,
+      drilled: 0,
+      oil: {
+        amount: 10,
+        drilledAt: 0,
+      },
+    };
+  });
+  inventory["Oil Reserve"] = (inventory["Oil Reserve"] || new Decimal(0)).add(
+    land.oilReserves?.length ?? 0
   );
 
   // Refresh all basic resources
@@ -258,6 +299,32 @@ export function revealLand({
     };
   }, {} as GameState["gold"]);
 
+  game.crimstones = getKeys(game.crimstones).reduce((acc, id) => {
+    return {
+      ...acc,
+      [id]: {
+        ...game.crimstones[id],
+        stone: {
+          ...game.crimstones[id].stone,
+          minedAt: createdAt - CRIMSTONE_RECOVERY_TIME * 1000,
+        },
+      },
+    };
+  }, {} as GameState["crimstones"]);
+
+  // Add fire pit on expansion 5
+  if (landCount >= 5 && !game.inventory["Fire Pit"]) {
+    game.inventory["Fire Pit"] = new Decimal(1);
+    game.buildings["Fire Pit"] = [
+      {
+        coordinates: { x: -6, y: 8 },
+        createdAt,
+        id: "123",
+        readyAt: createdAt,
+      },
+    ];
+  }
+
   // Add any rewards
   const rewards = getRewards({ game, createdAt });
   const previous = game.airdrops ?? [];
@@ -311,45 +378,23 @@ export function getRewards({
 
   let airdrops: Airdrop[] = [];
 
-  // Tutorial Reward
-  if (expansions.eq(4) && game.island.type === "basic") {
+  if (expansions.eq(6) && game.island.type === "basic") {
     airdrops = [
       ...airdrops,
       {
         createdAt,
-        id: "expansion-four-airdrop",
-        items: {
-          Shovel: 1,
-          "Block Buck": 1,
-        },
-        sfl: 0,
-        coins: 0,
-        wearables: {},
-        coordinates: {
-          x: 0,
-          y: 8,
-        },
-      },
-    ];
-  }
-
-  // Tutorial Reward
-  if (expansions.eq(5) && game.island.type === "basic") {
-    airdrops = [
-      ...airdrops,
-      {
-        createdAt,
-        id: "expansion-fifth-airdrop",
+        id: "expansion-sixth-airdrop",
         items: {
           "Time Warp Totem": 1,
           "Block Buck": 1,
         },
+        message: "Woohoo, you discovered a gift!",
         sfl: 0,
         coins: 0,
         wearables: {},
         coordinates: {
           x: -7,
-          y: 7,
+          y: -2,
         },
       },
     ];
@@ -364,17 +409,6 @@ export function getRewards({
     coins: 0,
     wearables: {},
   };
-
-  if (expansions.eq(6) && game.island.type === "basic") {
-    airdrops = [
-      ...airdrops,
-      {
-        ...blockBuckAirdrop,
-        coordinates: { x: -7, y: 0 },
-        id: "expansion-six-airdrop",
-      },
-    ];
-  }
 
   if (expansions.eq(7) && game.island.type === "basic") {
     airdrops = [
@@ -437,6 +471,45 @@ export function getRewards({
           coins: 0,
           wearables: {},
           message: "You are on OG expander, here's a reward!",
+          coordinates: position && {
+            x: position.x,
+            y: position.y,
+          },
+        },
+      ];
+    }
+  }
+
+  // Expansion Desert Refunds
+  if (game.island.type === "desert") {
+    // Expansion 5 on desert should refund expansion 17 of spring island
+    const expectedLand = expansions.add(12);
+
+    if (expectedLand.lte(game.island.previousExpansions ?? 0)) {
+      const refund = EXPANSION_REQUIREMENTS.spring[expectedLand.toNumber()];
+
+      const expansionBoundaries = {
+        x: EXPANSION_ORIGINS[expansions.toNumber() - 1].x - LAND_SIZE / 2,
+        y: EXPANSION_ORIGINS[expansions.toNumber() - 1].y + LAND_SIZE / 2,
+        width: LAND_SIZE,
+        height: LAND_SIZE,
+      };
+
+      const position = pickEmptyPosition({
+        gameState: game,
+        bounding: expansionBoundaries,
+      });
+
+      airdrops = [
+        ...airdrops,
+        {
+          createdAt,
+          id: `desert-expansion-refund-${expectedLand.toNumber()}`,
+          items: refund.resources,
+          sfl: 0,
+          coins: 0,
+          wearables: {},
+          message: "You are a Petal Paradise expander, here's a reward!",
           coordinates: position && {
             x: position.x,
             y: position.y,

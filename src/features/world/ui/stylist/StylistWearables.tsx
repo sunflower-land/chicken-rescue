@@ -26,6 +26,7 @@ import { Modal } from "components/ui/Modal";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { getImageUrl } from "lib/utils/getImageURLS";
+import { SFLDiscount } from "features/game/lib/SFLDiscount";
 
 function isNotReady(name: BumpkinItem, state: GameState) {
   const wearable = STYLIST_WEARABLES[name] as StylistWearable;
@@ -59,7 +60,7 @@ export const StylistWearables: React.FC<Props> = ({ wearables }) => {
 
   const wearable = STYLIST_WEARABLES[selected] as StylistWearable; // Add type assertion to StylistWearable
 
-  const price = wearable.coins;
+  const price = SFLDiscount(state, new Decimal(wearable.coins)).toNumber();
 
   const lessFunds = () => {
     if (!price) return false;
@@ -139,7 +140,7 @@ export const StylistWearables: React.FC<Props> = ({ wearables }) => {
           <CloseButtonPanel className="sm:w-4/5 m-auto">
             <div className="flex flex-col p-2">
               <span className="text-sm text-center">
-                {t("statements.sure.buy")} {`${selected}`}
+                {t("statements.sure.buy", { item: selected })}
               </span>
             </div>
             <div className="flex justify-content-around mt-2 space-x-1">
@@ -214,7 +215,7 @@ export const StylistWearables: React.FC<Props> = ({ wearables }) => {
             href="https://opensea.io/collection/bumpkin-wearables"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline text-white text-xs"
+            className="underline text-xs"
           >
             {t("statements.soldOutWearables")}
           </a>

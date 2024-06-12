@@ -8,14 +8,12 @@ import { KrakenIntro } from "./npcs/Shelly";
 import { AuctionHouseModal } from "./AuctionHouseModal";
 import { BoatModal } from "./BoatModal";
 import { PlazaBanner } from "./PlazaBanner";
-import { Panel } from "components/ui/Panel";
+import { OuterPanel, Panel } from "components/ui/Panel";
 import { CropBoomFinish } from "features/portal/examples/cropBoom/components/CropBoomFinish";
-import { Luna } from "./npcs/Luna";
 import { NyeButton } from "./NyeButton";
-import { PageFound } from "./PageFound";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { BasicTreasureChest } from "./chests/BasicTreasureChest";
-import { Donations } from "./donations/Donations";
+import { CommunityDonations } from "./donations/Donations";
 import { SceneId } from "../mmoMachine";
 import { TradingBoard } from "./npcs/TradingBoard";
 import { BudBox } from "./chests/BudBox";
@@ -26,11 +24,16 @@ import { GarbageCollectorModal } from "features/helios/components/garbageCollect
 import { WishingWellModal } from "features/game/components/bank/components/WishingWellModal";
 import { GoblinMarket } from "./market/GoblinMarket";
 import { FactionModalContent } from "./factions/FactionModalContent";
+import { VIPGift } from "./VIPGift";
+import { ChickenRescue } from "./portals/ChickenRescue";
+import { InlineDialogue } from "./TypingMessage";
+import { Label } from "components/ui/Label";
 
 export type FanArtNPC = "fan_npc_1" | "fan_npc_2" | "fan_npc_3" | "fan_npc_4";
 
 type InteractableName =
   | FanArtNPC
+  | "vip_chest"
   | "donations"
   | "garbage_collector"
   | "basic_chest"
@@ -38,7 +41,6 @@ type InteractableName =
   | "rare_chest"
   | "kraken"
   | "nye_button"
-  | "portal"
   | "welcome_sign"
   | "bud"
   | "plaza_statue"
@@ -77,7 +79,6 @@ type InteractableName =
   | "crop_boom_finish"
   | "christmas_reward"
   | "goblin_hammer"
-  | "page_discovered"
   | "trading_board"
   | "wishingWell"
   | "goblin_market"
@@ -88,7 +89,19 @@ type InteractableName =
   | "bumpkins_faction"
   | "goblins_faction"
   | "nightshades_faction"
-  | "sunflorians_faction";
+  | "sunflorians_faction"
+  | "chicken_rescue"
+  // to replace pledge factions
+  | "join_goblins"
+  | "join_sunflorians"
+  | "join_bumpkins"
+  | "join_nightshades"
+  | "kingdom_book_1"
+  | "kingdom_book_2"
+  | "kingdom_book_3"
+  | "kingdom_book_4"
+  | "kingdom_book_5"
+  | "kingdom_knight";
 
 class InteractableModalManager {
   private listener?: (name: InteractableName, isOpen: boolean) => void;
@@ -113,6 +126,7 @@ interface Props {
 
 export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
   const [interactable, setInteractable] = useState<InteractableName>();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     interactableModalManager.listen((interactable, open) => {
@@ -121,13 +135,17 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
   }, []);
 
   const closeModal = () => {
-    setInteractable(undefined);
+    !isLoading && setInteractable(undefined);
   };
 
   const { t } = useAppTranslation();
 
   return (
     <>
+      <Modal show={interactable === "vip_chest"} onHide={closeModal}>
+        <VIPGift onClose={closeModal} />
+      </Modal>
+
       {/* TODO - make smoother opening */}
       {interactable === "auction_item" && (
         <AuctionHouseModal
@@ -138,7 +156,7 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
       )}
       <Modal show={interactable === "donations"} onHide={closeModal}>
         <CloseButtonPanel title={t("enjoying.event")} onClose={closeModal}>
-          <Donations />
+          <CommunityDonations />
         </CloseButtonPanel>
       </Modal>
       {interactable === "potion_table" && <PotionHouse onClose={closeModal} />}
@@ -223,25 +241,28 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
           ]}
         />
       </Modal>
-      <Modal show={interactable === "basic_chest"}>
+      <Modal show={interactable === "basic_chest"} onHide={closeModal}>
         <BasicTreasureChest
           type="Treasure Key"
           onClose={closeModal}
           location={"plaza"}
+          setIsLoading={setIsLoading}
         />
       </Modal>
-      <Modal show={interactable === "rare_chest"}>
+      <Modal show={interactable === "rare_chest"} onHide={closeModal}>
         <BasicTreasureChest
           type="Rare Key"
           onClose={closeModal}
           location={"plaza"}
+          setIsLoading={setIsLoading}
         />
       </Modal>
-      <Modal show={interactable === "luxury_chest"}>
+      <Modal show={interactable === "luxury_chest"} onHide={closeModal}>
         <BasicTreasureChest
           type="Luxury Key"
           onClose={closeModal}
           location={"plaza"}
+          setIsLoading={setIsLoading}
         />
       </Modal>
       <Modal show={interactable === "plaza_orange_book"} onHide={closeModal}>
@@ -317,8 +338,8 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
           ]}
         />
       </Modal>
-      <Modal show={interactable === "clubhouse_reward"}>
-        <BudBox onClose={closeModal} />
+      <Modal show={interactable === "clubhouse_reward"} onHide={closeModal}>
+        <BudBox onClose={closeModal} setIsLoading={setIsLoading} />
       </Modal>
       <Modal show={interactable === "raffle"} onHide={closeModal}>
         <Raffle onClose={closeModal} />
@@ -330,6 +351,7 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
         <CloseButtonPanel
           onClose={closeModal}
           bumpkinParts={NPC_WEARABLES.garbo}
+          container={OuterPanel}
         >
           <GarbageCollectorModal />
         </CloseButtonPanel>
@@ -364,8 +386,14 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
           ]}
         />
       </Modal>
-      <Modal show={interactable === "portal"} onHide={closeModal}>
-        <Luna onClose={closeModal} />
+
+      <Modal show={interactable === "chicken_rescue"} onHide={closeModal}>
+        <CloseButtonPanel
+          onClose={closeModal}
+          bumpkinParts={NPC_WEARABLES.billy}
+        >
+          <ChickenRescue onClose={closeModal} />
+        </CloseButtonPanel>
       </Modal>
       <Modal show={interactable === "dawn_book_2"} onHide={closeModal}>
         <SpeakingModal
@@ -581,9 +609,72 @@ export const InteractableModals: React.FC<Props> = ({ id, scene }) => {
         <FanArt name={interactable as FanArtNPC} onClose={closeModal} />
       </Modal>
 
-      <Modal show={interactable === "page_discovered"} onHide={closeModal}>
-        <PageFound onClose={closeModal} />
+      <Modal show={interactable === "kingdom_knight"} onHide={closeModal}>
+        <CloseButtonPanel onClose={closeModal}>
+          <div className="h-32 p-2">
+            <Label type="default" className="mb-2">
+              {t("easterEgg.lostKnight")}
+            </Label>
+            <InlineDialogue message={t("easterEgg.knight")} />
+          </div>
+        </CloseButtonPanel>
       </Modal>
+
+      <Modal show={interactable === "kingdom_book_1"} onHide={closeModal}>
+        <CloseButtonPanel onClose={closeModal}>
+          <div className="h-32 p-2">
+            <Label type="default" className="mb-2">
+              {t("easterEgg.queensDiary")}
+            </Label>
+            <InlineDialogue message={t("easterEgg.kingdomBook1")} />
+          </div>
+        </CloseButtonPanel>
+      </Modal>
+
+      <Modal show={interactable === "kingdom_book_2"} onHide={closeModal}>
+        <CloseButtonPanel onClose={closeModal}>
+          <div className="h-32 p-2">
+            <Label type="default" className="mb-2">
+              {t("easterEgg.queensDiary")}
+            </Label>
+            <InlineDialogue message={t("easterEgg.kingdomBook2")} />
+          </div>
+        </CloseButtonPanel>
+      </Modal>
+
+      <Modal show={interactable === "kingdom_book_3"} onHide={closeModal}>
+        <CloseButtonPanel onClose={closeModal}>
+          <div className="h-32 p-2">
+            <Label type="default" className="mb-2">
+              {t("easterEgg.jesterDiary")}
+            </Label>
+            <InlineDialogue message={t("easterEgg.kingdomBook3")} />
+          </div>
+        </CloseButtonPanel>
+      </Modal>
+
+      <Modal show={interactable === "kingdom_book_4"} onHide={closeModal}>
+        <CloseButtonPanel onClose={closeModal}>
+          <div className="h-32 p-2">
+            <Label type="default" className="mb-2">
+              {t("easterEgg.kingDiary")}
+            </Label>
+            <InlineDialogue message={t("easterEgg.kingdomBook4")} />
+          </div>
+        </CloseButtonPanel>
+      </Modal>
+
+      <Modal show={interactable === "kingdom_book_5"} onHide={closeModal}>
+        <CloseButtonPanel onClose={closeModal}>
+          <div className="h-32 p-2">
+            <Label type="default" className="mb-2">
+              {t("easterEgg.tywinDiary")}
+            </Label>
+            <InlineDialogue message={t("easterEgg.kingdomBook5")} />
+          </div>
+        </CloseButtonPanel>
+      </Modal>
+
       <Modal
         show={interactable === "trading_board"}
         dialogClassName="md:max-w-3xl"

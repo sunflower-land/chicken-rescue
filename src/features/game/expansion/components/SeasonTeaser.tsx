@@ -1,14 +1,13 @@
-import { useActor } from "@xstate/react";
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 
-import island from "assets/land/spring_blossom_teaser.gif";
+import island from "assets/land/vip_island.png";
+import vipGift from "assets/decorations/vip_gift.png";
 
-import { GRID_WIDTH_PX, PIXEL_SCALE } from "features/game/lib/constants";
-import { NPC } from "features/island/bumpkin/components/NPC";
-import { Context } from "features/game/GameProvider";
+import { PIXEL_SCALE } from "features/game/lib/constants";
 
 import { MapPlacement } from "./MapPlacement";
-import { NPC_WEARABLES } from "lib/npcs";
+import { Modal } from "components/ui/Modal";
+import { VIPGift } from "features/world/ui/VIPGift";
 
 interface Props {
   offset: number;
@@ -16,41 +15,30 @@ interface Props {
 
 export const SeasonTeaser: React.FC<Props> = ({ offset }) => {
   const [showModal, setShowModal] = useState(false);
-  const { gameService } = useContext(Context);
-  const [gameState] = useActor(gameService);
 
   return (
     <>
-      {/* <PromotingModal
-        hasPurchased={
-          !!gameState.context.state.inventory["Spring Blossom Banner"]
-        }
-        hasDiscount={
-          !!gameState.context.state.inventory["Catch the Kraken Banner"]
-        }
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-      /> */}
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <VIPGift onClose={() => setShowModal(false)} />
+      </Modal>
       <MapPlacement x={0} y={-6 - offset} width={6}>
         <img
           src={island}
           style={{
-            width: `${PIXEL_SCALE * 82}px`,
+            width: `${PIXEL_SCALE * 62}px`,
           }}
         />
 
-        <div
-          className="absolute"
+        <img
+          src={vipGift}
+          className="absolute cursor-pointer hover:img-highlight"
+          onClick={() => setShowModal(true)}
           style={{
-            left: `${GRID_WIDTH_PX * 2.3}px`,
-            bottom: `${GRID_WIDTH_PX * 4}px`,
+            width: `${PIXEL_SCALE * 18}px`,
+            bottom: `${PIXEL_SCALE * 10}px`,
+            right: `${PIXEL_SCALE * 57}px`,
           }}
-        >
-          <NPC
-            parts={NPC_WEARABLES.grubnuk}
-            // onClick={() => setShowModal(true)}
-          />
-        </div>
+        />
       </MapPlacement>
     </>
   );

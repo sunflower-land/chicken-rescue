@@ -1,6 +1,5 @@
 import Decimal from "decimal.js-light";
 import { fromWei } from "web3-utils";
-import { translate } from "lib/i18n/translate";
 import {
   Bumpkin,
   GameState,
@@ -8,6 +7,9 @@ import {
   ExpansionConstruction,
   PlacedItem,
 } from "../types/game";
+import { getKeys } from "../types/craftables";
+import { BumpkinParts, tokenUriBuilder } from "lib/utils/tokenUriBuilder";
+import { Equipped } from "../types/bumpkin";
 
 // Our "zoom" factor
 export const PIXEL_SCALE = 2.625;
@@ -49,36 +51,32 @@ export function isBuildingReady(building: PlacedItem[]) {
   return building.some((b) => b.readyAt <= Date.now());
 }
 export const INITIAL_STOCK = (state?: GameState): Inventory => {
-  let tools = {
+  const tools = {
     Axe: new Decimal(200),
     Pickaxe: new Decimal(60),
     "Stone Pickaxe": new Decimal(20),
     "Iron Pickaxe": new Decimal(5),
     "Gold Pickaxe": new Decimal(5),
+    "Oil Drill": new Decimal(5),
     Rod: new Decimal(50),
   };
 
   // increase in 50% tool stock if you have a toolshed
-  if (
-    state?.buildings["Toolshed"] &&
-    isBuildingReady(state.buildings["Toolshed"])
-  ) {
-    tools = {
-      Axe: new Decimal(300),
-      Pickaxe: new Decimal(90),
-      "Stone Pickaxe": new Decimal(30),
-      "Iron Pickaxe": new Decimal(8),
-      "Gold Pickaxe": new Decimal(8),
-      Rod: new Decimal(75),
-    };
+  if (state?.buildings.Toolshed && isBuildingReady(state.buildings.Toolshed)) {
+    for (const tool in tools) {
+      tools[tool as keyof typeof tools] = new Decimal(
+        Math.ceil(tools[tool as keyof typeof tools].toNumber() * 1.5)
+      );
+    }
   }
 
-  let seeds = {
+  const seeds = {
     "Sunflower Seed": new Decimal(400),
     "Potato Seed": new Decimal(200),
     "Pumpkin Seed": new Decimal(150),
     "Carrot Seed": new Decimal(100),
     "Cabbage Seed": new Decimal(90),
+    "Soybean Seed": new Decimal(90),
     "Beetroot Seed": new Decimal(80),
     "Cauliflower Seed": new Decimal(80),
     "Parsnip Seed": new Decimal(60),
@@ -88,9 +86,13 @@ export const INITIAL_STOCK = (state?: GameState): Inventory => {
     "Wheat Seed": new Decimal(40),
     "Kale Seed": new Decimal(30),
 
-    "Apple Seed": new Decimal(10),
-    "Orange Seed": new Decimal(10),
+    "Grape Seed": new Decimal(10),
+    "Olive Seed": new Decimal(10),
+    "Rice Seed": new Decimal(10),
+
     "Blueberry Seed": new Decimal(10),
+    "Orange Seed": new Decimal(10),
+    "Apple Seed": new Decimal(10),
     "Banana Plant": new Decimal(10),
 
     "Sunpetal Seed": new Decimal(16),
@@ -99,32 +101,15 @@ export const INITIAL_STOCK = (state?: GameState): Inventory => {
   };
 
   if (
-    state?.buildings["Warehouse"] &&
-    isBuildingReady(state.buildings["Warehouse"])
+    state?.buildings.Warehouse &&
+    isBuildingReady(state.buildings.Warehouse)
   ) {
-    seeds = {
-      "Sunflower Seed": new Decimal(480),
-      "Potato Seed": new Decimal(240),
-      "Pumpkin Seed": new Decimal(180),
-      "Carrot Seed": new Decimal(120),
-      "Cabbage Seed": new Decimal(108),
-      "Beetroot Seed": new Decimal(96),
-      "Cauliflower Seed": new Decimal(96),
-      "Parsnip Seed": new Decimal(72),
-      "Eggplant Seed": new Decimal(60),
-      "Corn Seed": new Decimal(60),
-      "Radish Seed": new Decimal(48),
-      "Wheat Seed": new Decimal(48),
-      "Kale Seed": new Decimal(36),
-      "Apple Seed": new Decimal(12),
-      "Orange Seed": new Decimal(12),
-      "Blueberry Seed": new Decimal(12),
-      "Banana Plant": new Decimal(12),
-
-      "Sunpetal Seed": new Decimal(20),
-      "Bloom Seed": new Decimal(10),
-      "Lily Seed": new Decimal(5),
-    };
+    // Multiply each seed quantity by 1.2 and round up
+    for (const seed in seeds) {
+      seeds[seed as keyof typeof seeds] = new Decimal(
+        Math.ceil(seeds[seed as keyof typeof seeds].toNumber() * 1.2)
+      );
+    }
   }
 
   return {
@@ -145,12 +130,13 @@ export const INITIAL_STOCK = (state?: GameState): Inventory => {
 };
 
 export const INVENTORY_LIMIT = (state?: GameState): Inventory => {
-  let seeds = {
+  const seeds: Record<string, Decimal> = {
     "Sunflower Seed": new Decimal(1000),
     "Potato Seed": new Decimal(500),
     "Pumpkin Seed": new Decimal(400),
     "Carrot Seed": new Decimal(250),
     "Cabbage Seed": new Decimal(240),
+    "Soybean Seed": new Decimal(240),
     "Beetroot Seed": new Decimal(220),
     "Cauliflower Seed": new Decimal(200),
     "Parsnip Seed": new Decimal(150),
@@ -160,10 +146,14 @@ export const INVENTORY_LIMIT = (state?: GameState): Inventory => {
     "Wheat Seed": new Decimal(100),
     "Kale Seed": new Decimal(80),
 
-    "Apple Seed": new Decimal(25),
-    "Orange Seed": new Decimal(33),
     "Blueberry Seed": new Decimal(40),
+    "Orange Seed": new Decimal(33),
+    "Apple Seed": new Decimal(25),
     "Banana Plant": new Decimal(25),
+
+    "Rice Seed": new Decimal(50),
+    "Grape Seed": new Decimal(50),
+    "Olive Seed": new Decimal(50),
 
     "Sunpetal Seed": new Decimal(40),
     "Bloom Seed": new Decimal(20),
@@ -171,33 +161,15 @@ export const INVENTORY_LIMIT = (state?: GameState): Inventory => {
   };
 
   if (
-    state?.buildings["Warehouse"] &&
-    isBuildingReady(state.buildings["Warehouse"])
+    state?.buildings.Warehouse &&
+    isBuildingReady(state.buildings.Warehouse)
   ) {
-    seeds = {
-      "Sunflower Seed": new Decimal(1200),
-      "Potato Seed": new Decimal(600),
-      "Pumpkin Seed": new Decimal(480),
-      "Carrot Seed": new Decimal(300),
-      "Cabbage Seed": new Decimal(288),
-      "Beetroot Seed": new Decimal(264),
-      "Cauliflower Seed": new Decimal(240),
-      "Parsnip Seed": new Decimal(180),
-      "Eggplant Seed": new Decimal(144),
-      "Corn Seed": new Decimal(144),
-      "Radish Seed": new Decimal(120),
-      "Wheat Seed": new Decimal(120),
-      "Kale Seed": new Decimal(96),
-
-      "Apple Seed": new Decimal(30),
-      "Orange Seed": new Decimal(40),
-      "Blueberry Seed": new Decimal(50),
-      "Banana Plant": new Decimal(30),
-
-      "Sunpetal Seed": new Decimal(48),
-      "Bloom Seed": new Decimal(24),
-      "Lily Seed": new Decimal(12),
-    };
+    // Multiply each seed quantity by 1.2
+    for (const seed in seeds) {
+      seeds[seed as keyof typeof seeds] = new Decimal(
+        Math.ceil(seeds[seed as keyof typeof seeds].toNumber() * 1.2)
+      );
+    }
   }
 
   return seeds;
@@ -234,40 +206,328 @@ export const GENESIS_LAND_EXPANSION: ExpansionConstruction = {
   readyAt: 0,
 };
 
-export const INITIAL_EXPANSIONS: ExpansionConstruction[] = [
-  {
-    createdAt: 2,
-    readyAt: 0,
-  },
+export const TREE_RECOVERY_TIME = 2 * 60 * 60;
+export const STONE_RECOVERY_TIME = 4 * 60 * 60;
+export const IRON_RECOVERY_TIME = 8 * 60 * 60;
+export const GOLD_RECOVERY_TIME = 24 * 60 * 60;
+export const CRIMSTONE_RECOVERY_TIME = 24 * 60 * 60;
+export const SUNSTONE_RECOVERY_TIME = 3 * 24 * 60 * 60;
 
-  {
-    createdAt: 3,
-    readyAt: 0,
+export const INITIAL_RESOURCES: Pick<
+  GameState,
+  | "crops"
+  | "trees"
+  | "stones"
+  | "iron"
+  | "gold"
+  | "fruitPatches"
+  | "flowers"
+  | "crimstones"
+  | "sunstones"
+  | "beehives"
+  | "oilReserves"
+> = {
+  crops: {},
+  trees: {
+    1: {
+      createdAt: Date.now(),
+      wood: {
+        amount: 2,
+        choppedAt: 0,
+      },
+      x: -3,
+      y: 3,
+      height: 2,
+      width: 2,
+    },
+    2: {
+      createdAt: Date.now(),
+      wood: {
+        amount: 1,
+        choppedAt: 0,
+      },
+      x: 5,
+      y: 0,
+      height: 2,
+      width: 2,
+    },
+
+    3: {
+      createdAt: Date.now(),
+      wood: {
+        amount: 2,
+        choppedAt: 0,
+      },
+      x: 7,
+      y: 9,
+      height: 2,
+      width: 2,
+    },
   },
-  {
-    createdAt: 4,
-    readyAt: 0,
+  stones: {
+    1: {
+      createdAt: Date.now(),
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+      x: 7,
+      y: 5,
+      height: 1,
+      width: 1,
+    },
+    2: {
+      createdAt: Date.now(),
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+      x: 3,
+      y: 6,
+      height: 1,
+      width: 1,
+    },
   },
-];
+  fruitPatches: {},
+  gold: {},
+  iron: {},
+  crimstones: {},
+  flowers: {
+    discovered: {},
+    flowerBeds: {},
+  },
+  sunstones: {},
+  beehives: {},
+  oilReserves: {},
+};
+
+export const INITIAL_EXPANSIONS = 3;
+
+const INITIAL_EQUIPMENT: BumpkinParts = {
+  background: "Farm Background",
+  body: "Beige Farmer Potion",
+  hair: "Basic Hair",
+  shoes: "Black Farmer Boots",
+  pants: "Farmer Overalls",
+  tool: "Farmer Pitchfork",
+  shirt: "Red Farmer Shirt",
+};
 
 export const INITIAL_BUMPKIN: Bumpkin = {
-  id: 1,
+  equipped: INITIAL_EQUIPMENT as Equipped,
   experience: 0,
-  tokenUri: "bla",
-  equipped: {
-    body: "Light Brown Farmer Potion",
-    hair: "Basic Hair",
-    shirt: "Red Farmer Shirt",
-    pants: "Farmer Pants",
-    shoes: "Black Farmer Boots",
-    tool: "Farmer Pitchfork",
-    background: "Farm Background",
-  },
+
+  id: 1,
   skills: {},
-  achievements: {
-    "Busy Bumpkin": 1,
-  },
+  tokenUri: `1_${tokenUriBuilder(INITIAL_EQUIPMENT)}`,
+  achievements: {},
+
   activity: {},
+};
+
+export const INITIAL_FARM: GameState = {
+  coins: 0,
+  balance: new Decimal(0),
+  previousBalance: new Decimal(0),
+  inventory: {
+    "Town Center": new Decimal(1),
+    Market: new Decimal(1),
+    Workbench: new Decimal(1),
+    "Basic Land": new Decimal(INITIAL_EXPANSIONS),
+    "Crop Plot": new Decimal(getKeys(INITIAL_RESOURCES.crops).length),
+    Tree: new Decimal(getKeys(INITIAL_RESOURCES.trees).length),
+    "Stone Rock": new Decimal(getKeys(INITIAL_RESOURCES.stones).length),
+    Axe: new Decimal(10),
+    "Block Buck": new Decimal(1),
+    Rug: new Decimal(1),
+    Wardrobe: new Decimal(1),
+    Shovel: new Decimal(1),
+  },
+  previousInventory: {},
+  wardrobe: {},
+  previousWardrobe: {},
+
+  bumpkin: INITIAL_BUMPKIN,
+
+  minigames: {
+    games: {},
+    prizes: {},
+  },
+
+  megastore: {
+    available: {
+      from: 0,
+      to: 0,
+    },
+    collectibles: [],
+    wearables: [],
+  },
+
+  mysteryPrizes: {},
+  stockExpiry: {},
+  mushrooms: {
+    mushrooms: {},
+    spawnedAt: 0,
+  },
+
+  island: {
+    type: "basic",
+  },
+
+  home: {
+    collectibles: {
+      Wardrobe: [
+        {
+          id: "1",
+          createdAt: Date.now(),
+          coordinates: {
+            x: 1,
+            y: 3,
+          },
+          readyAt: Date.now(),
+        },
+      ],
+      Rug: [
+        {
+          id: "2",
+          createdAt: Date.now(),
+          coordinates: {
+            x: 0,
+            y: 2,
+          },
+          readyAt: Date.now(),
+        },
+      ],
+    },
+  },
+  farmHands: { bumpkins: {} },
+  greenhouse: {
+    oil: 100,
+    pots: {},
+  },
+
+  createdAt: new Date().getTime(),
+
+  ...INITIAL_RESOURCES,
+
+  conversations: ["hank-intro"],
+
+  fishing: {
+    dailyAttempts: {},
+    weather: "Sunny",
+    wharf: {},
+    beach: {},
+  },
+  mailbox: {
+    read: [],
+  },
+
+  stock: INITIAL_STOCK(),
+  chickens: {},
+  trades: {},
+  buildings: {
+    "Town Center": [
+      {
+        id: "123",
+        readyAt: 0,
+        coordinates: {
+          x: -1,
+          y: 1,
+        },
+        createdAt: 0,
+      },
+    ],
+    Workbench: [
+      {
+        id: "123",
+        readyAt: 0,
+        coordinates: {
+          x: 4,
+          y: 8,
+        },
+        createdAt: 0,
+      },
+    ],
+
+    Market: [
+      {
+        id: "123",
+        readyAt: 0,
+        coordinates: {
+          x: 5,
+          y: 3,
+        },
+        createdAt: 0,
+      },
+    ],
+  },
+  collectibles: {},
+  pumpkinPlaza: {},
+  treasureIsland: {
+    holes: {},
+  },
+  auctioneer: {},
+  delivery: {
+    fulfilledCount: 0,
+    orders: [
+      {
+        createdAt: Date.now(),
+        readyAt: Date.now(),
+        from: "betty",
+        reward: {
+          items: {},
+          coins: 64,
+        },
+        id: "1",
+        items: {
+          Sunflower: 30,
+        },
+      },
+      {
+        createdAt: Date.now(),
+        readyAt: Date.now(),
+        from: "grubnuk",
+        reward: {
+          items: {},
+          coins: 64,
+        },
+        id: "2",
+        items: {
+          "Pumpkin Soup": 1,
+        },
+      },
+      {
+        createdAt: Date.now(),
+        readyAt: Date.now(),
+        from: "grimbly",
+        reward: {
+          items: {},
+          coins: 48,
+        },
+        id: "3",
+        items: {
+          "Mashed Potato": 2,
+        },
+      },
+    ],
+    milestone: {
+      goal: 10,
+      total: 10,
+    },
+  },
+  farmActivity: {},
+  milestones: {},
+  catchTheKraken: {
+    hunger: "Sunflower",
+    weeklyCatches: {},
+  },
+  specialEvents: {
+    history: {},
+    current: {},
+  },
+  goblinMarket: {
+    resources: {},
+  },
 };
 
 export const TEST_FARM: GameState = {
@@ -295,6 +555,10 @@ export const TEST_FARM: GameState = {
     "Basic Land": new Decimal(3),
   },
   previousInventory: {},
+  minigames: {
+    games: {},
+    prizes: {},
+  },
   stock: INITIAL_STOCK(),
   chickens: {},
   farmActivity: {},
@@ -312,6 +576,10 @@ export const TEST_FARM: GameState = {
     hunger: "Sunflower",
     weeklyCatches: {},
   },
+  greenhouse: {
+    pots: {},
+    oil: 0,
+  },
   wardrobe: {},
   previousWardrobe: {},
   createdAt: new Date().getTime(),
@@ -326,11 +594,71 @@ export const TEST_FARM: GameState = {
   trades: {},
   crops: {
     1: {
+      createdAt: Date.now(),
+      crop: { name: "Sunflower", plantedAt: 0, amount: 1 },
+      x: -2,
+      y: 0,
       height: 1,
       width: 1,
-      x: 1,
-      y: 1,
+    },
+    2: {
       createdAt: Date.now(),
+      crop: { name: "Sunflower", plantedAt: 0, amount: 1 },
+      x: -1,
+      y: 0,
+      height: 1,
+      width: 1,
+    },
+    3: {
+      createdAt: Date.now(),
+      crop: { name: "Sunflower", plantedAt: 0, amount: 1 },
+      x: 0,
+      y: 0,
+      height: 1,
+      width: 1,
+    },
+    4: {
+      createdAt: Date.now(),
+      x: -2,
+      y: -1,
+      height: 1,
+      width: 1,
+    },
+    5: {
+      createdAt: Date.now(),
+      x: -1,
+      y: -1,
+      height: 1,
+      width: 1,
+    },
+    6: {
+      createdAt: Date.now(),
+      x: 0,
+      y: -1,
+      height: 1,
+      width: 1,
+    },
+
+    7: {
+      createdAt: Date.now(),
+      x: -2,
+      y: 1,
+      height: 1,
+      width: 1,
+    },
+    8: {
+      createdAt: Date.now(),
+      x: -1,
+      y: 1,
+      height: 1,
+      width: 1,
+    },
+    9: {
+      createdAt: Date.now(),
+      x: 0,
+      y: 1,
+      height: 1,
+      width: 1,
     },
   },
   mysteryPrizes: {},
@@ -391,19 +719,7 @@ export const TEST_FARM: GameState = {
       },
     ],
   },
-  airdrops: [
-    {
-      createdAt: Date.now(),
-      id: "123",
-      items: {
-        "Rapid Growth": 5,
-      },
-      wearables: {},
-      sfl: 3,
-      coins: 0,
-      message: "You are a legend!",
-    },
-  ],
+  airdrops: [],
   collectibles: {},
   warCollectionOffer: {
     warBonds: 10,
@@ -417,17 +733,6 @@ export const TEST_FARM: GameState = {
     ],
   },
   bumpkin: INITIAL_BUMPKIN,
-  hayseedHank: {
-    choresCompleted: 0,
-    chore: {
-      activity: "Sunflower Harvested",
-      requirement: 10,
-      reward: {
-        items: { "Solar Flare Ticket": 1 },
-      },
-      description: translate("task.harvestSunflowers"),
-    },
-  },
 
   dailyRewards: { streaks: 0 },
 
@@ -438,17 +743,69 @@ export const TEST_FARM: GameState = {
   },
   gold: {},
   iron: {},
-  stones: {},
+  stones: {
+    1: {
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+      x: 7,
+      y: 3,
+      height: 1,
+      width: 1,
+    },
+    2: {
+      stone: {
+        amount: 1,
+        minedAt: 0,
+      },
+      x: 3,
+      y: 6,
+      height: 1,
+      width: 1,
+    },
+  },
   crimstones: {},
-  oil: {},
-  trees: {},
+  oilReserves: {},
+  trees: {
+    1: {
+      wood: {
+        amount: 2,
+        choppedAt: 0,
+      },
+      x: -3,
+      y: 3,
+      height: 2,
+      width: 2,
+    },
+    2: {
+      wood: {
+        amount: 1,
+        choppedAt: 0,
+      },
+      x: 7,
+      y: 0,
+      height: 2,
+      width: 2,
+    },
+
+    3: {
+      wood: {
+        amount: 2,
+        choppedAt: 0,
+      },
+      x: 7,
+      y: 9,
+      height: 2,
+      width: 2,
+    },
+  },
   sunstones: {},
   mushrooms: {
     spawnedAt: 0,
     mushrooms: {},
   },
   beehives: {},
-  springBlossom: {},
   megastore: {
     available: makeMegaStoreAvailableDates(),
     collectibles: [],
@@ -474,6 +831,10 @@ export const EMPTY: GameState = {
     Gold: new Decimal(10),
     Stone: new Decimal(10),
   },
+  minigames: {
+    games: {},
+    prizes: {},
+  },
   previousInventory: {},
   chickens: {},
   minigames: {
@@ -487,6 +848,10 @@ export const EMPTY: GameState = {
   conversations: [],
   farmHands: {
     bumpkins: {},
+  },
+  greenhouse: {
+    pots: {},
+    oil: 0,
   },
   mailbox: {
     read: [],
@@ -507,19 +872,7 @@ export const EMPTY: GameState = {
   pumpkinPlaza: {},
   dailyRewards: { streaks: 0 },
   auctioneer: {},
-  hayseedHank: {
-    choresCompleted: 0,
-    dawnBreakerChoresCompleted: 0,
-    dawnBreakerChoresSkipped: 0,
-    chore: {
-      activity: "Sunflower Harvested",
-      requirement: 10,
-      reward: {
-        items: { "Solar Flare Ticket": 1 },
-      },
-      description: translate("task.harvestSunflowers"),
-    },
-  },
+
   trades: {},
   fruitPatches: {},
   beehives: {},
@@ -532,7 +885,7 @@ export const EMPTY: GameState = {
   crops: {},
   stones: {},
   crimstones: {},
-  oil: {},
+  oilReserves: {},
   trees: {},
   sunstones: {},
   farmActivity: {},
@@ -551,7 +904,6 @@ export const EMPTY: GameState = {
     hunger: "Sunflower",
     weeklyCatches: {},
   },
-  springBlossom: {},
   megastore: {
     available: makeMegaStoreAvailableDates(),
     collectibles: [],
@@ -565,10 +917,3 @@ export const EMPTY: GameState = {
     resources: {},
   },
 };
-
-export const TREE_RECOVERY_TIME = 2 * 60 * 60;
-export const STONE_RECOVERY_TIME = 4 * 60 * 60;
-export const IRON_RECOVERY_TIME = 8 * 60 * 60;
-export const GOLD_RECOVERY_TIME = 24 * 60 * 60;
-export const CRIMSTONE_RECOVERY_TIME = 24 * 60 * 60;
-export const SUNSTONE_RECOVERY_TIME = 3 * 24 * 60 * 60;

@@ -4,7 +4,7 @@ import dawnBreakerBanner from "assets/decorations/banners/dawn_breaker_banner.pn
 import witchesEveBanner from "assets/decorations/banners/witches_eve_banner.webp";
 import catchTheKrakenBanner from "assets/decorations/banners/catch_the_kraken_banner.webp";
 import springBlossomBanner from "assets/decorations/banners/spring_banner.gif";
-import clashOfFactionsBanner from "assets/decorations/banners/dawn_breaker_banner.png";
+import clashOfFactionsBanner from "assets/decorations/banners/clash_of_factions_banner.webp";
 
 export type SeasonName =
   | "Solar Flare"
@@ -61,7 +61,7 @@ export type SeasonalBanner =
   | "Spring Blossom Banner"
   | "Clash of Factions Banner";
 
-export const BANNERS: Record<SeasonalBanner, SeasonName> = {
+export const SEASONAL_BANNERS: Record<SeasonalBanner, SeasonName> = {
   "Solar Flare Banner": "Solar Flare",
   "Dawn Breaker Banner": "Dawn Breaker",
   "Witches' Eve Banner": "Witches' Eve",
@@ -95,14 +95,14 @@ export function getCurrentSeason(now = new Date()): SeasonName {
   return currentSeason;
 }
 
-export function getSeasonalTicket(): SeasonalTicket {
-  const currentSeason = getCurrentSeason();
+export function getSeasonalTicket(now = new Date()): SeasonalTicket {
+  const currentSeason = getCurrentSeason(now);
 
   return SEASON_TICKET_NAME[currentSeason];
 }
 
-export function getSeasonalBanner(): SeasonalBanner {
-  const currentSeason = getCurrentSeason();
+export function getSeasonalBanner(now = new Date()): SeasonalBanner {
+  const currentSeason = getCurrentSeason(now);
 
   return `${currentSeason} Banner`;
 }
@@ -126,7 +126,7 @@ export function hasSeasonEnded(season: SeasonName, now = Date.now()) {
 }
 
 export function getSeasonByBanner(banner: SeasonalBanner): SeasonName {
-  return BANNERS[banner];
+  return SEASONAL_BANNERS[banner];
 }
 
 export function getSeasonalBannerImage() {

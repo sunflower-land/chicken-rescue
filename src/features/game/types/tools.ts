@@ -3,7 +3,7 @@
  */
 
 import Decimal from "decimal.js-light";
-import { Inventory } from "./game";
+import { Inventory, IslandType } from "./game";
 import { translate } from "lib/i18n/translate";
 
 export type WorkbenchToolName =
@@ -12,7 +12,8 @@ export type WorkbenchToolName =
   | "Stone Pickaxe"
   | "Iron Pickaxe"
   | "Gold Pickaxe"
-  | "Rod";
+  | "Rod"
+  | "Oil Drill";
 
 export type TreasureToolName = "Sand Shovel" | "Sand Drill";
 
@@ -22,6 +23,7 @@ export interface Tool {
   ingredients: Inventory;
   price: number;
   disabled?: boolean;
+  requiredIsland?: IslandType;
 }
 
 export const WORKBENCH_TOOLS: Record<WorkbenchToolName, Tool> = {
@@ -75,6 +77,16 @@ export const WORKBENCH_TOOLS: Record<WorkbenchToolName, Tool> = {
       Wood: new Decimal(3),
       Stone: new Decimal(1),
     },
+  },
+  "Oil Drill": {
+    name: "Oil Drill",
+    description: translate("description.oil.drill"),
+    price: 100,
+    ingredients: {
+      Wood: new Decimal(25),
+      Iron: new Decimal(10),
+    },
+    requiredIsland: "desert",
   },
 };
 

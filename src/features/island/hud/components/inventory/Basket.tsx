@@ -9,8 +9,15 @@ import {
   GameState,
   EASTER_EGG,
 } from "features/game/types/game";
-import { CROP_SEEDS, CropName, CROPS } from "features/game/types/crops";
-import { getCropTime } from "features/game/events/landExpansion/plant";
+import {
+  CROP_SEEDS,
+  CropName,
+  CROPS,
+  GREENHOUSE_CROPS,
+  GREENHOUSE_SEEDS,
+  GreenHouseCropSeedName,
+} from "features/game/types/crops";
+import { getCropPlotTime } from "features/game/events/landExpansion/plant";
 import { getKeys } from "features/game/types/craftables";
 import { getBasketItems } from "./utils/inventory";
 import {
@@ -21,7 +28,13 @@ import {
 } from "features/game/types/consumables";
 import { COMMODITIES } from "features/game/types/resources";
 import { BEANS, EXOTIC_CROPS } from "features/game/types/beans";
-import { FRUIT, FruitSeedName, FRUIT_SEEDS } from "features/game/types/fruits";
+import {
+  FRUIT,
+  FruitSeedName,
+  FRUIT_SEEDS,
+  GREENHOUSE_FRUIT_SEEDS,
+  GREENHOUSE_FRUIT,
+} from "features/game/types/fruits";
 import { SplitScreenView } from "components/ui/SplitScreenView";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { InventoryItemDetails } from "components/ui/layouts/InventoryItemDetails";
@@ -32,7 +45,7 @@ import Decimal from "decimal.js-light";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SELLABLE_TREASURE } from "features/game/types/treasure";
 import { TREASURE_TOOLS, WORKBENCH_TOOLS } from "features/game/types/tools";
-import { getFruitTime } from "features/game/events/landExpansion/fruitPlanted";
+import { getFruitPatchTime } from "features/game/events/landExpansion/fruitPlanted";
 import {
   WORM,
   CROP_COMPOST,
@@ -43,6 +56,10 @@ import { Label } from "components/ui/Label";
 import { FLOWERS, FLOWER_SEEDS } from "features/game/types/flowers";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { BUILDING_ORDER } from "features/island/bumpkin/components/NPCModal";
+import {
+  SEED_TO_PLANT,
+  getGreenhouseCropTime,
+} from "features/game/events/landExpansion/plantGreenhouse";
 
 interface Prop {
   gameState: GameState;
@@ -84,7 +101,9 @@ export const Basket: React.FC<Prop> = ({ gameState, selected, onSelect }) => {
   const isSeed = (selected: InventoryItemName): selected is SeedName =>
     isFruitSeed(selected) ||
     selected in CROP_SEEDS() ||
-    selected in FLOWER_SEEDS();
+    selected in FLOWER_SEEDS() ||
+    selected in GREENHOUSE_SEEDS() ||
+    selected in GREENHOUSE_FRUIT_SEEDS();
   const isFood = (selected: InventoryItemName) => selected in CONSUMABLES;
 
   const getHarvestTime = (seedName: SeedName) => {
@@ -93,15 +112,26 @@ export const Basket: React.FC<Prop> = ({ gameState, selected, onSelect }) => {
     }
 
     if (isFruitSeed(seedName)) {
-      return getFruitTime(
+      return getFruitPatchTime(
         seedName,
         gameState,
         (gameState.bumpkin as Bumpkin)?.equipped ?? {}
       );
     }
+    if (
+      seedName in GREENHOUSE_SEEDS() ||
+      seedName in GREENHOUSE_FRUIT_SEEDS()
+    ) {
+      const plant = SEED_TO_PLANT[seedName as GreenHouseCropSeedName];
+      const seconds = getGreenhouseCropTime({
+        crop: plant,
+        game: gameState,
+      });
+      return seconds;
+    }
 
     const crop = SEEDS()[seedName].yield as CropName;
-    return getCropTime({
+    return getCropPlotTime({
       crop,
       inventory,
       game: gameState,
@@ -123,9 +153,13 @@ export const Basket: React.FC<Prop> = ({ gameState, selected, onSelect }) => {
 
   const seeds = getItems(CROP_SEEDS());
   const fruitSeeds = getItems(FRUIT_SEEDS());
+  const greenhouseSeeds = [
+    ...getItems(GREENHOUSE_FRUIT_SEEDS()),
+    ...getItems(GREENHOUSE_SEEDS()),
+  ];
   const flowerSeeds = getItems(FLOWER_SEEDS());
-  const crops = getItems(CROPS());
-  const fruits = getItems(FRUIT());
+  const crops = [...getItems(CROPS()), ...getItems(GREENHOUSE_CROPS())];
+  const fruits = [...getItems(FRUIT()), ...getItems(GREENHOUSE_FRUIT())];
   const flowers = getItems(FLOWERS);
   const workbenchTools = getItems(WORKBENCH_TOOLS);
   const treasureTools = getItems(TREASURE_TOOLS);
@@ -153,7 +187,12 @@ export const Basket: React.FC<Prop> = ({ gameState, selected, onSelect }) => {
   const purchaseableBait = getItems(PURCHASEABLE_BAIT);
   const fish = getItems(FISH).sort((a, b) => a.localeCompare(b));
 
-  const allSeeds = [...seeds, ...fruitSeeds, ...flowerSeeds];
+  const allSeeds = [
+    ...seeds,
+    ...fruitSeeds,
+    ...flowerSeeds,
+    ...greenhouseSeeds,
+  ];
   const allTools = [...workbenchTools, ...treasureTools];
 
   const itemsSection = (

@@ -12,8 +12,7 @@ import {
 } from "features/game/types/consumables";
 import { MachineInterpreter } from "features/island/buildings/lib/craftingMachine";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
-import { ConversationName } from "features/game/types/announcements";
-import { Panel } from "components/ui/Panel";
+import { OuterPanel, Panel } from "components/ui/Panel";
 import { NPC_WEARABLES } from "lib/npcs";
 import { SpeakingText } from "features/game/components/SpeakingModal";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
@@ -36,7 +35,7 @@ interface Props {
   crafting: boolean;
   itemInProgress?: CookableName;
   craftingService?: MachineInterpreter;
-  conversation?: ConversationName;
+  buildingId: string;
 }
 export const FirePitModal: React.FC<Props> = ({
   isOpen,
@@ -45,11 +44,12 @@ export const FirePitModal: React.FC<Props> = ({
   crafting,
   itemInProgress,
   craftingService,
+  buildingId,
 }) => {
   const [showIntro, setShowIntro] = React.useState(!hasRead());
   const { t } = useAppTranslation();
   const firePitRecipes = Object.values(FIRE_PIT_COOKABLES).sort(
-    (a, b) => a.cookingSeconds - b.cookingSeconds // Future proofing for future foods released
+    (a, b) => a.cookingSeconds - b.cookingSeconds // Sorts Foods based on their cooking time
   );
 
   const [selected, setSelected] = useState<Cookable>(
@@ -83,6 +83,7 @@ export const FirePitModal: React.FC<Props> = ({
           tabs={[{ icon: chefHat, name: "Fire Pit" }]}
           onClose={onClose}
           bumpkinParts={NPC_WEARABLES.bruce}
+          container={OuterPanel}
         >
           <Recipes
             selected={selected}
@@ -92,6 +93,9 @@ export const FirePitModal: React.FC<Props> = ({
             onClose={onClose}
             crafting={!!crafting}
             craftingService={craftingService}
+            buildingName="Fire Pit"
+            buildingId={buildingId}
+            currentlyCooking={selected.name}
           />
         </CloseButtonPanel>
       )}

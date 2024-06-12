@@ -4,6 +4,7 @@ import { assign, createMachine, Interpreter, State } from "xstate";
 import { loadPortal } from "../actions/loadPortal";
 import { CONFIG } from "lib/config";
 import { PortalName } from "features/game/types/portals";
+import { claimArcadeToken } from "../actions/claimArcadeToken";
 import { Client, Room } from "colyseus.js";
 import { PlazaRoomState } from "features/world/types/Room";
 import { SPAWNS } from "features/world/lib/spawn";

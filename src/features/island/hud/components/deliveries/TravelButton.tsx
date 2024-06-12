@@ -1,19 +1,18 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { PIXEL_SCALE } from "features/game/lib/constants";
-import { Context } from "features/game/GameProvider";
 import world from "assets/icons/world.png";
-import { MachineState } from "features/game/lib/gameMachine";
 import { Modal } from "components/ui/Modal";
 import { WorldMap } from "./WorldMap";
-
-const _chores = (state: MachineState) => state.context.state.chores;
 
 export const Travel: React.FC<{ isVisiting?: boolean }> = ({
   isVisiting = false,
 }) => {
-  const { gameService, showAnimations } = useContext(Context);
   const [showModal, setShowModal] = useState(false);
+
+  const onClose = () => {
+    setShowModal(false);
+  };
 
   return (
     <>
@@ -50,12 +49,8 @@ export const Travel: React.FC<{ isVisiting?: boolean }> = ({
         </div>
       </div>
 
-      <Modal
-        show={showModal}
-        dialogClassName="md:max-w-3xl"
-        onHide={() => setShowModal(false)}
-      >
-        <WorldMap onClose={() => setShowModal(false)} />
+      <Modal show={showModal} dialogClassName="md:max-w-3xl" onHide={onClose}>
+        <WorldMap onClose={onClose} />
       </Modal>
     </>
   );

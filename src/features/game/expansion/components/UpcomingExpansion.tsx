@@ -34,6 +34,7 @@ import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { ExpansionRequirements } from "components/ui/layouts/ExpansionRequirements";
 import { Button } from "components/ui/Button";
 import confetti from "canvas-confetti";
+import { ModalContext } from "features/game/components/modal/ModalProvider";
 
 interface ExpandIconProps {
   onOpen: () => void;
@@ -43,6 +44,7 @@ interface ExpandIconProps {
   canExpand: boolean;
   showHelper: boolean;
   inventory: Inventory;
+  coins: number;
 }
 export const ExpandIcon: React.FC<ExpandIconProps> = ({
   onOpen,
@@ -52,6 +54,7 @@ export const ExpandIcon: React.FC<ExpandIconProps> = ({
   canExpand,
   showHelper,
   inventory,
+  coins,
 }) => {
   const showRequirements = inventory["Basic Land"]?.lte(5);
 
@@ -81,6 +84,21 @@ export const ExpandIcon: React.FC<ExpandIconProps> = ({
           {showRequirements && (
             <>
               <div className="flex mt-2 flex-wrap justify-center px-4 items-center">
+                {!!requirements.coins && (
+                  <div className="mr-3 flex items-center mb-1" key={"coins"}>
+                    <RequirementLabel
+                      type="coins"
+                      requirement={requirements.coins}
+                      balance={coins}
+                    />
+                    {coins >= requirements.coins && (
+                      <img
+                        src={SUNNYSIDE.icons.confirm}
+                        className="h-4 ml-0.5"
+                      />
+                    )}
+                  </div>
+                )}
                 {getKeys(requirements.resources ?? {})
                   .filter((name) => name !== "Block Buck")
                   .map((name) => (
@@ -92,6 +110,7 @@ export const ExpandIcon: React.FC<ExpandIconProps> = ({
                           new Decimal(requirements.resources[name] ?? 0)
                         }
                         balance={inventory[name] ?? new Decimal(0)}
+                        textColor={"white"}
                       />
                       {inventory[name]?.gte(
                         requirements.resources[name] ?? 0
@@ -210,9 +229,11 @@ export const ExpansionBuilding: React.FC<{
  */
 export const UpcomingExpansion: React.FC = () => {
   const [_, setRender] = useState(0);
-  const { gameService } = useContext(Context);
+  const { gameService, showAnimations } = useContext(Context);
   const [gameState] = useActor(gameService);
   const [showBumpkinModal, setShowBumpkinModal] = useState(false);
+
+  const { openModal } = useContext(ModalContext);
 
   const state = gameState.context.state;
 
@@ -248,7 +269,15 @@ export const UpcomingExpansion: React.FC = () => {
     gameService.send("land.revealed");
     gameService.send("SAVE");
 
-    confetti();
+    if (showAnimations) confetti();
+
+    if (expansions === 4) {
+      openModal("BETTY");
+    }
+
+    if (expansions === 5) {
+      openModal("FIREPIT");
+    }
   };
 
   const nextPosition =
@@ -290,6 +319,7 @@ export const UpcomingExpansion: React.FC = () => {
           position={nextPosition}
           requirements={requirements as IExpansionRequirements}
           showHelper={showHelper ?? false}
+          coins={state.coins}
         />
       )}
 
@@ -300,6 +330,7 @@ export const UpcomingExpansion: React.FC = () => {
         >
           <ExpansionRequirements
             inventory={state.inventory}
+            coins={state.coins}
             bumpkin={state.bumpkin as Bumpkin}
             details={{
               description: translate("landscape.expansion.one"),

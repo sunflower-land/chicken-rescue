@@ -72,7 +72,13 @@ export type SoldOutCollectibleName =
   | "Humming Bird"
   | "Queen Bee"
   | "Blossom Royale"
-  | "Hungry Caterpillar";
+  | "Hungry Caterpillar"
+  | "Turbo Sprout"
+  | "Soybliss"
+  | "Grape Granny"
+  | "Royal Throne"
+  | "Lily Egg"
+  | "Goblet";
 
 export type MegaStoreCollectibleName =
   | "Flower Cart"
@@ -83,7 +89,22 @@ export type MegaStoreCollectibleName =
   | "Rainbow"
   | "Flower Rug"
   | "Tea Rug"
-  | "Green Field Rug";
+  | "Green Field Rug"
+  | "Vinny"
+  | "Clock"
+  | "Fancy Rug"
+  //June
+  | "Regular Pawn"
+  | "Novice Knight"
+  | "Golden Garrison"
+  | "Trainee Target"
+  | "Chess Rug"
+  // July
+  | "Rice Panda"
+  | "Silver Squire"
+  | "Cluckapult"
+  | "Bullseye Board"
+  | "Twister Rug";
 
 export type GoblinBlacksmithItemName =
   | "Purple Trail"

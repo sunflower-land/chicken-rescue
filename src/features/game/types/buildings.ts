@@ -1,27 +1,28 @@
 import Decimal from "decimal.js-light";
 import { CollectibleName } from "./craftables";
-import { InventoryItemName } from "./game";
+import { InventoryItemName, IslandType } from "./game";
 import { ResourceName } from "./resources";
 
-export type Home = "Tent" | "House";
+export type Home = "Tent" | "House" | "Manor";
+
+export type CookingBuildingName = "Fire Pit" | "Kitchen" | "Bakery" | "Deli";
 
 export type BuildingName =
-  | "Fire Pit"
+  | CookingBuildingName
+  | "Smoothie Shack"
   | "Market"
   | "Town Center"
   | "Workbench"
-  | "Kitchen"
   | "Water Well"
-  | "Bakery"
   | "Hen House"
-  | "Deli"
-  | "Smoothie Shack"
   | "Toolshed"
   | "Warehouse"
   | "Compost Bin"
   | "Turbo Composter"
   | "Premium Composter"
-  | Home;
+  | "Greenhouse"
+  | Home
+  | "Crop Machine";
 
 export type Ingredient = {
   item: InventoryItemName;
@@ -33,6 +34,7 @@ export type BuildingBluePrint = {
   ingredients: Ingredient[];
   coins: number;
   constructionSeconds: number;
+  requiredIsland?: IslandType;
 };
 
 export type PlaceableName =
@@ -54,6 +56,14 @@ export const BUILDINGS: Record<BuildingName, BuildingBluePrint[]> = {
     },
   ],
   House: [
+    {
+      unlocksAtLevel: 99,
+      coins: 0,
+      constructionSeconds: 30,
+      ingredients: [],
+    },
+  ],
+  Manor: [
     {
       unlocksAtLevel: 99,
       coins: 0,
@@ -405,26 +415,77 @@ export const BUILDINGS: Record<BuildingName, BuildingBluePrint[]> = {
       ],
     },
   ],
+  Greenhouse: [
+    {
+      unlocksAtLevel: 46,
+      coins: 4800,
+      constructionSeconds: 60 * 60 * 4,
+      ingredients: [
+        {
+          item: "Wood",
+          amount: new Decimal(500),
+        },
+        {
+          item: "Stone",
+          amount: new Decimal(100),
+        },
+        {
+          item: "Crimstone",
+          amount: new Decimal(25),
+        },
+        {
+          item: "Oil",
+          amount: new Decimal(100),
+        },
+      ],
+      requiredIsland: "desert",
+    },
+  ],
+  "Crop Machine": [
+    {
+      unlocksAtLevel: 35,
+      coins: 8000,
+      constructionSeconds: 60 * 60 * 2,
+      ingredients: [
+        {
+          item: "Wood",
+          amount: new Decimal(1250),
+        },
+        {
+          item: "Iron",
+          amount: new Decimal(125),
+        },
+        {
+          item: "Crimstone",
+          amount: new Decimal(50),
+        },
+      ],
+      requiredIsland: "desert",
+    },
+  ],
 };
 
 export type Dimensions = { width: number; height: number };
 
 export const BUILDINGS_DIMENSIONS: Record<BuildingName, Dimensions> = {
-  Market: { height: 2, width: 3 },
-  "Fire Pit": { height: 2, width: 3 },
-  "Town Center": { height: 3, width: 4 },
-  House: { height: 4, width: 4 },
-  Workbench: { height: 2, width: 3 },
-  Kitchen: { height: 3, width: 4 },
-  Bakery: { height: 3, width: 4 },
-  "Water Well": { height: 2, width: 2 },
-  Tent: { height: 2, width: 3 },
-  "Hen House": { height: 3, width: 4 },
-  Deli: { height: 3, width: 4 },
-  "Smoothie Shack": { height: 2, width: 3 },
-  Toolshed: { height: 3, width: 2 },
-  Warehouse: { height: 2, width: 3 },
-  "Compost Bin": { height: 2, width: 2 },
-  "Turbo Composter": { height: 2, width: 2 },
-  "Premium Composter": { height: 2, width: 2 },
+  Market: { width: 3, height: 2 },
+  "Fire Pit": { width: 3, height: 2 },
+  "Town Center": { width: 4, height: 3 },
+  House: { width: 4, height: 4 },
+  Manor: { width: 5, height: 4 },
+  Workbench: { width: 3, height: 2 },
+  Kitchen: { width: 4, height: 3 },
+  Bakery: { width: 4, height: 3 },
+  "Water Well": { width: 2, height: 2 },
+  Tent: { width: 3, height: 2 },
+  "Hen House": { width: 4, height: 3 },
+  Deli: { width: 4, height: 3 },
+  "Smoothie Shack": { width: 3, height: 2 },
+  Toolshed: { width: 2, height: 3 },
+  Warehouse: { width: 3, height: 2 },
+  "Compost Bin": { width: 2, height: 2 },
+  "Turbo Composter": { width: 2, height: 2 },
+  "Premium Composter": { width: 2, height: 2 },
+  Greenhouse: { width: 4, height: 4 },
+  "Crop Machine": { width: 5, height: 4 },
 };

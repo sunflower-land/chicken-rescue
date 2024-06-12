@@ -11,10 +11,6 @@ import {
 } from "features/game/types/seasons";
 
 describe("purchaseBanner", () => {
-  beforeEach(() => {
-    jest.useRealTimers();
-  });
-
   it("throws an error if no bumpkin exists", () => {
     expect(() =>
       purchaseBanner({
@@ -58,7 +54,7 @@ describe("purchaseBanner", () => {
         },
         action: {
           type: "banner.purchased",
-          name: "Spring Blossom Banner",
+          name: getSeasonalBanner(),
         },
       })
     ).toThrow("Insufficient Block Bucks");
@@ -143,6 +139,72 @@ describe("purchaseBanner", () => {
     });
   });
 
+  it("purchases banner on first 2 weeks with gold pass", () => {
+    const WEEK = 1000 * 60 * 60 * 24 * 7;
+    const season = getCurrentSeason();
+    const seasonStart = SEASONS[season].startDate;
+    const banner = getSeasonalBanner();
+    const previousSeasonalBanner = getPreviousSeasonalBanner();
+
+    const result = purchaseBanner({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          "Block Buck": new Decimal(50),
+          "Gold Pass": new Decimal(1),
+        },
+      },
+      action: {
+        type: "banner.purchased",
+        name: banner,
+      },
+      createdAt: seasonStart.getTime() + WEEK,
+    });
+
+    expect(result).toEqual({
+      ...TEST_FARM,
+      inventory: {
+        "Block Buck": new Decimal(0),
+        [banner]: new Decimal(1),
+        "Gold Pass": new Decimal(1),
+      },
+    });
+  });
+
+  it("purchases banner on first 2 weeks with previous banner and gold pass", () => {
+    const WEEK = 1000 * 60 * 60 * 24 * 7;
+    const season = getCurrentSeason();
+    const seasonStart = SEASONS[season].startDate;
+    const banner = getSeasonalBanner();
+    const previousSeasonalBanner = getPreviousSeasonalBanner();
+
+    const result = purchaseBanner({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          "Block Buck": new Decimal(35),
+          [previousSeasonalBanner]: new Decimal(1),
+          "Gold Pass": new Decimal(1),
+        },
+      },
+      action: {
+        type: "banner.purchased",
+        name: banner,
+      },
+      createdAt: seasonStart.getTime() + WEEK,
+    });
+
+    expect(result).toEqual({
+      ...TEST_FARM,
+      inventory: {
+        "Block Buck": new Decimal(0),
+        [banner]: new Decimal(1),
+        [previousSeasonalBanner]: new Decimal(1),
+        "Gold Pass": new Decimal(1),
+      },
+    });
+  });
+
   it("purchases banner on 2-4 weeks", () => {
     const WEEK = 1000 * 60 * 60 * 24 * 7;
     const season = getCurrentSeason();
@@ -167,6 +229,37 @@ describe("purchaseBanner", () => {
       ...TEST_FARM,
       inventory: {
         "Block Buck": new Decimal(0),
+        [banner]: new Decimal(1),
+      },
+    });
+  });
+
+  it("purchases banner on 2-4 weeks with gold pass discount", () => {
+    const WEEK = 1000 * 60 * 60 * 24 * 7;
+    const season = getCurrentSeason();
+    const seasonStart = SEASONS[season].startDate;
+    const banner = getSeasonalBanner();
+
+    const result = purchaseBanner({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          "Block Buck": new Decimal(75),
+          "Gold Pass": new Decimal(1),
+        },
+      },
+      action: {
+        type: "banner.purchased",
+        name: banner,
+      },
+      createdAt: seasonStart.getTime() + WEEK * 3,
+    });
+
+    expect(result).toEqual({
+      ...TEST_FARM,
+      inventory: {
+        "Block Buck": new Decimal(0),
+        "Gold Pass": new Decimal(1),
         [banner]: new Decimal(1),
       },
     });
@@ -265,11 +358,47 @@ describe("purchaseBanner", () => {
       },
       action: {
         type: "banner.purchased",
-        name: "Spring Blossom Banner",
+        name: getSeasonalBanner(),
       },
     });
 
     expect(result.inventory["Block Buck"]).toEqual(new Decimal(100));
-    expect(result.inventory["Spring Blossom Banner"]).toEqual(new Decimal(1));
+    expect(result.inventory[getSeasonalBanner()]).toEqual(new Decimal(1));
+  });
+
+  it("does not charge for a banner if a gold pass was purchased in last three months", () => {
+    const result = purchaseBanner({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          "Block Buck": new Decimal(100),
+        },
+      },
+      action: {
+        type: "banner.purchased",
+        name: getSeasonalBanner(),
+      },
+      farmId: 25,
+    });
+
+    expect(result.inventory["Block Buck"]).toEqual(new Decimal(100));
+    expect(result.inventory[getSeasonalBanner()]).toEqual(new Decimal(1));
+  });
+
+  it("throws an error if buying a banner out of season", () => {
+    expect(() =>
+      purchaseBanner({
+        state: {
+          ...TEST_FARM,
+          inventory: {
+            "Block Buck": new Decimal(100),
+          },
+        },
+        action: {
+          type: "banner.purchased",
+          name: "Dawn Breaker Banner",
+        },
+      })
+    ).toThrow("Attempt to purchase Dawn Breaker Banner");
   });
 });

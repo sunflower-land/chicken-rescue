@@ -2,7 +2,10 @@ import React, { useContext, useState } from "react";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { FactionDetailsPanel } from "./FactionDetailsPanel";
-import { FactionDonationPanel, POINT_ICONS } from "./FactionDonationPanel";
+import {
+  FactionDonationPanel,
+  FACTION_POINT_ICONS,
+} from "./FactionDonationPanel";
 import { FactionName } from "features/game/types/game";
 
 import factionsIcon from "assets/icons/factions.webp";
@@ -10,6 +13,7 @@ import { PledgeFaction } from "./PledgeFaction";
 import { MachineState } from "features/game/lib/gameMachine";
 import { Context } from "features/game/GameProvider";
 import { useSelector } from "@xstate/react";
+import { FACTION_POINT_CUTOFF } from "features/game/events/landExpansion/donateToFaction";
 
 interface Props {
   representativeFaction?: FactionName;
@@ -29,6 +33,7 @@ export const FactionModalContent: React.FC<Props> = ({
   const { t } = useAppTranslation();
 
   const joinedFaction = useSelector(gameService, _faction);
+  const factionPointsDisabled = FACTION_POINT_CUTOFF.getTime() < Date.now();
   const showPledge = !joinedFaction && representativeFaction;
 
   return (
@@ -38,11 +43,11 @@ export const FactionModalContent: React.FC<Props> = ({
           name: t("faction"),
           icon: factionsIcon,
         },
-        ...(joinedFaction
+        ...(joinedFaction && !factionPointsDisabled
           ? [
               {
                 name: t("donations"),
-                icon: POINT_ICONS[joinedFaction.name],
+                icon: FACTION_POINT_ICONS[joinedFaction.name],
               },
             ]
           : []),

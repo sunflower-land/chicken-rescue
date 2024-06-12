@@ -10,10 +10,12 @@ import { Birdie } from "./npcs/Birdie";
 import { HayseedHankV2 } from "features/helios/components/hayseedHank/HayseedHankV2";
 import { PotionHouseShopItems } from "features/helios/components/potions/component/PotionHouseShopItems";
 import { Bert } from "./npcs/Bert";
-import { Donations } from "./donations/Donations";
+import {
+  CommunityDonations,
+  SpecialEventDonations,
+} from "./donations/Donations";
 import { Finn } from "./npcs/Finn";
 import { GoldTooth } from "./npcs/GoldTooth";
-import { Luna } from "./npcs/Luna";
 import { Mayor } from "./npcs/Mayor";
 import { FlowerShop } from "./flowerShop/FlowerShop";
 import { DecorationShopItems } from "features/helios/components/decorations/component/DecorationShopItems";
@@ -21,10 +23,14 @@ import { Stylist } from "./stylist/Stylist";
 import { AuctionHouseModal } from "./AuctionHouseModal";
 import { translate } from "lib/i18n/translate";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
-import { SpecialEventModal } from "./SpecialEventModal";
 import { GarbageCollectorModal } from "features/helios/components/garbageCollector/components/GarbageCollectorModal";
 import { Hopper } from "./npcs/Hopper";
 import { FactionModalContent } from "./factions/FactionModalContent";
+import { ChickenRescue } from "./portals/ChickenRescue";
+import { JoinFactionModal } from "./factions/JoinFactionModal";
+import { EmblemsTrading } from "./factions/emblemTrading/EmblemsTrading";
+import { ChoresModal } from "./factions/chores/ChoresModal";
+import { OuterPanel } from "components/ui/Panel";
 
 class NpcModalManager {
   private listener?: (npc: NPCName, isOpen: boolean) => void;
@@ -82,7 +88,7 @@ export const NPCModals: React.FC<Props> = ({ scene, id }) => {
             onClose={closeModal}
             bumpkinParts={NPC_WEARABLES["flopsy"]}
           >
-            <Donations />
+            <CommunityDonations />
           </CloseButtonPanel>
         )}
 
@@ -121,38 +127,28 @@ export const NPCModals: React.FC<Props> = ({ scene, id }) => {
           <CloseButtonPanel
             onClose={closeModal}
             bumpkinParts={NPC_WEARABLES.garbo}
+            container={OuterPanel}
           >
             <GarbageCollectorModal />
           </CloseButtonPanel>
         )}
 
-        {npc === "billy" && (
-          <SpeakingModal
-            bumpkinParts={NPC_WEARABLES.billy}
+        {npc === "gaucho" && (
+          <CloseButtonPanel
             onClose={closeModal}
-            message={[
-              {
-                text: translate("npc.Modal.Billy"),
-              },
-              {
-                text: translate("npc.Modal.Billy.one"),
-              },
-              {
-                text: translate("npc.Modal.Billy.two"),
-                actions: [
-                  {
-                    text: "Read more",
-                    cb: () => {
-                      window.open(
-                        "https://docs.sunflower-land.com/player-guides/bud-nfts",
-                        "_blank"
-                      );
-                    },
-                  },
-                ],
-              },
-            ]}
-          />
+            bumpkinParts={NPC_WEARABLES.gaucho}
+          >
+            <SpecialEventDonations />
+          </CloseButtonPanel>
+        )}
+
+        {npc === "billy" && (
+          <CloseButtonPanel
+            onClose={closeModal}
+            bumpkinParts={NPC_WEARABLES.billy}
+          >
+            <ChickenRescue onClose={closeModal} />
+          </CloseButtonPanel>
         )}
         {npc === "goldtooth" && <GoldTooth onClose={closeModal} />}
         {npc === "hank" && <HayseedHankV2 onClose={closeModal} />}
@@ -176,6 +172,9 @@ export const NPCModals: React.FC<Props> = ({ scene, id }) => {
           <DeliveryPanel npc={npc} onClose={closeModal} />
         )}
         {npc === "raven" && <DeliveryPanel npc={npc} onClose={closeModal} />}
+        {npc === "victoria" && <DeliveryPanel npc={npc} onClose={closeModal} />}
+        {npc === "jester" && <DeliveryPanel npc={npc} onClose={closeModal} />}
+        {npc === "gambit" && <DeliveryPanel npc={npc} onClose={closeModal} />}
         {npc === "tywin" && <DeliveryPanel npc={npc} onClose={closeModal} />}
         {npc === "grimbly" && <DeliveryPanel npc={npc} onClose={closeModal} />}
         {npc === "grimtooth" && (
@@ -194,7 +193,6 @@ export const NPCModals: React.FC<Props> = ({ scene, id }) => {
         {npc === "finn" && <Finn onClose={closeModal} />}
         {npc === "tango" && <DeliveryPanel npc={npc} onClose={closeModal} />}
         {npc === "finley" && <DeliveryPanel npc={npc} onClose={closeModal} />}
-        {npc === "luna" && <Luna onClose={closeModal} />}
         {npc === "mayor" && <Mayor onClose={closeModal} />}
 
         {npc === "guria" && <DeliveryPanel npc={npc} onClose={closeModal} />}
@@ -205,15 +203,39 @@ export const NPCModals: React.FC<Props> = ({ scene, id }) => {
         {npc === "lady day" && <FactionModalContent onClose={closeModal} />}
         {npc === "robert" && <FactionModalContent onClose={closeModal} />}
         {npc === "grommy" && <FactionModalContent onClose={closeModal} />}
+
+        {/* Kingdom NPCs */}
+        {npc === "barlow" && (
+          <JoinFactionModal npc={npc} onClose={closeModal} />
+        )}
+        {npc === "graxle" && (
+          <JoinFactionModal npc={npc} onClose={closeModal} />
+        )}
+        {npc === "nyx" && <JoinFactionModal npc={npc} onClose={closeModal} />}
+        {npc === "reginald" && (
+          <JoinFactionModal npc={npc} onClose={closeModal} />
+        )}
+
+        {/* Emblem Traders */}
+        {npc === "glinteye" && (
+          <EmblemsTrading onClose={closeModal} emblem="Goblin Emblem" />
+        )}
+        {npc === "solara" && (
+          <EmblemsTrading onClose={closeModal} emblem="Sunflorian Emblem" />
+        )}
+        {npc === "dusk" && (
+          <EmblemsTrading onClose={closeModal} emblem="Nightshade Emblem" />
+        )}
+        {npc === "haymitch" && (
+          <EmblemsTrading onClose={closeModal} emblem="Nightshade Emblem" />
+        )}
+
+        {/* Faction Chores */}
+        {npc === "grizzle" && <ChoresModal onClose={closeModal} npc={npc} />}
+        {npc === "buttercup" && <ChoresModal onClose={closeModal} npc={npc} />}
+        {npc === "shadow" && <ChoresModal onClose={closeModal} npc={npc} />}
+        {npc === "flora" && <ChoresModal onClose={closeModal} npc={npc} />}
       </Modal>
-      {npc === "Chun Long" && (
-        <SpecialEventModal
-          onClose={closeModal}
-          show={npc === "Chun Long"}
-          npc={npc}
-          eventName="Lunar New Year"
-        />
-      )}
 
       {npc === "hammerin harry" && (
         <AuctionHouseModal

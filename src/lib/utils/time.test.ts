@@ -602,28 +602,28 @@ describe("time", () => {
       const now = new Date();
       const pastTimestamp = now.getTime() - 5000; // 5 seconds ago
       const result = getRelativeTime(pastTimestamp);
-      expect(result).toMatch(/^5 seconds ago$/);
+      expect(result).toMatch("5 seconds ago");
     });
 
     it("returns a string indicating the number of minutes ago for timestamps within the past hour", () => {
       const now = new Date();
       const pastTimestamp = now.getTime() - 300000; // 5 minutes ago
       const result = getRelativeTime(pastTimestamp);
-      expect(result).toMatch(/^5 minutes ago$/);
+      expect(result).toMatch("5 minutes ago");
     });
 
     it("returns a string indicating the number of hours ago for timestamps within the past day", () => {
       const now = new Date();
       const pastTimestamp = now.getTime() - 7200000; // 2 hours ago
       const result = getRelativeTime(pastTimestamp);
-      expect(result).toMatch(/^2 hours ago$/);
+      expect(result).toMatch("2 hours ago");
     });
 
     it("returns a string indicating the number of days ago for timestamps older than a day", () => {
       const now = new Date();
       const pastTimestamp = now.getTime() - 604800000; // 7 days ago
       const result = getRelativeTime(pastTimestamp);
-      expect(result).toMatch(/^7 days ago$/);
+      expect(result).toMatch("7 days ago");
     });
   });
 
@@ -632,7 +632,7 @@ describe("time", () => {
       const now = new Date();
       const target = new Date(now.getTime() - 2000);
 
-      expect(getTimeUntil(target)).toBe("now");
+      expect(getTimeUntil(target, now)).toBe("now");
     });
 
     it("should return 2 days if the target time is 2 days away", () => {
@@ -640,7 +640,7 @@ describe("time", () => {
       const twoDays = 2 * ONE_DAY * 1000;
       const target = new Date(now.getTime() + twoDays);
 
-      expect(getTimeUntil(target)).toBe("2 days");
+      expect(getTimeUntil(target, now)).toBe("2 days");
     });
 
     it("should return 1 day if the target time is 1 day away", () => {
@@ -648,7 +648,7 @@ describe("time", () => {
       const oneDay = ONE_DAY * 1000;
       const target = new Date(now.getTime() + oneDay);
 
-      expect(getTimeUntil(target)).toBe("1 day");
+      expect(getTimeUntil(target, now)).toBe("1 day");
     });
 
     it("should return 3 minutes if the target time is 3 minutes away", () => {
@@ -656,7 +656,7 @@ describe("time", () => {
       const threeMinutes = 3 * ONE_MIN * 1000;
       const target = new Date(now.getTime() + threeMinutes);
 
-      expect(getTimeUntil(target)).toBe("3 minutes");
+      expect(getTimeUntil(target, now)).toBe("3 minutes");
     });
 
     it("should return 1 minute if the target time is 1 minute away", () => {
@@ -664,7 +664,7 @@ describe("time", () => {
       const oneMinute = ONE_MIN * 1000;
       const target = new Date(now.getTime() + oneMinute);
 
-      expect(getTimeUntil(target)).toBe("1 minute");
+      expect(getTimeUntil(target, now)).toBe("1 minute");
     });
 
     it("should return 5 seconds if the target time is 5 seconds away", () => {
@@ -672,7 +672,7 @@ describe("time", () => {
       const fiveSeconds = 5 * ONE_SEC * 1000;
       const target = new Date(now.getTime() + fiveSeconds);
 
-      expect(getTimeUntil(target)).toBe("5 seconds");
+      expect(getTimeUntil(target, now)).toBe("5 seconds");
     });
 
     it("should return 1 second if the target time is 1 second away", () => {
@@ -680,7 +680,7 @@ describe("time", () => {
       const oneSecond = ONE_SEC * 1000;
       const target = new Date(now.getTime() + oneSecond);
 
-      expect(getTimeUntil(target)).toBe("1 second");
+      expect(getTimeUntil(target, now)).toBe("1 second");
     });
   });
 });

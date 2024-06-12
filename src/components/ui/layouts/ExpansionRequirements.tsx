@@ -14,7 +14,7 @@ import lockIcon from "assets/skills/lock.png";
 
 import { Label } from "../Label";
 import { secondsToString } from "lib/utils/time";
-import { OuterPanel } from "../Panel";
+import { InnerPanel } from "../Panel";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 /**
  * The props for the component.
@@ -25,6 +25,7 @@ import { useAppTranslation } from "lib/i18n/useAppTranslations";
  */
 interface Props {
   inventory: Inventory;
+  coins: number;
   bumpkin: Bumpkin;
   details: DetailsProps;
   requirements: IExpansionRequirements;
@@ -50,6 +51,7 @@ export const ExpansionRequirements: React.FC<Props> = ({
   details,
   requirements,
   actionView,
+  coins,
 }: Props) => {
   const { t } = useAppTranslation();
 
@@ -76,7 +78,7 @@ export const ExpansionRequirements: React.FC<Props> = ({
         </div>
         <div className="mb-2 flex justify-between items-center">
           <Label type={"default"} icon={SUNNYSIDE.icons.basket}>
-            {`Requirements`}
+            {t("requirements")}
           </Label>
           <Label
             type="info"
@@ -87,7 +89,16 @@ export const ExpansionRequirements: React.FC<Props> = ({
           </Label>
         </div>
 
-        <OuterPanel className="-ml-2 -mr-2 relative flex flex-col space-y-0.5">
+        <InnerPanel className="-ml-2 -mr-2 relative flex flex-col space-y-0.5">
+          {!!requirements.coins && (
+            <RequirementLabel
+              key={"coins"}
+              type="coins"
+              balance={coins}
+              showLabel
+              requirement={requirements.coins}
+            />
+          )}
           {getKeys(requirements.resources).map((itemName) => {
             return (
               <RequirementLabel
@@ -100,12 +111,14 @@ export const ExpansionRequirements: React.FC<Props> = ({
               />
             );
           })}
-        </OuterPanel>
+        </InnerPanel>
 
         {!hasLevel && (
           <>
             <Label type="danger" icon={lockIcon} className="my-2">
-              {t("lvl")} {requirements.bumpkinLevel} {t("required")}
+              {t("warning.level.required", {
+                lvl: requirements.bumpkinLevel,
+              })}
             </Label>
             <p className="text-xs mb-2">{t("statements.visit.firePit")}</p>
           </>

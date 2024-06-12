@@ -2,7 +2,7 @@ import React from "react";
 
 import classNames from "classnames";
 import { Label } from "components/ui/Label";
-import { OuterPanel } from "components/ui/Panel";
+import { ButtonPanel } from "components/ui/Panel";
 import { Loading } from "features/auth/components";
 import { TicketTable } from "features/game/expansion/components/leaderboard/TicketTable";
 import { FactionLeaderboard } from "features/game/expansion/components/leaderboard/actions/leaderboard";
@@ -11,9 +11,7 @@ import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { getRelativeTime } from "lib/utils/time";
 import selectBoxTL from "assets/ui/select/selectbox_tl.png";
 import selectBoxTR from "assets/ui/select/selectbox_tr.png";
-import { PIXEL_SCALE, TEST_FARM } from "features/game/lib/constants";
-import { tab } from "lib/utils/sfx";
-import { hasFeatureAccess } from "lib/flags";
+import { PIXEL_SCALE } from "features/game/lib/constants";
 
 import { FactionName } from "features/game/types/game";
 import { NPCName, NPC_WEARABLES } from "lib/npcs";
@@ -26,6 +24,9 @@ import shadow from "assets/npcs/shadow.png";
 
 import { Button } from "components/ui/Button";
 import { SUNNYSIDE } from "assets/sunnyside";
+import { formatNumber } from "lib/utils/formatNumber";
+import { FACTION_POINT_ICONS } from "features/world/ui/factions/FactionDonationPanel";
+import { useSound } from "lib/utils/hooks/useSound";
 
 const POSITION_LABELS = ["1st", "2nd", "3rd", "4th"];
 
@@ -44,6 +45,8 @@ export const FactionsLeaderboard: React.FC<LeaderboardProps> = ({
 }) => {
   const { t } = useAppTranslation();
 
+  const tab = useSound("tab");
+
   // TODO FACTION - get faction from game state
   const [selected, setSelected] = React.useState<FactionName>(faction);
   const [mobileFullScreen, setMobileFullScreen] =
@@ -57,7 +60,7 @@ export const FactionsLeaderboard: React.FC<LeaderboardProps> = ({
   const select = (faction: FactionName) => {
     setSelected(faction);
     setMobileFullScreen(true);
-    hasFeatureAccess(TEST_FARM, "SOUND") && tab.play();
+    tab.play();
   };
 
   if (isLoading && !data) return <Loading />;
@@ -88,6 +91,7 @@ export const FactionsLeaderboard: React.FC<LeaderboardProps> = ({
               position={position}
               isSelected={selected === faction}
               onClick={() => select(faction as FactionName)}
+              totalTickets={data.totalTickets[faction as FactionName]}
             />
           ))}
         </div>
@@ -112,7 +116,7 @@ export const FactionsLeaderboard: React.FC<LeaderboardProps> = ({
               -1
             )} ${t("leaderboard.leaderboard")}`}</Label>
           </div>
-          <p className="text-[12px]">
+          <p className="font-secondary text-xs">
             {t("last.updated")} {getRelativeTime(data.lastUpdated)}
           </p>
         </div>
@@ -145,6 +149,13 @@ export const FactionsLeaderboard: React.FC<LeaderboardProps> = ({
               <TicketTable rankings={topTen} id={id} />
             </>
           )}
+          <div className="flex justify-end">
+            <p className="font-secondary text-xs">
+              {`${t("leaderboard.factionMembers")}: ${formatNumber(
+                data.totalMembers?.[selected] ?? 0
+              )}`}
+            </p>
+          </div>
         </div>
       )}
 
@@ -171,6 +182,7 @@ export const FactionsLeaderboard: React.FC<LeaderboardProps> = ({
 interface FactionProps {
   name: FactionName;
   position: string;
+  totalTickets: number;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -179,6 +191,7 @@ const Faction: React.FC<FactionProps> = ({
   onClick,
   isSelected,
   position,
+  totalTickets,
 }) => {
   const npcs: Record<Exclude<FactionName, "nightshades">, NPCName> = {
     bumpkins: "robert",
@@ -188,13 +201,10 @@ const Faction: React.FC<FactionProps> = ({
 
   return (
     <div className="py-1 px-2" key={name}>
-      <OuterPanel
+      <ButtonPanel
         onClick={onClick}
         className={classNames(
-          "w-full cursor-pointer hover:bg-brown-200 pt-2 relative",
-          {
-            "bg-brown-200 img-highlight": isSelected,
-          }
+          "w-full cursor-pointer hover:bg-brown-200 pt-2 relative"
         )}
         style={{ paddingBottom: "20px" }}
       >
@@ -202,27 +212,47 @@ const Faction: React.FC<FactionProps> = ({
           <span className="text-xs capitalize">{name}</span>
           <div className="h-11">
             {name === "nightshades" ? (
-              <div>
-                <img
-                  src={maximus}
-                  className="-scale-x-100"
-                  style={{ width: 14 * PIXEL_SCALE }}
-                />
-                <div className="relative flex justify-center -z-10">
+              <div className="flex justify-center items-center">
+                <div>
                   <img
-                    src={shadow}
-                    style={{
-                      width: `${PIXEL_SCALE * 12}px`,
-                      bottom: `${PIXEL_SCALE * -2}px`,
-                    }}
-                    className="absolute pointer-events-none"
+                    src={maximus}
+                    className="-scale-x-100"
+                    style={{ width: 14 * PIXEL_SCALE }}
                   />
+                  <div className="relative flex justify-center">
+                    <img
+                      src={shadow}
+                      style={{
+                        width: `${PIXEL_SCALE * 12}px`,
+                        bottom: `${PIXEL_SCALE * -2}px`,
+                      }}
+                      className="absolute pointer-events-none"
+                    />
+                  </div>
+                </div>
+                <div className="flex pt-2">
+                  <img
+                    src={FACTION_POINT_ICONS[name]}
+                    className="w-4 h-4 inline-block mx-1"
+                  />
+                  <span className="font-secondary text-xs">
+                    {formatNumber(totalTickets ?? 0)}
+                  </span>
                 </div>
               </div>
             ) : (
-              <div className="flex h-full items-center">
+              <div className="flex h-full items-center justify-center">
                 <div className="relative">
                   <NPCIcon parts={NPC_WEARABLES[npcs[name]]} />
+                </div>
+                <div className="flex pt-1">
+                  <img
+                    src={FACTION_POINT_ICONS[name]}
+                    className="w-4 h-4 inline-block mx-1"
+                  />
+                  <span className="font-secondary text-xs">
+                    {formatNumber(totalTickets ?? 0)}
+                  </span>
                 </div>
               </div>
             )}
@@ -258,7 +288,7 @@ const Faction: React.FC<FactionProps> = ({
             />
           </div>
         )}
-      </OuterPanel>
+      </ButtonPanel>
     </div>
   );
 };

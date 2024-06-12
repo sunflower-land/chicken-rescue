@@ -1,12 +1,16 @@
 import Decimal from "decimal.js-light";
-import { Crop, CropName, CROPS } from "../../types/crops";
+import { Crop, CropName, CROPS, GREENHOUSE_CROPS } from "../../types/crops";
 import { GameState } from "../../types/game";
 import cloneDeep from "lodash.clonedeep";
 import { getSellPrice } from "features/game/expansion/lib/boosts";
 import { trackActivity } from "features/game/types/bumpkinActivity";
 import { setPrecision } from "lib/utils/formatNumber";
-import { Fruit, FRUIT, FruitName } from "features/game/types/fruits";
-import { translate } from "lib/i18n/translate";
+import {
+  Fruit,
+  FRUIT,
+  FruitName,
+  GREENHOUSE_FRUIT,
+} from "features/game/types/fruits";
 
 export type SellableName = CropName | FruitName;
 export type SellableItem = Crop | Fruit;
@@ -17,7 +21,12 @@ export type SellCropAction = {
   amount: number;
 };
 
-export const SELLABLE = { ...CROPS(), ...FRUIT() };
+export const SELLABLE = {
+  ...CROPS(),
+  ...FRUIT(),
+  ...GREENHOUSE_CROPS(),
+  ...GREENHOUSE_FRUIT(),
+};
 
 type Options = {
   state: GameState;
@@ -30,7 +39,7 @@ export function sellCrop({ state, action }: Options): GameState {
   const { bumpkin } = game;
 
   if (bumpkin === undefined) {
-    throw new Error(translate("no.have.bumpkin"));
+    throw new Error("You do not have a Bumpkin!");
   }
 
   if (!(action.crop in SELLABLE)) {

@@ -13,6 +13,7 @@ import { isAddress } from "web3-utils";
 import { useActor } from "@xstate/react";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { Loading } from "./Loading";
 
 export const NoAccount: React.FC = () => {
   const { authService } = useContext(Context);
@@ -93,31 +94,26 @@ export const NoAccount: React.FC = () => {
             <a
               target="_blank"
               rel="noopener noreferrer"
-              className="underline text-white text-xs cursor-pointer"
+              className="underline text-xs cursor-pointer"
               onClick={() => setShowPromoCode(true)}
             >
               {t("noaccount.addPromoCode")}
             </a>
           )}
         </div>
-        <p className="text-sm mb-2">{`${t("noaccount.welcomeMessage")}`}</p>
-        {isAddress(authState.context.user.token?.address ?? "") && (
-          <div className="mb-2">
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-white text-xs cursor-pointer"
-              onClick={() => setShowClaimAccount(true)}
-            >
-              {t("noaccount.alreadyHaveNFTFarm")}
-            </a>
-          </div>
-        )}
       </div>
-      <div className="flex mt-1">
-        <Button onClick={() => authService.send("CREATE_FARM")}>
-          {t("start")}
-        </Button>
+      <div className="flex flex-col space-y-2">
+        <span className="px-2 text-sm">{t("noaccount.welcomeMessage")}</span>
+        <div className="flex space-x-1 mt-2.5">
+          {isAddress(authState.context.user.token?.address ?? "") && (
+            <Button onClick={() => setShowClaimAccount(true)}>
+              {t("noaccount.haveFarm")}
+            </Button>
+          )}
+          <Button onClick={() => authService.send("CREATE_FARM")}>
+            {`Yes, let's go!`}
+          </Button>
+        </div>
       </div>
     </>
   );
@@ -150,7 +146,7 @@ export const ClaimAccount: React.FC<{
     load();
   }, []);
 
-  if (isLoading) return <p className="loading">{t("loading")}</p>;
+  if (isLoading) return <Loading />;
 
   if (tokenIds.length === 0) {
     return (

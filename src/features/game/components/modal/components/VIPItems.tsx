@@ -1,11 +1,13 @@
 import React, { useContext, useState } from "react";
 import {
+  SEASONS,
   SeasonalBanner,
+  getCurrentSeason,
   getPreviousSeasonalBanner,
   getSeasonalBanner,
   getSeasonalBannerImage,
 } from "features/game/types/seasons";
-import { OuterPanel } from "components/ui/Panel";
+import { ButtonPanel } from "components/ui/Panel";
 import { Label } from "components/ui/Label";
 import { useTranslation } from "react-i18next";
 import { SquareIcon } from "components/ui/SquareIcon";
@@ -24,41 +26,87 @@ import { SUNNYSIDE } from "assets/sunnyside";
 import Decimal from "decimal.js-light";
 import { getSeasonWeek } from "lib/utils/getSeasonWeek";
 import classNames from "classnames";
+import { secondsToString } from "lib/utils/time";
+import { acknowledgeSeasonPass } from "features/announcements/announcementsStorage";
 
 type VIPItem = SeasonalBanner | "Lifetime Farmer Banner";
 
 export const ORIGINAL_SEASONAL_BANNER_PRICE = 90;
 export const LIFETIME_FARMER_BANNER_PRICE = 540;
 
+const _farmId = (state: MachineState) => state.context.farmId;
 const _inventory = (state: MachineState) => state.context.state.inventory;
 
 type Props = {
   onClose: () => void;
+  onSkip?: () => void;
 };
 
-export const VIPItems: React.FC<Props> = ({ onClose }) => {
+const SeasonVIPDiscountTime: React.FC = () => {
+  const season = getCurrentSeason();
+  const seasonStartDate = SEASONS[season].startDate;
+  const seasonEndDate = SEASONS[season].endDate;
+
+  const WEEK = 1000 * 60 * 60 * 24 * 7;
+
+  const discountDates = [
+    seasonStartDate.getTime() + 2 * WEEK, // 2 weeks
+    seasonStartDate.getTime() + 4 * WEEK, // 4 weeks
+    seasonStartDate.getTime() + 8 * WEEK, // 8 weeks
+    seasonEndDate.getTime(), // End of season
+  ];
+
+  const upcomingDiscountEnd = discountDates.find((date) => date > Date.now());
+
+  if (!upcomingDiscountEnd) {
+    return null;
+  }
+
+  const secondsLeft = (upcomingDiscountEnd - Date.now()) / 1000;
+
+  // Discounts change at week 2
+  return (
+    <Label type="info" icon={SUNNYSIDE.icons.timer}>
+      {secondsToString(secondsLeft, { length: "medium" })}
+    </Label>
+  );
+};
+
+export const VIPItems: React.FC<Props> = ({ onClose, onSkip }) => {
   const { gameService } = useContext(Context);
   const [selected, setSelected] = useState<VIPItem>();
   const { t } = useTranslation();
 
   const inventory = useSelector(gameService, _inventory);
+  const farmId = useSelector(gameService, _farmId);
 
   const blockBuckBalance = inventory["Block Buck"] ?? new Decimal(0);
   const seasonBannerImage = getSeasonalBannerImage();
-  const previousBanner = getPreviousSeasonalBanner();
-  const hasPreviousBanner = !!inventory[previousBanner];
   const seasonBanner = getSeasonalBanner();
+  const previousBanner = getPreviousSeasonalBanner();
+
+  const hasSeasonBanner = (inventory[seasonBanner] ?? new Decimal(0)).gt(0);
+  const hasPreviousBanner = (inventory[previousBanner] ?? new Decimal(0)).gt(0);
+  const hasLifeTimeBanner = (
+    inventory["Lifetime Farmer Banner"] ?? new Decimal(0)
+  ).gt(0);
+  const hasGoldPass = (inventory["Gold Pass"] ?? new Decimal(0)).gt(0);
+
   const actualSeasonBannerPrice = getBannerPrice(
     seasonBanner,
-    hasPreviousBanner
+    hasPreviousBanner,
+    hasLifeTimeBanner,
+    hasGoldPass,
+    Date.now(),
+    farmId
   ).toNumber();
+
   const hasDiscount = actualSeasonBannerPrice < ORIGINAL_SEASONAL_BANNER_PRICE;
+  const isFree = actualSeasonBannerPrice === 0;
   const canAffordSeasonBanner = blockBuckBalance.gte(actualSeasonBannerPrice);
   const canAffordLifetimeBanner = blockBuckBalance.gte(
     LIFETIME_FARMER_BANNER_PRICE
   );
-  const hasLifeTimeBanner = inventory["Lifetime Farmer Banner"] !== undefined;
-  const hasSeasonBanner = !!inventory[seasonBanner];
 
   const handlePurchase = () => {
     const state = gameService.send("banner.purchased", {
@@ -127,7 +175,7 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
       );
     }
 
-    if (!hasSeasonBanner && hasLifeTimeBanner) {
+    if ((!hasSeasonBanner && hasLifeTimeBanner) || isFree) {
       return (
         <Label type="success" className="absolute right-1 bottom-1">
           {t("free")}
@@ -150,7 +198,11 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
     if (item === "Lifetime Farmer Banner") {
       return getBannerPrice(
         "Lifetime Farmer Banner",
-        hasPreviousBanner
+        hasPreviousBanner,
+        hasLifeTimeBanner,
+        hasGoldPass,
+        Date.now(),
+        farmId
       ).toNumber();
     }
 
@@ -158,7 +210,10 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
       return getBannerPrice(
         seasonBanner,
         hasPreviousBanner,
-        hasLifeTimeBanner
+        hasLifeTimeBanner,
+        hasGoldPass,
+        Date.now(),
+        farmId
       ).toNumber();
     }
 
@@ -184,7 +239,8 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
               {t("read.more")}
             </a>
           </div>
-          <OuterPanel
+          <p className="text-xs px-1">{t("season.vip.description")}</p>
+          <ButtonPanel
             className={classNames(
               "flex flex-col px-1 cursor-pointer relative",
               {
@@ -208,10 +264,6 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
             <div className="flex flex-col space-y-1 sm:space-y-2 text-xs sm:text-sm pb-1">
               <div className="flex items-center space-x-2">
                 <SquareIcon icon={giftIcon} width={7} />
-                <span>{t("season.supporter.gift")}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <SquareIcon icon={seasonBannerImage} width={7} />
                 <span>{t("season.free.season.passes")}</span>
               </div>
               {!hasLifeTimeBanner ? (
@@ -230,8 +282,8 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
                 />
               )}
             </div>
-          </OuterPanel>
-          <OuterPanel
+          </ButtonPanel>
+          <ButtonPanel
             className={classNames(
               "flex flex-col px-1 cursor-pointer relative",
               {
@@ -243,9 +295,13 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
               !hasSeasonBanner ? () => handleClick(seasonBanner) : undefined
             }
           >
-            <Label type="default" className="mb-2" icon={seasonBannerImage}>
-              {getSeasonalBanner()}
-            </Label>
+            <div className="flex justify-between items-center mb-2">
+              <Label type="default" icon={seasonBannerImage}>
+                {getSeasonalBanner()}
+              </Label>
+              {!hasSeasonBanner && <SeasonVIPDiscountTime />}
+            </div>
+
             <div className="flex flex-col space-y-1 sm:space-y-2 text-xs sm:text-sm pb-1">
               {/* Weeks 9-12 will not include the mystery airdrop item */}
               {getSeasonWeek() < 9 && (
@@ -270,7 +326,8 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
               )}
               {getSeasonalBannerPriceLabel()}
             </div>
-          </OuterPanel>
+          </ButtonPanel>
+          {onSkip && <Button onClick={onSkip}>{t("close")}</Button>}
         </div>
       )}
       {selected && (
@@ -293,8 +350,10 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
                 )}`}</span>
                 <img src={blockBucksIcon} className="w-6" />
               </div>
-            ) : (
+            ) : hasLifeTimeBanner ? (
               <Label type="success">{t("season.free.with.lifetime")}</Label>
+            ) : (
+              <Label type="success">{t("free")}</Label>
             )}
             {!getCanPurchaseItem() && getErrorLabel()}
           </div>
@@ -303,6 +362,21 @@ export const VIPItems: React.FC<Props> = ({ onClose }) => {
           </Button>
         </div>
       )}
+    </>
+  );
+};
+
+export const VIPOffer: React.FC = () => {
+  const { gameService } = useContext(Context);
+
+  const onClose = () => {
+    acknowledgeSeasonPass();
+    gameService.send("ACKNOWLEDGE");
+  };
+
+  return (
+    <>
+      <VIPItems onClose={onClose} onSkip={onClose} />
     </>
   );
 };

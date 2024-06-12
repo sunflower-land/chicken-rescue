@@ -7,7 +7,6 @@ import { Button } from "components/ui/Button";
 import { WithdrawTokens } from "./WithdrawTokens";
 import { WithdrawItems } from "./WithdrawItems";
 import { WithdrawWearables } from "./WithdrawWearables";
-import { WithdrawBumpkin } from "./WithdrawBumpkin";
 import { SUNNYSIDE } from "assets/sunnyside";
 import chest from "assets/icons/chest.png";
 import token from "assets/icons/sfl.webp";
@@ -151,7 +150,7 @@ export const Withdraw: React.FC<Props> = ({ onClose }) => {
   return (
     <>
       <div className="p-2 flex flex-col justify-center space-y-1">
-        <span className="text-shadow text-sm mb-1">{t("withdraw.sync")}</span>
+        <span className="text-sm mb-1">{t("withdraw.sync")}</span>
         <div className="flex space-x-1">
           <Button onClick={() => setPage("tokens")}>
             <div className="flex">
@@ -181,12 +180,6 @@ export const Withdraw: React.FC<Props> = ({ onClose }) => {
           </Button>
         </div>
         <div className="flex space-x-1">
-          <Button onClick={() => setPage("bumpkin")}>
-            <div className="flex">
-              <img src={SUNNYSIDE.icons.player} className="h-4 mr-1" />
-              {t("bumpkin")}
-            </div>
-          </Button>
           <Button onClick={() => setPage("buds")}>
             <div className="flex">
               <img src={SUNNYSIDE.icons.plant} className="h-4 mr-1" />
@@ -201,7 +194,6 @@ export const Withdraw: React.FC<Props> = ({ onClose }) => {
       {page === "wearables" && (
         <WithdrawWearables onWithdraw={onWithdrawWearables} />
       )}
-      {page === "bumpkin" && <WithdrawBumpkin onWithdraw={onWithdrawBumpkin} />}
       {page === "buds" && <WithdrawBuds onWithdraw={onWithdrawBuds} />}
     </>
   );

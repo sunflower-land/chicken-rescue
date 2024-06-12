@@ -581,10 +581,8 @@ describe("fruitHarvested", () => {
   describe("getFruitYield", () => {
     it("provides no bonuses", () => {
       const amount = getFruitYield({
-        buds: {},
         game: TEST_FARM,
         name: "Apple",
-        wearables: { ...INITIAL_BUMPKIN.equipped },
       });
     });
   });

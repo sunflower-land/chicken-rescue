@@ -1,12 +1,13 @@
 import React from "react";
 
 import { PIXEL_SCALE } from "features/game/lib/constants";
-import { Panel } from "../../../components/ui/Panel";
+import { Panel, PanelProps } from "../../../components/ui/Panel";
 import { Equipped } from "features/game/types/bumpkin";
 import { Tab } from "components/ui/Tab";
 import { SquareIcon } from "components/ui/SquareIcon";
 import { SUNNYSIDE } from "assets/sunnyside";
 import classNames from "classnames";
+import { useSound } from "lib/utils/hooks/useSound";
 
 export interface PanelTabs {
   icon: string;
@@ -25,6 +26,7 @@ interface Props {
   onBack?: () => void;
   bumpkinParts?: Partial<Equipped>;
   className?: string;
+  container?: React.FC<PanelProps>;
 }
 
 /**
@@ -50,7 +52,11 @@ export const CloseButtonPanel: React.FC<Props> = ({
   secondaryAction,
   className,
   children,
+  container: Container = Panel,
 }) => {
+  const tabSound = useSound("tab");
+  const button = useSound("button");
+
   const handleTabClick = (index: number) => {
     setCurrentTab && setCurrentTab(index);
   };
@@ -59,7 +65,7 @@ export const CloseButtonPanel: React.FC<Props> = ({
   const showBackButton = !!onBack;
 
   return (
-    <Panel
+    <Container
       className={classNames(
         "relative max-h-[90vh] overflow-y-auto scrollable",
         className
@@ -84,7 +90,10 @@ export const CloseButtonPanel: React.FC<Props> = ({
                 isFirstTab={index === 0}
                 className="flex items-center relative mr-1"
                 isActive={currentTab === index}
-                onClick={() => handleTabClick(index)}
+                onClick={() => {
+                  tabSound.play();
+                  handleTabClick(index);
+                }}
               >
                 <SquareIcon icon={tab.icon} width={7} />
                 <span
@@ -127,7 +136,9 @@ export const CloseButtonPanel: React.FC<Props> = ({
             <img
               src={SUNNYSIDE.icons.close}
               className="flex-none cursor-pointer float-right"
-              onClick={onClose}
+              onClick={() => {
+                onClose();
+              }}
               style={{
                 width: `${PIXEL_SCALE * 11}px`,
                 height: `${PIXEL_SCALE * 11}px`,
@@ -155,7 +166,10 @@ export const CloseButtonPanel: React.FC<Props> = ({
                   <img
                     src={SUNNYSIDE.icons.arrow_left}
                     className="cursor-pointer"
-                    onClick={onBack}
+                    onClick={() => {
+                      button.play();
+                      onBack();
+                    }}
                     style={{
                       width: `${PIXEL_SCALE * 11}px`,
                     }}
@@ -193,6 +207,6 @@ export const CloseButtonPanel: React.FC<Props> = ({
         )}
         {children}
       </div>
-    </Panel>
+    </Container>
   );
 };
