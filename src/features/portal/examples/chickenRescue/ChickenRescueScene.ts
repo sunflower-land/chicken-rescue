@@ -106,7 +106,7 @@ export class ChickenRescueScene extends BaseScene {
     // Shut down the sound when the scene changes
     this.events.once("shutdown", () => {
       this.sound.getAllPlaying().forEach((sound) => {
-        sound.destroy();
+        sound?.destroy();
       });
     });
   }
@@ -581,7 +581,7 @@ export class ChickenRescueScene extends BaseScene {
         // Add chicken to conga line
         this.onAddFollower();
 
-        chicken.destroy();
+        chicken?.destroy();
       }
     );
   }

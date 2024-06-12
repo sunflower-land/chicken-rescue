@@ -130,7 +130,7 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
     // Listen for the animation complete event
     poof.on("animationcomplete", function (animation: { key: string }) {
       if (animation.key === "poof_anim") {
-        container.destroy();
+        container?.destroy();
       }
     });
   }
