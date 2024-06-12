@@ -14,6 +14,7 @@ import {
 } from "features/game/expansion/placeable/lib/collisionDetection";
 import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
 import { SOUNDS } from "assets/sound-effects/soundEffects";
+import { SleepingChickenContainer } from "./SleepingChickenContainer";
 
 const DISTANCE = 16;
 
@@ -54,7 +55,7 @@ export class ChickenRescueScene extends BaseScene {
   following: (ChickenContainer | null)[] = new Array(MAX_CHICKENS).fill(null);
 
   obstacles: BoundingBox[] = [];
-  sleeping: BoundingBox[] = [];
+  sleeping: (BoundingBox & { chicken: SleepingChickenContainer })[] = [];
 
   goblins: {
     container: BumpkinContainer;
@@ -158,7 +159,7 @@ export class ChickenRescueScene extends BaseScene {
     this.goblins = [];
     this.isDead = false;
 
-    // Create X sleeping chickens
+    // Create initial objects
     for (let i = 0; i < 5; i++) {
       this.addSleepingChicken();
       this.addStaticObstacle({ name: "rock" });
@@ -249,10 +250,10 @@ export class ChickenRescueScene extends BaseScene {
 
     // Give them a wide area with a buffer so don't spawn right next to them
     const enemies = this.obstacles.map((enemy) => ({
-      x: enemy.x - 1,
-      y: enemy.y + 1,
-      width: 3,
-      height: 3,
+      x: enemy.x - Math.floor(enemy.width / 2),
+      y: enemy.y + Math.floor(enemy.height / 2),
+      width: 2 + Math.floor(enemy.width / 2),
+      height: 2 + Math.floor(enemy.height / 2),
     }));
 
     const PLAYER_RADIUS = 6;
@@ -274,7 +275,6 @@ export class ChickenRescueScene extends BaseScene {
       height: 1,
     }));
 
-    // TODO - also check the path they are going to
     const goblinGridPositions = this.goblins.map((goblin) => ({
       x: Math.floor(goblin.container.x / SQUARE_WIDTH),
       y: Math.floor(goblin.container.y / SQUARE_WIDTH),
@@ -546,25 +546,20 @@ export class ChickenRescueScene extends BaseScene {
       return;
     }
 
-    const chicken = this.add.sprite(
-      coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-      coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-      "sleeping_chicken"
-    );
+    const onRemove = () => {
+      // Remove from list
+      this.sleeping = this.sleeping.filter(
+        (sleeping) =>
+          sleeping.x !== coordinates.x && sleeping.y !== coordinates.y
+      );
+    };
 
-    if (!this.anims.exists("sleeping_chicken_anim")) {
-      this.anims.create({
-        key: "sleeping_chicken_anim",
-        frames: this.anims.generateFrameNumbers("sleeping_chicken" as string, {
-          start: 0,
-          end: 1,
-        }),
-        repeat: -1,
-        frameRate: 2,
-      });
-    }
-
-    chicken.play("sleeping_chicken_anim", true);
+    const chicken = new SleepingChickenContainer({
+      scene: this,
+      x: coordinates.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      y: coordinates.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
+      onDisappear: onRemove,
+    });
 
     // Add a collider to the chicken
     this.physics.world.enable(chicken);
@@ -574,25 +569,19 @@ export class ChickenRescueScene extends BaseScene {
       y: coordinates.y,
       width: 1,
       height: 1,
+      chicken,
     });
-
-    const body = chicken.body as Phaser.Physics.Arcade.Body;
-
-    // Set chicken bounds
-    body.setSize(10, 10);
 
     // On collide destroy the chicken
     this.physics.add.overlap(
       this.currentPlayer as Phaser.GameObjects.GameObject,
       chicken,
       () => {
-        chicken.destroy();
+        onRemove();
+        // Add chicken to conga line
         this.onAddFollower();
 
-        this.sleeping = this.sleeping.filter(
-          (sleeping) =>
-            sleeping.x !== coordinates.x && sleeping.y !== coordinates.y
-        );
+        chicken.destroy();
       }
     );
   }
@@ -668,7 +657,7 @@ export class ChickenRescueScene extends BaseScene {
     this.currentPlayer?.disappear();
 
     const sfx = this.sound.add("game_over");
-    sfx.play({ loop: false, volume: 0.5 });
+    sfx.play({ loop: false, volume: 0.3 });
 
     this.following.forEach((follower, index) => {
       follower?.disappear();
