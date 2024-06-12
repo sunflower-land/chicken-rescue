@@ -386,10 +386,12 @@ export class ChickenRescueScene extends BaseScene {
 
     const index = this.goblins.length - 1;
 
-    setInterval(() => {
+    this.goblinMover = setInterval(() => {
       this.moveGoblin(index);
     }, 5000);
   }
+
+  private goblinMover: NodeJS.Timeout | undefined;
 
   async moveGoblin(index: number) {
     const goblin = this.goblins[index];
@@ -685,6 +687,11 @@ export class ChickenRescueScene extends BaseScene {
     if (this.goblinSpawnInterval) {
       clearInterval(this.goblinSpawnInterval);
       this.goblinSpawnInterval = undefined;
+    }
+
+    if (this.goblinMover) {
+      clearInterval(this.goblinMover);
+      this.goblinMover = undefined;
     }
 
     this.portalService?.send("GAME_OVER");

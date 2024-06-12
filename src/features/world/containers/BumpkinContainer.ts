@@ -533,6 +533,8 @@ export class BumpkinContainer extends Phaser.GameObjects.Container {
   }
 
   public async alerted() {
+    if (this.destroyed) return;
+
     this.alert = this.scene.add.sprite(1, -20, "alert").setSize(4, 10);
     this.add(this.alert);
 
