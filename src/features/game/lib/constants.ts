@@ -358,7 +358,7 @@ export const INITIAL_FARM: GameState = {
         startAt: Date.now() - 5000,
         marks: 10,
         factionPoints: 0,
-        score: 3,
+        score: 30,
       },
     },
   },

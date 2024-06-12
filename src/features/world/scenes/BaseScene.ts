@@ -9,7 +9,6 @@ import { NPCName, NPC_WEARABLES } from "lib/npcs";
 import { npcModalManager } from "../ui/NPCModals";
 import { BumpkinParts } from "lib/utils/tokenUriBuilder";
 import { EventObject } from "xstate";
-import { isTouchDevice } from "../lib/device";
 import { SPAWNS } from "../lib/spawn";
 import { AudioController, WalkAudioController } from "../lib/AudioController";
 import { createErrorLogger } from "lib/errorLogger";
@@ -34,6 +33,8 @@ import {
 import { MachineInterpreter } from "features/game/lib/gameMachine";
 import { MachineInterpreter as AuthMachineInterpreter } from "features/auth/lib/authMachine";
 import { capitalize } from "lib/utils/capitalize";
+
+export const WALKING_SPEED = 40;
 
 type SceneTransitionData = {
   previousSceneId: SceneId;
@@ -725,7 +726,7 @@ export abstract class BaseScene extends Phaser.Scene {
     return (Math.atan2(y, x) * 180) / Math.PI;
   }
 
-  public walkingSpeed = 40;
+  public walkingSpeed = WALKING_SPEED;
 
   updatePlayer() {
     if (!this.currentPlayer?.body) {

@@ -10,7 +10,6 @@ import { played } from "./portalUtil";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
-  console.log({ code, params: new URLSearchParams(window.location.search) });
   return code;
 };
 
@@ -77,7 +76,7 @@ export const portalMachine = createMachine({
 
     score: 0,
     completeAcknowledged: false,
-    attemptsLeft: 0,
+    attemptsLeft: 3,
   },
   states: {
     initialising: {
@@ -98,7 +97,7 @@ export const portalMachine = createMachine({
       invoke: {
         src: async (context) => {
           if (!getUrl()) {
-            return { game: OFFLINE_FARM, attemptsLeft: 1 };
+            return { game: OFFLINE_FARM, attemptsLeft: 3 };
           }
 
           const { farmId } = decodeToken(context.jwt as string);
@@ -108,8 +107,6 @@ export const portalMachine = createMachine({
             portalId: CONFIG.PORTAL_APP,
             token: context.jwt as string,
           });
-
-          console.log({ game });
 
           const dateKey = new Date().toISOString().slice(0, 10);
 

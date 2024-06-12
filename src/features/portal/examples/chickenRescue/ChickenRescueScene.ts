@@ -1,7 +1,7 @@
 import PubSub from "pubsub-js";
 import mapJson from "assets/map/chicken_rescue.json";
 import { SceneId } from "features/world/mmoMachine";
-import { BaseScene } from "features/world/scenes/BaseScene";
+import { BaseScene, WALKING_SPEED } from "features/world/scenes/BaseScene";
 import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SQUARE_WIDTH } from "features/game/lib/constants";
@@ -13,6 +13,7 @@ import {
   randomEmptyPosition,
 } from "features/game/expansion/placeable/lib/collisionDetection";
 import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
+import { SOUNDS } from "assets/sound-effects/soundEffects";
 
 const DISTANCE = 16;
 
@@ -85,6 +86,10 @@ export class ChickenRescueScene extends BaseScene {
       frameWidth: 32,
       frameHeight: 32,
     });
+
+    this.load.audio("game_over", SOUNDS.notifications.maze_over);
+    this.load.audio("chicken_1", SOUNDS.resources.chicken_1);
+    this.load.audio("chicken_2", SOUNDS.resources.chicken_2);
 
     this.load.image("rock", SUNNYSIDE.resource.stone_rock);
     this.load.image("boulder", SUNNYSIDE.resource.boulder);
@@ -662,13 +667,40 @@ export class ChickenRescueScene extends BaseScene {
 
     this.currentPlayer?.disappear();
 
+    const sfx = this.sound.add("game_over");
+    sfx.play({ loop: false, volume: 0.5 });
+
     this.following.forEach((follower, index) => {
-      setInterval(() => follower?.disappear(), (index + 1) * 100);
+      follower?.disappear();
     });
+
+    this.walkAudioController?.handleWalkSound(false);
 
     await new Promise((res) => setTimeout(res, 1000));
 
+    if (this.chickenSpawnInterval) {
+      clearInterval(this.chickenSpawnInterval);
+      this.chickenSpawnInterval = undefined;
+    }
+
+    if (this.rockSpawnInterval) {
+      clearInterval(this.rockSpawnInterval);
+      this.rockSpawnInterval = undefined;
+    }
+
+    if (this.potPlantSpawnInterval) {
+      clearInterval(this.potPlantSpawnInterval);
+      this.potPlantSpawnInterval = undefined;
+    }
+
+    if (this.goblinSpawnInterval) {
+      clearInterval(this.goblinSpawnInterval);
+      this.goblinSpawnInterval = undefined;
+    }
+
     this.portalService?.send("GAME_OVER");
+
+    this.walkingSpeed = WALKING_SPEED;
   }
 
   onAddFollower() {
@@ -687,22 +719,6 @@ export class ChickenRescueScene extends BaseScene {
 
     this.following[index] = chicken;
 
-    // this.physics.add.overlap(
-    //   this.chickenPen as Phaser.GameObjects.GameObject,
-    //   chicken,
-    //   () => {
-    //     if (chicken.destroyed) return;
-
-    //     chicken.disappear();
-    //     this.following[index] = null;
-
-    //     this.portalService?.send("CHICKEN_RESCUED", {
-    //       points: 1,
-    //     });
-    //     const points = 1;
-    //   }
-    // );
-
     this.portalService?.send("CHICKEN_RESCUED", {
       points: 1,
     });
@@ -719,6 +735,22 @@ export class ChickenRescueScene extends BaseScene {
         this.gameOver();
       }
     );
+
+    const sounds = ["chicken_1", "chicken_2"];
+    // Pick random sound
+    const sound = sounds[Math.floor(Math.random() * sounds.length)];
+    const cluck = this.sound.add(sound);
+    cluck.play({ loop: false, volume: 1 });
+
+    const count = this.following.filter(Boolean).length;
+
+    if (count % 10 === 0) {
+      if (count <= 30) {
+        this.walkingSpeed += 5;
+      } else {
+        this.walkingSpeed += 3;
+      }
+    }
   }
 
   updateDirection() {
@@ -837,10 +869,17 @@ export class ChickenRescueScene extends BaseScene {
     return this.portalService?.state.context.score ?? 0;
   }
 
+  chickenSpawnInterval: NodeJS.Timer | undefined;
+  rockSpawnInterval: NodeJS.Timer | undefined;
+  potPlantSpawnInterval: NodeJS.Timer | undefined;
+  goblinSpawnInterval: NodeJS.Timer | undefined;
+
   start() {
     this.portalService?.send("START");
 
-    setInterval(() => {
+    this.walkAudioController?.handleWalkSound(true);
+
+    this.chickenSpawnInterval = setInterval(() => {
       let chickenLimit = 10;
 
       if (this.score > 20) {
@@ -852,15 +891,18 @@ export class ChickenRescueScene extends BaseScene {
       }
     }, 1000);
 
-    setInterval(() => {
+    this.rockSpawnInterval = setInterval(() => {
       this.addStaticObstacle({ name: "rock" });
     }, 6000);
 
-    setInterval(() => {
-      this.addStaticObstacle({ name: "pot_plant" });
+    this.potPlantSpawnInterval = setInterval(() => {
+      // Don't spawn too many pot plants
+      if (this.obstacles.length <= 30) {
+        this.addStaticObstacle({ name: "pot_plant" });
+      }
     }, 11000);
 
-    setInterval(() => {
+    this.goblinSpawnInterval = setInterval(() => {
       // Every 10 score, add a goblin
       const limit = Math.floor(this.score / 10);
 

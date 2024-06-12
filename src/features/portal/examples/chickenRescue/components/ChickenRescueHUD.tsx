@@ -9,10 +9,8 @@ import downArrow from "assets/ui/down_arrow.png";
 import upArrow from "assets/ui/up_arrow.png";
 import rightArrow from "assets/ui/right_arrow.png";
 import leftArrow from "assets/ui/left_arrow.png";
-import { goHome, purchase } from "../lib/portalUtil";
+import { goHome } from "../lib/portalUtil";
 import { HudContainer } from "components/ui/HudContainer";
-import { InnerPanel } from "components/ui/Panel";
-import { Button } from "components/ui/Button";
 import { Balances } from "components/Balances";
 import Decimal from "decimal.js-light";
 import { isTouchDevice } from "features/world/lib/device";
@@ -55,17 +53,17 @@ export const ChickenRescueHUD: React.FC = () => {
             </Label>
           )}
           <div className="relative ">
-            <div className="h-12 w-full bg-black opacity-30 absolute coins-bb-hud-backdrop-reverse" />
+            <div className="h-6 w-full bg-black opacity-30 absolute coins-bb-hud-backdrop-reverse" />
             {/* Coins */}
             <div
-              className="flex items-center space-x-2 text-stroke"
+              className="flex items-center space-x-2 z-10 absolute"
               style={{
                 width: "120px",
                 paddingTop: "3px",
                 paddingLeft: "3px",
               }}
             >
-              <span>{`Score: ${score}`}</span>
+              <span className="balance-text">{`Score: ${score}`}</span>
             </div>
           </div>
         </div>
