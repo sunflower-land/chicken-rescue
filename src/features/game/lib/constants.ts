@@ -351,7 +351,16 @@ export const INITIAL_FARM: GameState = {
 
   minigames: {
     games: {},
-    prizes: {},
+    prizes: {
+      "chicken-rescue": {
+        coins: 0,
+        endAt: Date.now() + 50000,
+        startAt: Date.now() - 5000,
+        marks: 10,
+        factionPoints: 0,
+        score: 3,
+      },
+    },
   },
 
   megastore: {
@@ -584,10 +593,6 @@ export const TEST_FARM: GameState = {
   previousWardrobe: {},
   createdAt: new Date().getTime(),
   conversations: [],
-  minigames: {
-    games: {},
-    prizes: {},
-  },
   mailbox: {
     read: [],
   },
@@ -837,10 +842,6 @@ export const EMPTY: GameState = {
   },
   previousInventory: {},
   chickens: {},
-  minigames: {
-    games: {},
-    prizes: {},
-  },
   stock: {},
   stockExpiry: {},
   wardrobe: {},

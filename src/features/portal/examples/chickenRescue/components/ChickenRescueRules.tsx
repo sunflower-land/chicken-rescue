@@ -17,6 +17,7 @@ import {
 import { secondsToString } from "lib/utils/time";
 import { PortalContext } from "../lib/PortalProvider";
 import { useActor } from "@xstate/react";
+import { ITEM_DETAILS } from "features/game/types/images";
 
 interface Props {
   onAcknowledged: () => void;
@@ -58,9 +59,9 @@ export const MinigamePrizeUI: React.FC<{
             </Label>
           )}
           <div className="flex items-center space-x-2">
-            {prize.factionPoints && (
-              <Label icon={flagIcon} type="warning">
-                {`${prize.factionPoints} Faction Points`}
+            {!!prize.marks && (
+              <Label icon={ITEM_DETAILS.Mark.image} type="warning">
+                {`${prize.marks} Marks`}
               </Label>
             )}
             {!!prize.coins && (

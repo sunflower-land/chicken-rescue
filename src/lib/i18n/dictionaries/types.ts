@@ -3506,7 +3506,8 @@ export type Minigame =
   | "minigame.unlockAttempts"
   | "minigame.missionComplete"
   | "minigame.missionFailed"
-  | "minigame.chickenRescueHelp";
+  | "minigame.chickenRescueHelp"
+  | "minigame.attemptsRemaining";
 
 export type EasterEggKeys =
   | "easterEgg.lostKnight"
@@ -3697,4 +3698,5 @@ export type TranslationKeys =
   | Trading
   | RestrictionReason
   | Leaderboard
-  | EasterEggKeys;
+  | EasterEggKeys
+  | AchievementsTerms;

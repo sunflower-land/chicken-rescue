@@ -594,26 +594,6 @@ export interface ExpansionRequirements {
   bumpkinLevel: number;
 }
 
-export type MinigamePrize = {
-  startAt: number;
-  endAt: number;
-  score: number;
-  coins: number;
-  factionPoints: number;
-};
-
-export type MinigameHistory = {
-  highscore: number;
-  attempts: number;
-  prizeClaimedAt?: number;
-};
-
-export type Minigame = {
-  highscore: number;
-  purchases?: { sfl: number; purchasedAt: number }[];
-  history: Record<string, MinigameHistory>;
-};
-
 export type Airdrop = {
   id: string;
   createdAt: number;
@@ -1057,11 +1037,6 @@ export interface GameState {
   balance: Decimal;
   previousBalance: Decimal;
   airdrops?: Airdrop[];
-
-  minigames: {
-    prizes: Partial<Record<PortalName, MinigamePrize>>;
-    games: Partial<Record<PortalName, Minigame>>;
-  };
 
   createdAt: number;
 

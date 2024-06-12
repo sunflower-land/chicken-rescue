@@ -5153,7 +5153,6 @@ const minigame: Record<Minigame, string> = {
   "minigame.playNow": "Play now",
   "minigame.purchase": "Purchase",
   "minigame.chickenRescueHelp": "Can you help me rescue the chickens?",
-  "minigame.attemptsRemaining": "attempts remaining",
   "minigame.noAttemptsRemaining": "No attempts remaining",
   "minigame.unlimitedAttempts": "Unlimited attempts",
   "minigame.sflRequired": "SFL required",
@@ -5163,6 +5162,7 @@ const minigame: Record<Minigame, string> = {
   "minigame.unlockAttempts": "Unlock attempts",
   "minigame.missionComplete": "Mission complete",
   "minigame.missionFailed": "Mission failed",
+  "minigame.attemptsRemaining": "attempts left",
 };
 
 export const easterEggTerms: Record<EasterEggKeys, string> = {

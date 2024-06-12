@@ -78,7 +78,6 @@ import { mmoBus } from "features/world/mmoMachine";
 import { onboardingAnalytics } from "lib/onboardingAnalytics";
 import { BudName } from "../types/buds";
 import { gameAnalytics } from "lib/gameAnalytics";
-import { isValidRedirect } from "features/portal/examples/cropBoom/lib/portalUtil";
 import { portal } from "features/world/ui/community/actions/portal";
 import { listRequest } from "../actions/listTrade";
 import { deleteListingRequest } from "../actions/deleteListing";
@@ -674,10 +673,6 @@ export function startGame(authContext: AuthContext) {
               });
 
               const redirect = getRedirect() as string;
-
-              if (!isValidRedirect(redirect)) {
-                throw new Error("Invalid redirect");
-              }
 
               window.location.href = `${redirect}?jwt=${token}`;
             },

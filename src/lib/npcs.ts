@@ -231,16 +231,6 @@ export const NPC_WEARABLES: Record<NPCName, Equipped> = {
     tool: "Pirate Scimitar",
   },
 
-  chicken: {
-    background: "Farm Background",
-    body: "Beige Farmer Potion",
-    hair: "Basic Hair",
-    shoes: "Black Farmer Boots",
-    tool: "Farmer Pitchfork",
-    pants: "Farmer Overalls",
-    shirt: "Blue Farmer Shirt",
-    hat: "Chicken Hat",
-  },
   evie: {
     background: "Farm Background",
     body: "Beige Farmer Potion",

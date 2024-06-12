@@ -435,24 +435,6 @@ img {
   z-index: -1;
 }
 
-<<<<<<< HEAD
-.coins-bb-hud-backdrop-reverse {
-  height: 19px;
-  width: 88%;
-  left: -1px;
-  top: 6px;
-  -webkit-mask-image: linear-gradient(
-    -90deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 22%
-  );
-  mask-image: linear-gradient(
-    -90deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 22%
-  );
-  z-index: -1;
-=======
 .balance-text {
   color: white;
   /* text-shadow: 1px 1px black; */
@@ -481,7 +463,6 @@ img {
     1px 1px 0 black, -2px 0 0 black, 2px 0 0 black, 0 -2px 0 black,
     0 2px 0 black, -2px -2px 0 black, 2px -2px 0 black, -2px 2px 0 black,
     2px 2px 0 black;
->>>>>>> upstream/main
 }
 
 .sfl-hud-backdrop {

@@ -4512,8 +4512,18 @@ const minigame: Record<Minigame, string> = {
   "minigame.playNow": ENGLISH_TERMS["minigame.playNow"],
   "minigame.purchase": ENGLISH_TERMS["minigame.purchase"],
   "minigame.chickenRescueHelp": ENGLISH_TERMS["minigame.chickenRescueHelp"],
+  "minigame.noAttemptsRemaining": ENGLISH_TERMS["minigame.noAttemptsRemaining"],
+  "minigame.unlimitedAttempts": ENGLISH_TERMS["minigame.unlimitedAttempts"],
+  "minigame.sflRequired": ENGLISH_TERMS["minigame.sflRequired"],
+  "minigame.youHaveRunOutOfAttempts":
+    ENGLISH_TERMS["minigame.youHaveRunOutOfAttempts"],
+  "minigame.wouldYouLikeToUnlock":
+    ENGLISH_TERMS["minigame.wouldYouLikeToUnlock"],
+  "minigame.unlockAttempts": ENGLISH_TERMS["minigame.unlockAttempts"],
+  "minigame.missionComplete": ENGLISH_TERMS["minigame.missionComplete"],
+  "minigame.missionFailed": ENGLISH_TERMS["minigame.missionFailed"],
+  "minigame.attemptsRemaining": ENGLISH_TERMS["minigame.attemptsRemaining"],
 };
-
 export const easterEggTerms: Record<EasterEggKeys, string> = {
   "easterEgg.queensDiary": "Victoria's Diary",
   "easterEgg.jesterDiary": "Jester's Diary",

@@ -384,34 +384,6 @@ export const STATIC_OFFLINE_FARM: GameState = {
     "Golden Cauliflower": new Decimal(1),
   },
 
-  minigames: {
-    games: {
-      "chicken-rescue": {
-        history: {
-          [new Date().toISOString().slice(0, 10)]: {
-            attempts: 2,
-            highscore: 22,
-          },
-        },
-        purchases: [
-          // {
-          //   purchasedAt: Date.now() - 8 * 24 * 60 * 60 * 1000,
-          //   sfl: 10,
-          // },
-        ],
-        highscore: 10,
-      },
-    },
-    prizes: {
-      "chicken-rescue": {
-        score: 2,
-        endAt: Date.now() + 60 * 60 * 1000,
-        startAt: Date.now() - 60 * 60 * 1000,
-        coins: 0,
-        factionPoints: 15,
-      },
-    },
-  },
   npcs: {
     "pumpkin' pete": {
       deliveryCount: 0,
