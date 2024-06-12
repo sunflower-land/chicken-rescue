@@ -1074,12 +1074,32 @@ export class ChickenRescueScene extends BaseScene {
         return;
       }
 
-      const { x, y, direction } = this.getPositionInConga(index);
-
-      follower.x = x;
-      follower.y = y;
+      // Define the target position
+      const {
+        x: targetX,
+        y: targetY,
+        direction,
+      } = this.getPositionInConga(index);
 
       follower.setDirection(direction);
+
+      // Define the speed of movement (adjust as needed)
+      const speed = 0.2; // You can adjust this value based on the desired smoothness
+
+      // If follower is already at target position, no need for interpolation
+      if (follower.x === targetX && follower.y === targetY) {
+        return;
+      }
+
+      // Perform linear interpolation
+      follower.x = Phaser.Math.Interpolation.Linear(
+        [follower.x, targetX],
+        speed
+      );
+      follower.y = Phaser.Math.Interpolation.Linear(
+        [follower.y, targetY],
+        speed
+      );
     });
   }
 
