@@ -1,5 +1,8 @@
 <h1 align="center">Chicken Rescue</h1>
 
+<img width="1035" alt="Screenshot 2024-06-13 at 8 00 19 AM" src="https://github.com/sunflower-land/chicken-rescue/assets/11745561/d14f1717-52cc-44a8-887a-aa455a38aafc">
+
+
 A portal minigame designed for Sunflower Land.
 
 This repo includes the front-end game in which users can rescue chickens and earn rewards.
