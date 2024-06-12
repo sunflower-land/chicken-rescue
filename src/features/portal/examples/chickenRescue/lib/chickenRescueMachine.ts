@@ -148,7 +148,7 @@ export const portalMachine = createMachine({
                 state: context.state,
                 action: {
                   id: "chicken-rescue",
-                  sfl: 10,
+                  sfl: 5,
                   type: "minigame.itemPurchased",
                 },
               }),

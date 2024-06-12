@@ -23,7 +23,7 @@ import { ITEM_DETAILS } from "features/game/types/images";
 
 import lock from "assets/skills/lock.png";
 import sfl from "assets/icons/sfl.webp";
-import { authorisePortal, complete, goHome, purchase } from "./lib/portalUtil";
+import { complete, goHome, purchase } from "./lib/portalUtil";
 import { PortalMachineState } from "./lib/chickenRescueMachine";
 
 export const ChickenRescueApp: React.FC = () => {
@@ -168,16 +168,12 @@ export const ChickenRescue: React.FC = () => {
               </p>
             </div>
             <div className="flex">
-              <Button
-                disabled={gameState.balance.lt(10)}
-                onClick={goHome}
-                className="mr-1"
-              >
+              <Button onClick={goHome} className="mr-1">
                 {t("exit")}
               </Button>
               <Button
-                disabled={gameState.balance.lt(10)}
-                onClick={() => purchase({ sfl: 10 })}
+                disabled={gameState.balance.lt(5)}
+                onClick={() => purchase({ sfl: 5 })}
               >
                 {t("minigame.unlockAttempts")}
               </Button>
