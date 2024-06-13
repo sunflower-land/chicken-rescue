@@ -76,7 +76,7 @@ export const portalMachine = createMachine({
 
     score: 0,
     completeAcknowledged: false,
-    attemptsLeft: 3,
+    attemptsLeft: 5,
   },
   states: {
     initialising: {
@@ -97,7 +97,7 @@ export const portalMachine = createMachine({
       invoke: {
         src: async (context) => {
           if (!getUrl()) {
-            return { game: OFFLINE_FARM, attemptsLeft: 3 };
+            return { game: OFFLINE_FARM, attemptsLeft: 5 };
           }
 
           const { farmId } = decodeToken(context.jwt as string);
@@ -118,7 +118,7 @@ export const portalMachine = createMachine({
             highscore: 0,
           };
 
-          const attemptsLeft = 3 - dailyAttempt.attempts;
+          const attemptsLeft = 5 - dailyAttempt.attempts;
 
           return { game, farmId, attemptsLeft };
         },
