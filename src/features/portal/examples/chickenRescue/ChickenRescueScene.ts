@@ -566,6 +566,10 @@ export class ChickenRescueScene extends BaseScene {
     // Add a collider to the chicken
     this.physics.world.enable(chicken);
 
+    const body = chicken.body as Phaser.Physics.Arcade.Body;
+    body.setSize(8, 8); // Adjust the size as necessary
+    body.setOffset(1, 0); // Adjust the offset as necessary
+
     this.sleeping.push({
       x: coordinates.x,
       y: coordinates.y,
@@ -627,8 +631,8 @@ export class ChickenRescueScene extends BaseScene {
 
     const body = enemySprite.body as Phaser.Physics.Arcade.Body;
     body.setSize(
-      dimensions.width * SQUARE_WIDTH - 6,
-      dimensions.height * SQUARE_WIDTH - 6
+      dimensions.width * SQUARE_WIDTH - 8,
+      dimensions.height * SQUARE_WIDTH - 8
     );
 
     // On collide destroy the chicken
@@ -650,7 +654,6 @@ export class ChickenRescueScene extends BaseScene {
   private isDead = false;
 
   async gameOver() {
-    console.log("OVER!", this.isDead);
     if (this.isDead) return;
 
     this.isDead = true;
@@ -695,7 +698,6 @@ export class ChickenRescueScene extends BaseScene {
       this.goblinMover = undefined;
     }
 
-    console.log("SEND SERVICE");
     this.portalService?.send("GAME_OVER");
 
     this.walkingSpeed = WALKING_SPEED;
@@ -840,17 +842,12 @@ export class ChickenRescueScene extends BaseScene {
       yVelocity
     );
 
-    console.log({
-      x: Math.floor(player.x / 16),
-      y: Math.floor(player.x / 16),
-      direction: currentDirection,
-    });
     this.pivots = [
       {
         // TODO get grid spot?
         x: player.x,
         y: player.y,
-        direction: currentDirection,
+        direction: currentDirection as Direction,
       },
       ...this.pivots,
     ];
@@ -874,6 +871,10 @@ export class ChickenRescueScene extends BaseScene {
 
     this.walkAudioController?.handleWalkSound(true);
 
+    const body = this.currentPlayer?.body as Phaser.Physics.Arcade.Body;
+    body.setSize(10, 10); // Adjust the size as necessary
+    body.setOffset(3, 3); // Adjust the offset as necessary
+
     this.chickenSpawnInterval = setInterval(() => {
       let chickenLimit = 10;
 
@@ -886,9 +887,7 @@ export class ChickenRescueScene extends BaseScene {
       }
     }, 1000);
 
-    console.log("START");
     this.rockSpawnInterval = setInterval(() => {
-      console.log("ROCK SPAWN");
       this.addStaticObstacle({ name: "rock" });
     }, 6000);
 
@@ -1111,8 +1110,6 @@ export class ChickenRescueScene extends BaseScene {
     this.debug();
 
     if (this.isDead) return;
-
-    console.log("RENDER");
 
     this.updateDirection();
     // this.movePlayer();
