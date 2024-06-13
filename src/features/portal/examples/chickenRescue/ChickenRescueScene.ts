@@ -806,67 +806,58 @@ export class ChickenRescueScene extends BaseScene {
       this.start();
     }
 
+    const currentDirection = this.direction;
+
     this.direction = newDirection;
 
     const player = this.currentPlayer as Coordinates;
 
-    // const nextGridSquare: Coordinates = {
-    //   x: Math.floor(player.x / 16),
-    //   y: Math.floor(player.y / 16),
-    // };
+    const direction = this.direction;
 
-    // if (this.physics.world.drawDebug) {
-    //   // Draw point
-    //   this.add.circle(
-    //     nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
-    //     nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
-    //     2,
-    //     0x0000ff
-    //   );
-    // }
+    let yVelocity = 0;
+    if (direction === "up") {
+      yVelocity = -this.walkingSpeed;
+    }
 
-    // const BUFFER = SQUARE_WIDTH / 2 - 2;
+    if (direction === "down") {
+      yVelocity = this.walkingSpeed;
+    }
 
-    // if (this.direction === "right") {
-    //   nextGridSquare.x = Math.floor((player.x + BUFFER) / 16);
-    // }
+    let xVelocity = 0;
+    if (direction === "left") {
+      xVelocity = -this.walkingSpeed;
 
-    // if (this.direction === "left") {
-    //   nextGridSquare.x = Math.floor((player.x - BUFFER) / 16);
-    // }
+      this.currentPlayer?.faceLeft();
+    }
 
-    // if (this.direction === "up") {
-    //   nextGridSquare.y = Math.floor((player.y - BUFFER) / 16);
-    // }
+    if (direction === "right") {
+      xVelocity = this.walkingSpeed;
+      this.currentPlayer?.faceRight();
+    }
 
-    // if (this.direction === "down") {
-    //   nextGridSquare.y = Math.floor((player.y + BUFFER) / 16);
-    // }
+    (this.currentPlayer?.body as Phaser.Physics.Arcade.Body).setVelocity(
+      xVelocity,
+      yVelocity
+    );
 
-    // // If same as first pivot do not set it
-    // if (
-    //   this.pivots.length > 0 &&
-    //   this.pivots[0].x === nextGridSquare.x &&
-    //   this.pivots[0].y === nextGridSquare.y
-    // ) {
-    //   return;
-    // }
+    console.log({
+      x: Math.floor(player.x / 16),
+      y: Math.floor(player.x / 16),
+      direction: currentDirection,
+    });
+    this.pivots = [
+      {
+        // TODO get grid spot?
+        x: player.x,
+        y: player.y,
+        direction: currentDirection,
+      },
+      ...this.pivots,
+    ];
 
-    // this.nextMove = {
-    //   direction: newDirection,
-    //   moveAt: nextGridSquare,
-    // };
+    this.direction = direction;
 
-    // if (this.physics.world.drawDebug) {
-    //   this.add.circle(
-    //     nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
-    //     nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
-    //     2,
-    //     0xff00ff
-    //   );
-    // }
-
-    // delete this.queuedDirection;
+    this.nextMove = undefined;
   }
 
   get score() {
@@ -924,6 +915,8 @@ export class ChickenRescueScene extends BaseScene {
 
     const direction = this.direction;
 
+    if (direction === currentDirection) return;
+
     let yVelocity = 0;
     if (direction === "up") {
       yVelocity = -this.walkingSpeed;
@@ -953,7 +946,7 @@ export class ChickenRescueScene extends BaseScene {
     this.pivots = [
       {
         // TODO get grid spot?
-        x: this.currentPlayer?.x ?? 0,
+        x: Math.floor(player.x / 16),
         y: this.currentPlayer?.y ?? 0,
         direction: currentDirection,
       },
@@ -998,11 +991,7 @@ export class ChickenRescueScene extends BaseScene {
         y: this.currentPlayer?.y ?? 0,
         direction: this.direction,
       },
-      ...this.pivots.map((pivot) => ({
-        x: Math.floor(pivot.x * SQUARE_WIDTH + SQUARE_WIDTH / 2),
-        y: Math.floor(pivot.y * SQUARE_WIDTH + SQUARE_WIDTH / 2),
-        direction: pivot.direction,
-      })),
+      ...this.pivots,
     ];
 
     // How far from the front they should be
@@ -1126,7 +1115,7 @@ export class ChickenRescueScene extends BaseScene {
     console.log("RENDER");
 
     this.updateDirection();
-    this.movePlayer();
+    // this.movePlayer();
     this.updateFollowingChickens();
     this.moveGoblins();
 

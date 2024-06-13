@@ -25,6 +25,8 @@ import lock from "assets/skills/lock.png";
 import sfl from "assets/icons/sfl.webp";
 import { complete, goHome, purchase } from "./lib/portalUtil";
 import { PortalMachineState } from "./lib/chickenRescueMachine";
+import { Loading } from "features/auth/components";
+import { CONFIG } from "lib/config";
 
 export const ChickenRescueApp: React.FC = () => {
   return (
@@ -113,7 +115,8 @@ export const ChickenRescue: React.FC = () => {
     return (
       <Modal show>
         <Panel>
-          <span className="loading">{t("loading")}</span>
+          <Loading />
+          <span className="text-sm">{CONFIG.CLIENT_VERSION}</span>
         </Panel>
       </Modal>
     );
