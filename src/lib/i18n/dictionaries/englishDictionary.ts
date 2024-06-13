@@ -5158,7 +5158,7 @@ const minigame: Record<Minigame, string> = {
   "minigame.sflRequired": "SFL required",
   "minigame.youHaveRunOutOfAttempts": "You have run out of attempts",
   "minigame.wouldYouLikeToUnlock":
-    "Would you like to unlock unlimited attempts for 7 days?",
+    "Would you like to unlock unlimited attempts for 24 hours?",
   "minigame.unlockAttempts": "Unlock attempts",
   "minigame.missionComplete": "Mission complete",
   "minigame.missionFailed": "Mission failed",

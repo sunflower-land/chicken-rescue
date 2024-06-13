@@ -24,7 +24,10 @@ import { ITEM_DETAILS } from "features/game/types/images";
 import lock from "assets/skills/lock.png";
 import sfl from "assets/icons/sfl.webp";
 import { complete, goHome, purchase } from "./lib/portalUtil";
-import { PortalMachineState } from "./lib/chickenRescueMachine";
+import {
+  PortalMachineState,
+  UNLIMITED_ATTEMPTS_SFL,
+} from "./lib/chickenRescueMachine";
 import { Loading } from "features/auth/components";
 import { CONFIG } from "lib/config";
 
@@ -161,7 +164,7 @@ export const ChickenRescue: React.FC = () => {
                   icon={sfl}
                   type={gameState.balance.lt(10) ? "danger" : "default"}
                 >
-                  {`10 ${t("minigame.sflRequired")}`}
+                  {`${UNLIMITED_ATTEMPTS_SFL} ${t("minigame.sflRequired")}`}
                 </Label>
               </div>
 
@@ -177,8 +180,8 @@ export const ChickenRescue: React.FC = () => {
                 {t("exit")}
               </Button>
               <Button
-                disabled={gameState.balance.lt(5)}
-                onClick={() => purchase({ sfl: 5 })}
+                disabled={gameState.balance.lt(UNLIMITED_ATTEMPTS_SFL)}
+                onClick={() => purchase({ sfl: UNLIMITED_ATTEMPTS_SFL })}
               >
                 {t("minigame.unlockAttempts")}
               </Button>

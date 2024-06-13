@@ -24,6 +24,8 @@ export interface Context {
 
 export const GAME_SECONDS = 60;
 
+export const UNLIMITED_ATTEMPTS_SFL = 3;
+
 type ChickenRescuedEvent = {
   type: "CHICKEN_RESCUED";
   points: number;
@@ -148,7 +150,7 @@ export const portalMachine = createMachine({
                 state: context.state,
                 action: {
                   id: "chicken-rescue",
-                  sfl: 5,
+                  sfl: UNLIMITED_ATTEMPTS_SFL,
                   type: "minigame.itemPurchased",
                 },
               }),
@@ -168,7 +170,7 @@ export const portalMachine = createMachine({
             // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
             const hasUnlimitedAttempts = purchases.some(
               (purchase) =>
-                purchase.purchasedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
+                purchase.purchasedAt > Date.now() - 24 * 60 * 60 * 1000
             );
 
             if (hasUnlimitedAttempts) {
