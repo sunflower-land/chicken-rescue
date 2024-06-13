@@ -650,6 +650,7 @@ export class ChickenRescueScene extends BaseScene {
   private isDead = false;
 
   async gameOver() {
+    console.log("OVER!", this.isDead);
     if (this.isDead) return;
 
     this.isDead = true;
@@ -694,6 +695,7 @@ export class ChickenRescueScene extends BaseScene {
       this.goblinMover = undefined;
     }
 
+    console.log("SEND SERVICE");
     this.portalService?.send("GAME_OVER");
 
     this.walkingSpeed = WALKING_SPEED;
@@ -773,12 +775,12 @@ export class ChickenRescueScene extends BaseScene {
       newDirection = "down";
     }
 
-    if (this.nextMove) {
-      this.queuedDirection = newDirection;
-      return;
-    }
+    // if (this.nextMove) {
+    //   this.queuedDirection = newDirection;
+    //   return;
+    // }
 
-    if (!newDirection) return;
+    // if (!newDirection) return;
 
     // Cannot go backwards
     const isOppositeDirection = (previous?: Direction, current?: Direction) => {
@@ -800,65 +802,71 @@ export class ChickenRescueScene extends BaseScene {
 
     this.currentPlayer?.walk();
 
+    if (!this.direction && newDirection) {
+      this.start();
+    }
+
+    this.direction = newDirection;
+
     const player = this.currentPlayer as Coordinates;
 
-    const nextGridSquare: Coordinates = {
-      x: Math.floor(player.x / 16),
-      y: Math.floor(player.y / 16),
-    };
+    // const nextGridSquare: Coordinates = {
+    //   x: Math.floor(player.x / 16),
+    //   y: Math.floor(player.y / 16),
+    // };
 
-    if (this.physics.world.drawDebug) {
-      // Draw point
-      this.add.circle(
-        nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
-        nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
-        2,
-        0x0000ff
-      );
-    }
+    // if (this.physics.world.drawDebug) {
+    //   // Draw point
+    //   this.add.circle(
+    //     nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
+    //     nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
+    //     2,
+    //     0x0000ff
+    //   );
+    // }
 
-    const BUFFER = SQUARE_WIDTH / 2 - 2;
+    // const BUFFER = SQUARE_WIDTH / 2 - 2;
 
-    if (this.direction === "right") {
-      nextGridSquare.x = Math.floor((player.x + BUFFER) / 16);
-    }
+    // if (this.direction === "right") {
+    //   nextGridSquare.x = Math.floor((player.x + BUFFER) / 16);
+    // }
 
-    if (this.direction === "left") {
-      nextGridSquare.x = Math.floor((player.x - BUFFER) / 16);
-    }
+    // if (this.direction === "left") {
+    //   nextGridSquare.x = Math.floor((player.x - BUFFER) / 16);
+    // }
 
-    if (this.direction === "up") {
-      nextGridSquare.y = Math.floor((player.y - BUFFER) / 16);
-    }
+    // if (this.direction === "up") {
+    //   nextGridSquare.y = Math.floor((player.y - BUFFER) / 16);
+    // }
 
-    if (this.direction === "down") {
-      nextGridSquare.y = Math.floor((player.y + BUFFER) / 16);
-    }
+    // if (this.direction === "down") {
+    //   nextGridSquare.y = Math.floor((player.y + BUFFER) / 16);
+    // }
 
-    // If same as first pivot do not set it
-    if (
-      this.pivots.length > 0 &&
-      this.pivots[0].x === nextGridSquare.x &&
-      this.pivots[0].y === nextGridSquare.y
-    ) {
-      return;
-    }
+    // // If same as first pivot do not set it
+    // if (
+    //   this.pivots.length > 0 &&
+    //   this.pivots[0].x === nextGridSquare.x &&
+    //   this.pivots[0].y === nextGridSquare.y
+    // ) {
+    //   return;
+    // }
 
-    this.nextMove = {
-      direction: newDirection,
-      moveAt: nextGridSquare,
-    };
+    // this.nextMove = {
+    //   direction: newDirection,
+    //   moveAt: nextGridSquare,
+    // };
 
-    if (this.physics.world.drawDebug) {
-      this.add.circle(
-        nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
-        nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
-        2,
-        0xff00ff
-      );
-    }
+    // if (this.physics.world.drawDebug) {
+    //   this.add.circle(
+    //     nextGridSquare.x * 16 + SQUARE_WIDTH / 2,
+    //     nextGridSquare.y * 16 + SQUARE_WIDTH / 2,
+    //     2,
+    //     0xff00ff
+    //   );
+    // }
 
-    delete this.queuedDirection;
+    // delete this.queuedDirection;
   }
 
   get score() {
@@ -887,7 +895,9 @@ export class ChickenRescueScene extends BaseScene {
       }
     }, 1000);
 
+    console.log("START");
     this.rockSpawnInterval = setInterval(() => {
+      console.log("ROCK SPAWN");
       this.addStaticObstacle({ name: "rock" });
     }, 6000);
 
@@ -909,38 +919,10 @@ export class ChickenRescueScene extends BaseScene {
   }
 
   movePlayer() {
-    if (!this.nextMove) {
-      return;
-    }
-
     const player = this.currentPlayer as Coordinates;
     const currentDirection = this.direction ?? "up";
-    const { direction, moveAt: moveAtGridPosition } = this.nextMove;
 
-    const moveAt = {
-      x: moveAtGridPosition.x * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-      y: moveAtGridPosition.y * SQUARE_WIDTH + SQUARE_WIDTH / 2,
-    };
-
-    // Has player reached its destination
-    let hasReachedDestination = this.pivots.length === 0; // First move
-    if (currentDirection === "right" && player.x >= moveAt.x) {
-      hasReachedDestination = true;
-    }
-
-    if (currentDirection === "left" && player.x <= moveAt.x) {
-      hasReachedDestination = true;
-    }
-
-    if (currentDirection === "up" && player.y <= moveAt.y) {
-      hasReachedDestination = true;
-    }
-
-    if (currentDirection === "down" && player.y >= moveAt.y) {
-      hasReachedDestination = true;
-    }
-
-    if (!hasReachedDestination) return;
+    const direction = this.direction;
 
     let yVelocity = 0;
     if (direction === "up") {
@@ -963,10 +945,6 @@ export class ChickenRescueScene extends BaseScene {
       this.currentPlayer?.faceRight();
     }
 
-    if (!this.direction) {
-      this.start();
-    }
-
     (this.currentPlayer?.body as Phaser.Physics.Arcade.Body).setVelocity(
       xVelocity,
       yVelocity
@@ -974,7 +952,9 @@ export class ChickenRescueScene extends BaseScene {
 
     this.pivots = [
       {
-        ...moveAtGridPosition,
+        // TODO get grid spot?
+        x: this.currentPlayer?.x ?? 0,
+        y: this.currentPlayer?.y ?? 0,
         direction: currentDirection,
       },
       ...this.pivots,
@@ -1139,11 +1119,13 @@ export class ChickenRescueScene extends BaseScene {
   }
 
   update() {
-    this.updateDirection();
     this.debug();
 
     if (this.isDead) return;
 
+    console.log("RENDER");
+
+    this.updateDirection();
     this.movePlayer();
     this.updateFollowingChickens();
     this.moveGoblins();
