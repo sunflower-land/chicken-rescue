@@ -116,7 +116,9 @@ export const ChickenRescue: React.FC = () => {
       <Modal show>
         <Panel>
           <Loading />
-          <span className="text-sm">{CONFIG.CLIENT_VERSION}</span>
+          <span className="text-xs">
+            {`${t("last.updated")}:${CONFIG.CLIENT_VERSION}`}
+          </span>
         </Panel>
       </Modal>
     );

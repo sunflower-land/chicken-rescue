@@ -34,7 +34,7 @@ export const ChickenRescueHUD: React.FC = () => {
 
   const target = state.minigames.prizes["chicken-rescue"]?.score;
 
-  const buttonSize = 22;
+  const buttonSize = 30;
 
   return (
     <>
