@@ -855,6 +855,7 @@ export class ChickenRescueScene extends BaseScene {
     this.direction = direction;
 
     this.nextMove = undefined;
+    this.queuedDirection = undefined;
   }
 
   get score() {
