@@ -858,8 +858,8 @@ export type MinigamePrize = {
   endAt: number;
   score: number;
   coins: number;
-  factionPoints?: number;
-  marks?: number;
+  items: Partial<Record<InventoryItemName, number>>;
+  wearables: Wardrobe;
 };
 
 export type MinigameHistory = {

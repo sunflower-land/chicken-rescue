@@ -23,7 +23,7 @@ export function purchase({ sfl }: { sfl: number }) {
     console.error(`Sunflower Land not available - are you in an iframe?`);
   }
 
-  window.parent.postMessage({ event: "purchase", sfl }, "*");
+  window.parent.postMessage({ event: "purchase", sfl, items: {} }, "*");
 }
 
 export function played({ score }: { score: number }) {
