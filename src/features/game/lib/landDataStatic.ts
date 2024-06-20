@@ -318,6 +318,8 @@ export const STATIC_OFFLINE_FARM: GameState = {
         score: 2,
         factionPoints: undefined,
         marks: 15,
+        items: {},
+        wearables: {},
       },
     },
   },

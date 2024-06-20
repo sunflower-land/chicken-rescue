@@ -359,6 +359,8 @@ export const INITIAL_FARM: GameState = {
         marks: 10,
         factionPoints: 0,
         score: 30,
+        items: {},
+        wearables: {},
       },
     },
   },
