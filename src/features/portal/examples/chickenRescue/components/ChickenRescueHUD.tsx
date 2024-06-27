@@ -1,19 +1,13 @@
-import PubSub from "pubsub-js";
 import React, { useContext } from "react";
 import { useActor } from "@xstate/react";
 import { PortalContext } from "../lib/PortalProvider";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SUNNYSIDE } from "assets/sunnyside";
 import worldIcon from "assets/icons/world.png";
-import downArrow from "assets/ui/down_arrow.png";
-import upArrow from "assets/ui/up_arrow.png";
-import rightArrow from "assets/ui/right_arrow.png";
-import leftArrow from "assets/ui/left_arrow.png";
 import { goHome } from "../lib/portalUtil";
 import { HudContainer } from "components/ui/HudContainer";
 import { Balances } from "components/Balances";
 import Decimal from "decimal.js-light";
-import { isTouchDevice } from "features/world/lib/device";
 import { Label } from "components/ui/Label";
 
 export const ChickenRescueHUD: React.FC = () => {
@@ -33,8 +27,6 @@ export const ChickenRescueHUD: React.FC = () => {
   //   : timer.seconds;
 
   const target = state.minigames.prizes["chicken-rescue"]?.score;
-
-  const buttonSize = 30;
 
   return (
     <>
@@ -112,56 +104,6 @@ export const ChickenRescueHUD: React.FC = () => {
             />
           </div>
         </div>
-
-        {isTouchDevice() && (
-          <div
-            className="fixed z-50 flex flex-col justify-between"
-            style={{
-              right: `${PIXEL_SCALE * 3}px`,
-              bottom: `${PIXEL_SCALE * 3}px`,
-              width: `${PIXEL_SCALE * buttonSize * 3}px`,
-              height: `${PIXEL_SCALE * buttonSize * 3}px`,
-            }}
-          >
-            <img
-              src={upArrow} // up
-              onPointerDown={() => PubSub.publish("GO_UP")}
-              className="absolute top-0"
-              style={{
-                width: `${PIXEL_SCALE * buttonSize}px`,
-                left: `${PIXEL_SCALE * buttonSize}px`,
-              }}
-            />
-            <img
-              src={leftArrow} // left
-              onPointerDown={() => PubSub.publish("GO_LEFT")}
-              className="absolute left-0"
-              style={{
-                width: `${PIXEL_SCALE * buttonSize}px`,
-                top: `${PIXEL_SCALE * buttonSize}px`,
-              }}
-            />
-            <img
-              src={rightArrow} // right
-              onPointerDown={() => PubSub.publish("GO_RIGHT")}
-              className="absolute right-0"
-              style={{
-                width: `${PIXEL_SCALE * buttonSize}px`,
-                top: `${PIXEL_SCALE * buttonSize}px`,
-              }}
-            />
-
-            <img
-              src={downArrow} // down
-              className="absolute bottom-0"
-              onPointerDown={() => PubSub.publish("GO_DOWN")}
-              style={{
-                width: `${PIXEL_SCALE * buttonSize}px`,
-                left: `${PIXEL_SCALE * buttonSize}px`,
-              }}
-            />
-          </div>
-        )}
       </HudContainer>
     </>
   );

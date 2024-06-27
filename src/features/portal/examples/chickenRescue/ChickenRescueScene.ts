@@ -1,4 +1,3 @@
-import PubSub from "pubsub-js";
 import mapJson from "assets/map/chicken_rescue.json";
 import { SceneId } from "features/world/mmoMachine";
 import { BaseScene, WALKING_SPEED } from "features/world/scenes/BaseScene";
@@ -15,6 +14,7 @@ import {
 import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
 import { SOUNDS } from "assets/sound-effects/soundEffects";
 import { SleepingChickenContainer } from "./SleepingChickenContainer";
+import { isTouchDevice } from "features/world/lib/device";
 
 const DISTANCE = 16;
 
@@ -77,6 +77,15 @@ export class ChickenRescueScene extends BaseScene {
   preload() {
     super.preload();
 
+    // load swipe controls for touch devices
+    if (isTouchDevice()) {
+      this.load.plugin(
+        "rexvirtualjoystickplugin",
+        "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js",
+        true
+      );
+    }
+
     // Load chicken rescue assets
     this.load.spritesheet("walking_chicken", "world/walking_chicken.png", {
       frameWidth: 16,
@@ -114,24 +123,51 @@ export class ChickenRescueScene extends BaseScene {
   /**
    * These are handled in the React UI (listen to the events)
    */
-  async setupMobileControls() {
-    // TODO - clean up listeners
+  setupMobileControls() {
+    if (!isTouchDevice()) return;
+    if (isTouchDevice()) {
+      // Initialise swipe joystick
+      const swipeJoystick = (
+        this.plugins.get("rexvirtualjoystickplugin") as any
+      ).addVectorToCursorKeys({
+        dir: "4dir",
+        forceMin: 20,
+      });
 
-    PubSub.subscribe("GO_DOWN", () => {
-      this.queuedDirection = "down";
-    });
+      // swipe for pointer input
+      this.input
+        .on("pointerup", function () {
+          // reset joystick when touch is up
+          swipeJoystick.clearVector();
+        })
+        .on("pointermove", (pointer: Phaser.Input.Pointer) => {
+          if (!pointer.isDown) {
+            // reset joystick when touch is up
+            swipeJoystick.clearVector();
+            return;
+          }
 
-    PubSub.subscribe("GO_RIGHT", () => {
-      this.queuedDirection = "right";
-    });
+          // set joystick movement
+          swipeJoystick.setVector(
+            pointer.downX,
+            pointer.downY,
+            pointer.x,
+            pointer.y
+          );
 
-    PubSub.subscribe("GO_LEFT", () => {
-      this.queuedDirection = "left";
-    });
+          // get cursor keys
+          const cursorKeys = swipeJoystick.createCursorKeys();
 
-    PubSub.subscribe("GO_UP", () => {
-      this.queuedDirection = "up";
-    });
+          // set direction and reset joystick original point when direction is chosen
+          for (const name in cursorKeys) {
+            if (cursorKeys[name].isDown) {
+              this.queuedDirection = name as Direction;
+              pointer.downX = pointer.x;
+              pointer.downY = pointer.y;
+            }
+          }
+        });
+    }
   }
 
   async create() {
@@ -663,7 +699,7 @@ export class ChickenRescueScene extends BaseScene {
     this.currentPlayer?.disappear();
 
     const sfx = this.sound.add("game_over");
-    sfx.play({ loop: false, volume: 0.3 });
+    sfx.play({ loop: false, volume: 0.15 });
 
     this.following.forEach((follower, index) => {
       follower?.disappear();
@@ -740,7 +776,7 @@ export class ChickenRescueScene extends BaseScene {
     // Pick random sound
     const sound = sounds[Math.floor(Math.random() * sounds.length)];
     const cluck = this.sound.add(sound);
-    cluck.play({ loop: false, volume: 1 });
+    cluck.play({ loop: false, volume: 0.25 });
 
     const count = this.following.filter(Boolean).length;
 

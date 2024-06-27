@@ -23,7 +23,7 @@ export interface Context {
 }
 
 export const GAME_SECONDS = 60;
-
+const DAILY_ATTEMPTS = 5;
 export const UNLIMITED_ATTEMPTS_SFL = 3;
 
 type ChickenRescuedEvent = {
@@ -78,7 +78,7 @@ export const portalMachine = createMachine({
 
     score: 0,
     completeAcknowledged: false,
-    attemptsLeft: 5,
+    attemptsLeft: DAILY_ATTEMPTS,
   },
   states: {
     initialising: {
@@ -99,7 +99,7 @@ export const portalMachine = createMachine({
       invoke: {
         src: async (context) => {
           if (!getUrl()) {
-            return { game: OFFLINE_FARM, attemptsLeft: 5 };
+            return { game: OFFLINE_FARM, attemptsLeft: DAILY_ATTEMPTS };
           }
 
           const { farmId } = decodeToken(context.jwt as string);
@@ -120,7 +120,7 @@ export const portalMachine = createMachine({
             highscore: 0,
           };
 
-          const attemptsLeft = 5 - dailyAttempt.attempts;
+          const attemptsLeft = DAILY_ATTEMPTS - dailyAttempt.attempts;
 
           return { game, farmId, attemptsLeft };
         },
