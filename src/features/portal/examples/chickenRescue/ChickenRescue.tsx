@@ -162,7 +162,11 @@ export const ChickenRescue: React.FC = () => {
                 </Label>
                 <Label
                   icon={sfl}
-                  type={gameState.balance.lt(10) ? "danger" : "default"}
+                  type={
+                    gameState.balance.lt(UNLIMITED_ATTEMPTS_SFL)
+                      ? "danger"
+                      : "default"
+                  }
                 >
                   {`${UNLIMITED_ATTEMPTS_SFL} ${t("minigame.sflRequired")}`}
                 </Label>
