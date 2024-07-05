@@ -8,7 +8,6 @@ import { OuterPanel } from "components/ui/Panel";
 
 import coins from "assets/icons/coins.webp";
 import factions from "assets/icons/factions.webp";
-import flagIcon from "assets/icons/faction_point.webp";
 import {
   Minigame,
   MinigameHistory,
@@ -84,7 +83,7 @@ export const MinigameAttempts: React.FC<{
 
   // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
   const hasUnlimitedAttempts = purchases.some(
-    (purchase) => purchase.purchasedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
+    (purchase) => purchase.purchasedAt > Date.now() - 24 * 60 * 60 * 1000
   );
 
   const hasMoreAttempts = attemptsLeft > 0;
