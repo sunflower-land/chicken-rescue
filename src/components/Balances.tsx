@@ -26,7 +26,7 @@ export const Balances: React.FC<Props> = ({
 
   return (
     <>
-      <div className="flex flex-col absolute space-y-1 items-end z-50 right-3 top-3 !text-[28px] text-stroke">
+      <div className="flex flex-col absolute space-y-1 items-end z-50 right-3 top-3 !text-[28px] text-stroke pointer-events-none">
         <div
           className="flex cursor-pointer items-center space-x-3 relative"
           onClick={onClick}

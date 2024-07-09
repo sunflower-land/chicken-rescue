@@ -5132,6 +5132,8 @@ const greenhouse: Record<GreenhouseKeys, string> = {
 
 const minigame: Record<Minigame, string> = {
   "minigame.chickenRescue": ENGLISH_TERMS["minigame.chickenRescue"],
+  "minigame.swipeToMove": ENGLISH_TERMS["minigame.swipeToMove"],
+  "minigame.arrowKeysToMove": ENGLISH_TERMS["minigame.arrowKeysToMove"],
   "minigame.comingSoon": ENGLISH_TERMS["minigame.comingSoon"],
   "minigame.completed": ENGLISH_TERMS["minigame.completed"],
   "minigame.confirm": ENGLISH_TERMS["minigame.confirm"],

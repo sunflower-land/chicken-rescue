@@ -3492,6 +3492,8 @@ export type GreenhouseKeys =
 export type Minigame =
   | "minigame.playNow"
   | "minigame.chickenRescue"
+  | "minigame.swipeToMove"
+  | "minigame.arrowKeysToMove"
   | "minigame.completed"
   | "minigame.noPrizeAvailable"
   | "minigame.confirm"

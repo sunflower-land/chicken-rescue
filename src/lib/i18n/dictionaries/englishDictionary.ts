@@ -5146,6 +5146,8 @@ const greenhouse: Record<GreenhouseKeys, string> = {
 
 const minigame: Record<Minigame, string> = {
   "minigame.chickenRescue": "Minigame - Chicken Rescue",
+  "minigame.swipeToMove": "Swipe to move around",
+  "minigame.arrowKeysToMove": "Use WASD or arrow keys to move around",
   "minigame.comingSoon": "Coming soon...",
   "minigame.completed": "Complete",
   "minigame.confirm": "Are you sure you want to spend ",
