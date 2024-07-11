@@ -15,6 +15,7 @@ import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
 import { SOUNDS } from "assets/sound-effects/soundEffects";
 import { SleepingChickenContainer } from "./SleepingChickenContainer";
 import { isTouchDevice } from "features/world/lib/device";
+import { EventObject } from "xstate";
 
 const DISTANCE = 16;
 
@@ -269,10 +270,16 @@ export class ChickenRescueScene extends BaseScene {
       }
     }
 
-    this.portalService?.onEvent((event) => {
+    const onRetry = (event: EventObject) => {
       if (event.type === "RETRY") {
         this.scene.restart();
       }
+    };
+
+    this.portalService?.onEvent(onRetry);
+
+    this.events.on("shutdown", () => {
+      this.portalService?.off(onRetry);
     });
   }
 
