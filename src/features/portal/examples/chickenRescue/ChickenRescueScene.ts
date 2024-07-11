@@ -4,7 +4,7 @@ import { BaseScene, WALKING_SPEED } from "features/world/scenes/BaseScene";
 import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SQUARE_WIDTH } from "features/game/lib/constants";
-import { MachineInterpreter } from "./lib/chickenRescueMachine";
+import { MachineInterpreter, PortalEvent } from "./lib/chickenRescueMachine";
 import { SUNNYSIDE } from "assets/sunnyside";
 import {
   BoundingBox,
@@ -269,10 +269,16 @@ export class ChickenRescueScene extends BaseScene {
       }
     }
 
-    this.portalService?.onEvent((event) => {
+    const onRetry = (event: PortalEvent) => {
       if (event.type === "RETRY") {
         this.scene.restart();
       }
+    };
+
+    this.portalService?.onEvent(onRetry);
+
+    this.events.on("shutdown", () => {
+      this.portalService?.off(onRetry);
     });
   }
 
