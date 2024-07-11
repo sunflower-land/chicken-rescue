@@ -4,7 +4,7 @@ import { BaseScene, WALKING_SPEED } from "features/world/scenes/BaseScene";
 import { ChickenContainer } from "./ChickenContainer";
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SQUARE_WIDTH } from "features/game/lib/constants";
-import { MachineInterpreter, PortalEvent } from "./lib/chickenRescueMachine";
+import { MachineInterpreter } from "./lib/chickenRescueMachine";
 import { SUNNYSIDE } from "assets/sunnyside";
 import {
   BoundingBox,
@@ -15,6 +15,7 @@ import { BumpkinContainer } from "features/world/containers/BumpkinContainer";
 import { SOUNDS } from "assets/sound-effects/soundEffects";
 import { SleepingChickenContainer } from "./SleepingChickenContainer";
 import { isTouchDevice } from "features/world/lib/device";
+import { EventObject } from "xstate";
 
 const DISTANCE = 16;
 
@@ -269,7 +270,7 @@ export class ChickenRescueScene extends BaseScene {
       }
     }
 
-    const onRetry = (event: PortalEvent) => {
+    const onRetry = (event: EventObject) => {
       if (event.type === "RETRY") {
         this.scene.restart();
       }
