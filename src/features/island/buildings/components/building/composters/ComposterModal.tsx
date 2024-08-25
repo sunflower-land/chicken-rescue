@@ -5,19 +5,8 @@ import { Button } from "components/ui/Button";
 import { ITEM_DETAILS } from "features/game/types/images";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
 
-import tutorial from "src/assets/tutorials/composting.png";
-import powerup from "src/assets/icons/level_up.png";
-
+import powerup from "assets/icons/level_up.png";
 import compost from "assets/composters/compost.png";
-import basicIdle from "assets/composters/composter_basic.png";
-import basicComposting from "assets/composters/composter_basic_closed.png";
-import basicReady from "assets/composters/composter_basic_ready.png";
-import advancedIdle from "assets/composters/composter_advanced.png";
-import advancedComposting from "assets/composters/composter_advanced_closed.png";
-import advancedReady from "assets/composters/composter_advanced_ready.png";
-import expertIdle from "assets/composters/composter_expert.png";
-import expertComposting from "assets/composters/composter_expert_closed.png";
-import expertReady from "assets/composters/composter_expert_ready.png";
 
 import {
   WORM,
@@ -36,6 +25,9 @@ import { RequirementLabel } from "components/ui/RequirementsLabel";
 import { SquareIcon } from "components/ui/SquareIcon";
 import { OuterPanel } from "components/ui/Panel";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { setImageWidth } from "lib/images";
+import { Loading } from "features/auth/components";
+import { ConfirmationModal } from "components/ui/ConfirmationModal";
 
 const WORM_OUTPUT: Record<ComposterName, string> = {
   "Compost Bin": "2-4",
@@ -52,21 +44,21 @@ export const COMPOSTER_IMAGES: Record<
   }
 > = {
   "Compost Bin": {
-    composting: basicComposting,
-    idle: basicIdle,
-    ready: basicReady,
+    composting: SUNNYSIDE.building.basicComposting,
+    idle: SUNNYSIDE.building.basicComposter,
+    ready: SUNNYSIDE.building.basicReady,
     width: 24,
   },
   "Turbo Composter": {
-    composting: advancedComposting,
-    idle: advancedIdle,
-    ready: advancedReady,
+    composting: SUNNYSIDE.building.advancedComposting,
+    idle: SUNNYSIDE.building.advancedComposter,
+    ready: SUNNYSIDE.building.advancedReady,
     width: 27,
   },
   "Premium Composter": {
-    composting: expertComposting,
-    idle: expertIdle,
-    ready: expertReady,
+    composting: SUNNYSIDE.building.expertComposting,
+    idle: SUNNYSIDE.building.expertComposter,
+    ready: SUNNYSIDE.building.expertReady,
     width: 34,
   },
 };
@@ -254,7 +246,7 @@ export const ComposterModal: React.FC<Props> = ({
                       composterInfo.eggBoostMilliseconds / 1000,
                       {
                         length: "short",
-                      }
+                      },
                     )} Boost`}
                   </Label>
                   <RequirementLabel
@@ -274,48 +266,36 @@ export const ComposterModal: React.FC<Props> = ({
                   disabled={
                     !boost &&
                     !state.inventory.Egg?.gte(
-                      composterInfo.eggBoostRequirements
+                      composterInfo.eggBoostRequirements,
                     )
                   }
                   onClick={() => showConfirmBoostModal(true)}
                 >
                   {t("guide.compost.addEggs")}
                 </Button>
-                <Modal
+                <ConfirmationModal
                   show={isConfirmBoostModalOpen}
                   onHide={() => showConfirmBoostModal(false)}
-                >
-                  <CloseButtonPanel className="sm:w-full m-auto">
-                    <div className="flex flex-col p-2">
-                      <span className="text-sm text-left">
-                        {t("guide.compost.addEggs.confirmation", {
-                          noEggs: composterInfo.eggBoostRequirements,
-                          time: secondsToString(
-                            composterInfo.eggBoostMilliseconds / 1000,
-                            {
-                              length: "short",
-                            }
-                          ),
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex justify-content-around mt-2 space-x-1">
-                      <Button
-                        disabled={
-                          !state.inventory.Egg?.gte(
-                            composterInfo.eggBoostRequirements
-                          )
-                        }
-                        onClick={applyBoost}
-                      >
-                        {t("guide.compost.addEggs")}
-                      </Button>
-                      <Button onClick={() => showConfirmBoostModal(false)}>
-                        {t("cancel")}
-                      </Button>
-                    </div>
-                  </CloseButtonPanel>
-                </Modal>
+                  messages={[
+                    t("guide.compost.addEggs.confirmation", {
+                      noEggs: composterInfo.eggBoostRequirements,
+                      time: secondsToString(
+                        composterInfo.eggBoostMilliseconds / 1000,
+                        {
+                          length: "short",
+                        },
+                      ),
+                    }),
+                  ]}
+                  onCancel={() => showConfirmBoostModal(false)}
+                  onConfirm={applyBoost}
+                  confirmButtonLabel={t("guide.compost.addEggs")}
+                  disabled={
+                    !state.inventory.Egg?.gte(
+                      composterInfo.eggBoostRequirements,
+                    )
+                  }
+                />
               </OuterPanel>
             </>
           )}
@@ -331,7 +311,7 @@ export const ComposterModal: React.FC<Props> = ({
                     composterInfo.eggBoostMilliseconds / 1000,
                     {
                       length: "short",
-                    }
+                    },
                   )} Boosted`}
                 </Label>
                 <Label type="default" icon={ITEM_DETAILS.Egg.image}>
@@ -347,12 +327,16 @@ export const ComposterModal: React.FC<Props> = ({
     if (getKeys(requires).length === 0) {
       return (
         <>
-          <div className="flex p-2 -mt-2">
+          <div className="flex p-2 -mt-2 items-center">
             <img
               src={COMPOSTER_IMAGES[composterName].ready}
-              className="w-14 object-contain mr-2"
+              className="object-contain mr-2"
+              onLoad={(e) => setImageWidth(e.currentTarget)}
+              style={{
+                opacity: 0,
+              }}
             />
-            <span className="mt-2 text-sm loading">{t("loading")}</span>
+            <Loading text={t("loading")} />
           </div>
         </>
       );
@@ -497,7 +481,10 @@ export const ComposterModal: React.FC<Props> = ({
         {tab === 1 && (
           <>
             <div className="p-2">
-              <img src={tutorial} className="w-full mx-auto rounded-lg mb-2" />
+              <img
+                src={SUNNYSIDE.tutorial.composting}
+                className="w-full mx-auto rounded-lg mb-2"
+              />
               <div className="flex mb-2">
                 <div className="w-12 flex justify-center">
                   <img
@@ -643,7 +630,7 @@ export const CraftingRequirements: React.FC<CraftingProps> = ({
         {getItemDetail({ hideDescription })}
         {limit && (
           <p className="my-1 text-xs text-left sm:text-center">{`${t(
-            "max"
+            "max",
           )} ${limit} ${t("statements.perplayer")}`}</p>
         )}
         {getRequirements()}

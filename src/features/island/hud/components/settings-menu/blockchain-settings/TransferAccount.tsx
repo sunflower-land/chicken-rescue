@@ -2,7 +2,6 @@ import React, { useContext, useState } from "react";
 import { useActor } from "@xstate/react";
 import { isAddress } from "web3-utils";
 
-import transferring from "assets/npcs/minting.gif";
 import farmImg from "assets/brand/nft.png";
 
 import * as AuthProvider from "features/auth/lib/Provider";
@@ -14,6 +13,7 @@ import { wallet } from "lib/blockchain/wallet";
 import { Context } from "features/game/GameProvider";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
+const transferring = SUNNYSIDE.npcs.minting;
 export const TransferAccount: React.FC = () => {
   const { t } = useAppTranslation();
 
@@ -23,7 +23,7 @@ export const TransferAccount: React.FC = () => {
 
   const [receiver, setReceiver] = useState({ address: "" });
   const [state, setState] = useState<"idle" | "loading" | "error" | "success">(
-    "idle"
+    "idle",
   );
 
   const transfer = async () => {

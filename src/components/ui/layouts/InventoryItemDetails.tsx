@@ -12,6 +12,7 @@ import { COLLECTIBLE_BUFF_LABELS } from "features/game/types/collectibleItemBuff
 import { Label } from "../Label";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { ITEM_ICONS } from "features/island/hud/components/inventory/Chest";
+import { translateTerms } from "lib/i18n/translate";
 
 /**
  * The props for the details for items.
@@ -77,7 +78,8 @@ export const InventoryItemDetails: React.FC<Props> = ({
     const icon = ITEM_ICONS(game.island.type)[details.item] ?? item.image;
     const title = details.item;
 
-    let description = item.description;
+    let description = translateTerms(item.description);
+
     if (item.boostedDescriptions) {
       for (const boostedDescription of item.boostedDescriptions) {
         if (
@@ -110,14 +112,14 @@ export const InventoryItemDetails: React.FC<Props> = ({
           </span>
         </div>
         <span
-          className={classNames("text-xs sm:mt-1 whitespace-pre-line", {
+          className={classNames("text-xs mb-2 sm:mt-1 whitespace-pre-line", {
             "sm:text-center": !wideLayout,
           })}
         >
           {description}
         </span>
         {boost && (
-          <div className="flex sm:justify-center">
+          <div className="flex mb-2 sm:justify-center">
             <Label
               type={boost.labelType}
               icon={boost.boostTypeIcon}
@@ -138,8 +140,8 @@ export const InventoryItemDetails: React.FC<Props> = ({
     return (
       <div
         className={classNames(
-          "border-t border-white w-full my-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap",
-          { "sm:flex-col sm:items-center sm:flex-nowrap": !wideLayout }
+          "border-t border-white w-full mb-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap",
+          { "sm:flex-col sm:items-center sm:flex-nowrap": !wideLayout },
         )}
       >
         {/* Time requirement display */}

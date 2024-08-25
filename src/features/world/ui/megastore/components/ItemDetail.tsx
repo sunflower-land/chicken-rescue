@@ -8,8 +8,6 @@ import {
   WearablesItem,
 } from "features/game/types/game";
 
-import bg from "assets/ui/grey_background.png";
-
 import { Context } from "features/game/GameProvider";
 import { useSelector } from "@xstate/react";
 import { PIXEL_SCALE } from "features/game/lib/constants";
@@ -32,6 +30,7 @@ interface ItemOverlayProps {
   buff?: BuffLabel;
   isVisible: boolean;
   onClose: () => void;
+  readonly?: boolean;
 }
 
 const _sflBalance = (state: MachineState) => state.context.state.balance;
@@ -45,6 +44,7 @@ export const ItemDetail: React.FC<ItemOverlayProps> = ({
   isWearable,
   isVisible,
   onClose,
+  readonly,
 }) => {
   const { shortcutItem, gameService, showAnimations } = useContext(Context);
   const sflBalance = useSelector(gameService, _sflBalance);
@@ -73,7 +73,7 @@ export const ItemDetail: React.FC<ItemOverlayProps> = ({
   }, []);
 
   const getBalanceOfItem = (
-    item: WearablesItem | CollectiblesItem | null
+    item: WearablesItem | CollectiblesItem | null,
   ): number => {
     if (!item) return 0;
 
@@ -174,7 +174,7 @@ export const ItemDetail: React.FC<ItemOverlayProps> = ({
     }
 
     <span className="absolute bottom-1 right-2 text-xxs">{`${t(
-      "limit"
+      "limit",
     )}: ${balanceOfItem}/${item.limit}`}</span>; //t
   };
 
@@ -214,7 +214,7 @@ export const ItemDetail: React.FC<ItemOverlayProps> = ({
                     style={
                       item?.type === "collectible"
                         ? {
-                            backgroundImage: `url(${bg})`,
+                            backgroundImage: `url(${SUNNYSIDE.ui.grey_background})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                           }
@@ -270,27 +270,31 @@ export const ItemDetail: React.FC<ItemOverlayProps> = ({
               </div>
             )}
           </div>
-          {!showSuccess && (
-            <div
-              className={classNames("flex", {
-                "space-x-1": confirmBuy,
-              })}
-            >
-              {confirmBuy && (
-                <Button onClick={() => setConfirmBuy(false)}>
-                  {t("cancel")}
-                </Button>
+          {!readonly && (
+            <>
+              {!showSuccess && (
+                <div
+                  className={classNames("flex", {
+                    "space-x-1": confirmBuy,
+                  })}
+                >
+                  {confirmBuy && (
+                    <Button onClick={() => setConfirmBuy(false)}>
+                      {t("cancel")}
+                    </Button>
+                  )}
+                  <Button disabled={!canBuy()} onClick={buttonHandler}>
+                    {getButtonLabel()}
+                  </Button>
+                </div>
               )}
-              <Button disabled={!canBuy()} onClick={buttonHandler}>
-                {getButtonLabel()}
-              </Button>
-            </div>
-          )}
-          {showSuccess && (
-            <div className="flex flex-col space-y-1">
-              <span className="p-2 text-xs">{getSuccessCopy()}</span>
-              <Button onClick={onClose}>{t("ok")}</Button>
-            </div>
+              {showSuccess && (
+                <div className="flex flex-col space-y-1">
+                  <span className="p-2 text-xs">{getSuccessCopy()}</span>
+                  <Button onClick={onClose}>{t("ok")}</Button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}

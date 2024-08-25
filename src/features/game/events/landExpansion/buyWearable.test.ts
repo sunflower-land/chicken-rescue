@@ -21,7 +21,7 @@ describe("buyWearable", () => {
           type: "wearable.bought",
           name: "Devil Wings",
         },
-      })
+      }),
     ).toThrow("This item is not available");
   });
 
@@ -36,7 +36,7 @@ describe("buyWearable", () => {
           type: "wearable.bought",
           name: "Red Farmer Shirt",
         },
-      })
+      }),
     ).toThrow("Insufficient coins");
   });
 
@@ -52,7 +52,7 @@ describe("buyWearable", () => {
           name: "Fresh Catch Vest",
         },
         createdAt: new Date("2023-07-31").getTime(),
-      })
+      }),
     ).toThrow("This item is not available");
   });
 
@@ -68,7 +68,7 @@ describe("buyWearable", () => {
           name: "Fresh Catch Vest",
         },
         createdAt: new Date("2024-09-02").getTime(),
-      })
+      }),
     ).toThrow("This item is not available");
   });
 
@@ -85,7 +85,7 @@ describe("buyWearable", () => {
           name: "Birthday Hat",
         },
         createdAt: new Date("2023-07-31").getTime(),
-      })
+      }),
     ).toThrow("Not available");
   });
 
@@ -163,21 +163,6 @@ describe("buyWearable", () => {
     const oldAmount = GAME_STATE.wardrobe[item] ?? 0;
 
     expect(state.wardrobe[item]).toEqual(oldAmount + 1);
-  });
-
-  it("throws an error if the player doesn't have a bumpkin", async () => {
-    expect(() =>
-      buyWearable({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-        },
-        action: {
-          type: "wearable.bought",
-          name: "Red Farmer Shirt",
-        },
-      })
-    ).toThrow("Bumpkin not found");
   });
 
   it("increments the coins spent activity", () => {

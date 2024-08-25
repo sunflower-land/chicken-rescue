@@ -2,9 +2,8 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { useSelector } from "@xstate/react";
 
 import { SUNNYSIDE } from "assets/sunnyside";
-import reel from "assets/ui/reel.png";
 import lightning from "assets/icons/lightning.png";
-import lockIcon from "assets/skills/lock.png";
+import fullMoon from "assets/icons/full_moon.png";
 
 import { ZoomContext } from "components/ZoomProvider";
 import Spritesheet, {
@@ -21,7 +20,6 @@ import { FishingChallenge } from "./FishingChallenge";
 import { Panel } from "components/ui/Panel";
 import { getKeys } from "features/game/types/craftables";
 import { FISH, FISH_DIFFICULTY, FishName } from "features/game/types/fishing";
-import { getSeasonWeek } from "lib/utils/getSeasonWeek";
 import { MachineState } from "features/game/lib/gameMachine";
 import { gameAnalytics } from "lib/gameAnalytics";
 import { getBumpkinLevel } from "features/game/lib/level";
@@ -75,8 +73,6 @@ const _canFish = (state: MachineState) =>
   getBumpkinLevel(state.context.state.bumpkin?.experience ?? 0) >= 5;
 const _fishing = (state: MachineState) => state.context.state.fishing;
 const _farmActivity = (state: MachineState) => state.context.state.farmActivity;
-const _catchTheKraken = (state: MachineState) =>
-  state.context.state.catchTheKraken;
 
 export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
   const { t } = useAppTranslation();
@@ -92,7 +88,6 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
   const { gameService } = useContext(Context);
   const fishing = useSelector(gameService, _fishing);
   const farmActivity = useSelector(gameService, _farmActivity);
-  const catchTheKraken = useSelector(gameService, _catchTheKraken);
   const canFish = useSelector(gameService, _canFish);
 
   // Catches cases where players try reset their fishing challenge
@@ -116,9 +111,6 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
 
   const { scale } = useContext(ZoomContext);
 
-  const showSpecial =
-    fishing.weather === "Fish Frenzy" || fishing.weather === "Full Moon";
-
   const onIdleFinish = () => {
     // CAST
     if (fishing.wharf.castedAt && !fishing.wharf.caught) {
@@ -134,7 +126,7 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
     // TESTING
     if (!CONFIG.API_URL) {
       setTimeout(() => {
-        fishing.wharf = { castedAt: 10000, caught: { "Kraken Tentacle": 1 } };
+        fishing.wharf = { castedAt: 10000, caught: { Anchovy: 1 } };
       }, 1000);
     }
   };
@@ -157,14 +149,7 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
   const fish = getKeys(fishing.wharf.caught ?? {}).find((fish) => fish in FISH);
 
   const reelIn = () => {
-    let fishDifficulty = FISH_DIFFICULTY[fish as FishName];
-
-    // The more tentacles you catch, the harder it gets
-    if (fish === "Kraken Tentacle") {
-      const tentaclesCaught =
-        catchTheKraken.weeklyCatches[getSeasonWeek()] ?? 0;
-      fishDifficulty = Math.ceil((tentaclesCaught + 1) / 2);
-    }
+    const fishDifficulty = FISH_DIFFICULTY[fish as FishName];
 
     // TEMP: The reelin state is sometimes not showing automatically and players need to refresh
     // Right no they are losing resources, so comment this
@@ -210,7 +195,7 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
       const totalFishCaught = getKeys(FISH).reduce(
         (total, name) =>
           total + (state.context.state.farmActivity[`${name} Caught`] ?? 0),
-        0
+        0,
       );
 
       if (totalFishCaught === 1) {
@@ -265,7 +250,7 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
 
             <img
               className="absolute pointer-events-none z-50"
-              src={lockIcon}
+              src={SUNNYSIDE.icons.lock}
               style={{
                 width: `${PIXEL_SCALE * 12}px`,
                 right: `${PIXEL_SCALE * 10}px`,
@@ -275,18 +260,35 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
           </>
         )}
 
-        {!showReelLabel && showSpecial && canFish && (
-          <img
-            src={lightning}
-            style={{
-              width: `${PIXEL_SCALE * 8}px`,
-              left: `${PIXEL_SCALE * 5}px`,
-              top: `${PIXEL_SCALE * -17}px`,
+        {!showReelLabel && canFish && (
+          <>
+            {fishing.weather === "Fish Frenzy" && (
+              <img
+                src={lightning}
+                style={{
+                  width: `${PIXEL_SCALE * 8}px`,
+                  left: `${PIXEL_SCALE * 5}px`,
+                  top: `${PIXEL_SCALE * -19}px`,
 
-              imageRendering: "pixelated",
-            }}
-            className="absolute pointer-events-none"
-          />
+                  imageRendering: "pixelated",
+                }}
+                className="absolute pointer-events-none"
+              />
+            )}
+            {fishing.weather === "Full Moon" && (
+              <img
+                src={fullMoon}
+                style={{
+                  width: `${PIXEL_SCALE * 10}px`,
+                  left: `${PIXEL_SCALE * 3}px`,
+                  top: `${PIXEL_SCALE * -19}px`,
+
+                  imageRendering: "pixelated",
+                }}
+                className="absolute pointer-events-none"
+              />
+            )}
+          </>
         )}
 
         {showReelLabel && (
@@ -303,7 +305,7 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
               className="absolute"
             />
             <img
-              src={reel}
+              src={SUNNYSIDE.ui.reel}
               style={{
                 width: `${PIXEL_SCALE * 39}px`,
                 left: `${PIXEL_SCALE * 16}px`,
@@ -365,7 +367,7 @@ export const FishermanNPC: React.FC<Props> = ({ onClick }) => {
       <Modal show={showLockedModal} onHide={() => setShowLockedModal(false)}>
         <CloseButtonPanel onClose={() => setShowLockedModal(false)}>
           <div className="flex flex-col items-center">
-            <Label className="mt-2" icon={lockIcon} type="danger">
+            <Label className="mt-2" icon={SUNNYSIDE.icons.lock} type="danger">
               {t("warning.level.required", { lvl: 5 })}
             </Label>
             <img src={ITEM_DETAILS.Rod.image} className="w-10 mx-auto my-2" />

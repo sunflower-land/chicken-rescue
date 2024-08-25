@@ -55,6 +55,8 @@ import {
 import { feedBumpkin, FeedBumpkinAction } from "./landExpansion/feedBumpkin";
 import { detectBot, DetectBotAction } from "./detectBot";
 import { pickSkill, PickSkillAction } from "./landExpansion/pickSkill";
+import { choseSkill, ChoseSkillAction } from "./landExpansion/choseSkill";
+import { resetSkills, ResetSkillsAction } from "./landExpansion/resetSkills";
 import { seedBought, SeedBoughtAction } from "./landExpansion/seedBought";
 import {
   claimAchievement,
@@ -180,10 +182,6 @@ import {
   ClaimMilestoneAction,
 } from "./landExpansion/claimMilestone";
 import { missFish, MissFishAction } from "./landExpansion/missFish";
-import {
-  tradeTentacle,
-  TradeTentacleAction,
-} from "./landExpansion/tradeTentacle";
 import { revealLand, RevealLandAction } from "./landExpansion/revealLand";
 import {
   burnCollectible,
@@ -264,10 +262,6 @@ import {
   ExchangeSFLtoCoinsAction,
 } from "./landExpansion/exchangeSFLtoCoins";
 import {
-  pledgeFaction,
-  PledgeFactionAction,
-} from "./landExpansion/pledgeFaction";
-import {
   moveOilReserve,
   MoveOilReserveAction,
 } from "./landExpansion/moveOilReserve";
@@ -275,10 +269,6 @@ import {
   placeOilReserve,
   PlaceOilReserveAction,
 } from "./landExpansion/placeOilReserve";
-import {
-  donateToFaction,
-  DonateToFactionAction,
-} from "./landExpansion/donateToFaction";
 import {
   drillOilReserve,
   DrillOilReserveAction,
@@ -318,13 +308,43 @@ import {
   HarvestCropMachineAction,
 } from "./landExpansion/harvestCropMachine";
 import { joinFaction, JoinFactionAction } from "./landExpansion/joinFaction";
-import { claimEmblems, ClaimEmblemsAction } from "./landExpansion/claimEmblems";
 import {
   completeKingdomChore,
   CompleteKingdomChoreAction,
 } from "./landExpansion/completeKingdomChore";
+import {
+  DeliverFactionKitchenAction,
+  deliverFactionKitchen,
+} from "./landExpansion/deliverFactionKitchen";
+import {
+  BuyFactionShopItemAction,
+  buyFactionShopItem,
+} from "./landExpansion/buyFactionShopItem";
+import {
+  claimFactionPrize,
+  ClaimFactionPrizeAction,
+} from "./landExpansion/claimFactionPrize";
+import {
+  FeedFactionPetAction,
+  feedFactionPet,
+} from "./landExpansion/feedFactionPet";
+import {
+  refreshKingdomChores,
+  RefreshKingdomChoresAction,
+} from "./landExpansion/refreshKingdomChores";
+import {
+  skipKingdomChore,
+  SkipKingdomChoreAction,
+} from "./landExpansion/skipKingdomChore";
+import { leaveFaction, LeaveFactionAction } from "./landExpansion/leaveFaction";
+import { BuyMoreDigsAction, buyMoreDigs } from "./landExpansion/buyMoreDigs";
+import {
+  completeDailyChallenge,
+  CompleteDailyChallengeAction,
+} from "./landExpansion/completeDailyChallenge";
 
 export type PlayingEvent =
+  | CompleteDailyChallengeAction
   | OilGreenhouseAction
   | HarvestGreenhouseAction
   | PlantGreenhouseAction
@@ -344,6 +364,8 @@ export type PlayingEvent =
   | FeedBumpkinAction
   | DetectBotAction
   | PickSkillAction
+  | ChoseSkillAction
+  | ResetSkillsAction
   | SeedBoughtAction
   | ClaimAchievementAction
   | LandExpansionFeedChickenAction
@@ -387,7 +409,6 @@ export type PlayingEvent =
   | ReelRodAction
   | ClaimMilestoneAction
   | MissFishAction
-  | TradeTentacleAction
   | RevealLandAction
   | BurnCollectibleAction
   | ClaimBonusAction
@@ -406,7 +427,6 @@ export type PlayingEvent =
   | ClaimGiftAction
   | EnterRaffleAction
   | ExchangeSFLtoCoinsAction
-  | DonateToFactionAction
   | DrillOilReserveAction
   | ClaimMinigamePrizeAction
   | PurchaseMinigameAction
@@ -414,10 +434,16 @@ export type PlayingEvent =
   | SupplyCropMachineAction
   | HarvestCropMachineAction
   | SupplyCookingOilAction
-  | PledgeFactionAction
   | JoinFactionAction
-  | ClaimEmblemsAction
-  | CompleteKingdomChoreAction;
+  | CompleteKingdomChoreAction
+  | SkipKingdomChoreAction
+  | RefreshKingdomChoresAction
+  | DeliverFactionKitchenAction
+  | BuyFactionShopItemAction
+  | ClaimFactionPrizeAction
+  | FeedFactionPetAction
+  | LeaveFactionAction
+  | BuyMoreDigsAction;
 
 export type PlacementEvent =
   | ConstructBuildingAction
@@ -464,7 +490,7 @@ export type GameEventName<T> = Extract<T, { type: string }>["type"];
 
 export function isEventType<T extends PlayingEvent>(
   action: PlayingEvent,
-  typeName: T["type"]
+  typeName: T["type"],
 ): action is T {
   return action.type === typeName;
 }
@@ -483,6 +509,9 @@ type Handlers<T> = {
 };
 
 export const PLAYING_EVENTS: Handlers<PlayingEvent> = {
+  "dailyChallenge.completed": completeDailyChallenge,
+  "faction.left": leaveFaction,
+  "faction.prizeClaimed": claimFactionPrize,
   "greenhouse.oiled": oilGreenhouse,
   "greenhouse.harvested": harvestGreenHouse,
   "greenhouse.planted": plantGreenhouse,
@@ -507,6 +536,8 @@ export const PLAYING_EVENTS: Handlers<PlayingEvent> = {
   "recipe.collected": collectRecipe,
   "bumpkin.feed": feedBumpkin,
   "skill.picked": pickSkill,
+  "skill.chosen": choseSkill,
+  "skills.reset": resetSkills,
   "seed.bought": seedBought,
   "achievement.claimed": claimAchievement,
   "chicken.fed": LandExpansionFeedChicken,
@@ -549,7 +580,6 @@ export const PLAYING_EVENTS: Handlers<PlayingEvent> = {
   "rod.reeled": reelRod,
   "milestone.claimed": claimMilestone,
   "fish.missed": missFish,
-  "shelly.tradeTentacle": tradeTentacle,
   "land.revealed": revealLand,
   "collectible.burned": burnCollectible,
   "bonus.claimed": claimBonus,
@@ -568,16 +598,18 @@ export const PLAYING_EVENTS: Handlers<PlayingEvent> = {
   "gift.claimed": claimGift,
   "raffle.entered": enterRaffle,
   "sfl.exchanged": exchangeSFLtoCoins,
-  "faction.pledged": pledgeFaction,
-  // To replace pledgeFaction
   "faction.joined": joinFaction,
-  "faction.donated": donateToFaction,
   "oilReserve.drilled": drillOilReserve,
   "cropMachine.supplied": supplyCropMachine,
   "cropMachine.harvested": harvestCropMachine,
   "cookingOil.supplied": supplyCookingOil,
-  "emblems.claimed": claimEmblems,
   "kingdomChore.completed": completeKingdomChore,
+  "kingdomChore.skipped": skipKingdomChore,
+  "kingdomChores.refreshed": refreshKingdomChores,
+  "factionKitchen.delivered": deliverFactionKitchen,
+  "factionShopItem.bought": buyFactionShopItem,
+  "factionPet.fed": feedFactionPet,
+  "desert.digsBought": buyMoreDigs,
 };
 
 export const PLACEMENT_EVENTS: Handlers<PlacementEvent> = {

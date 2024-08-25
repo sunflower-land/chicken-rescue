@@ -1,9 +1,5 @@
 import React, { useContext, useLayoutEffect, useMemo, useState } from "react";
 
-import tent from "assets/land/tent_inside.png";
-import house from "assets/land/house_inside.png";
-import manor from "assets/land/manor_inside.png";
-
 import { GRID_WIDTH_PX, PIXEL_SCALE } from "features/game/lib/constants";
 import { Hud } from "features/island/hud/Hud";
 import { Context } from "features/game/GameProvider";
@@ -30,17 +26,29 @@ import { HOME_BOUNDS } from "features/game/expansion/placeable/lib/collisionDete
 import { Bud } from "features/island/buds/Bud";
 import { InteriorBumpkins } from "./components/InteriorBumpkins";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { SpeakingModal } from "features/game/components/SpeakingModal";
+import { NPC_WEARABLES } from "lib/npcs";
 
 const selectGameState = (state: MachineState) => state.context.state;
 const isLandscaping = (state: MachineState) => state.matches("landscaping");
 
 const BACKGROUND_IMAGE: Record<IslandType, string> = {
-  basic: tent,
-  spring: house,
-  desert: manor,
+  basic: SUNNYSIDE.land.tent_inside,
+  spring: SUNNYSIDE.land.house_inside,
+  desert: SUNNYSIDE.land.manor_inside,
 };
 
+function hasReadIntro() {
+  return !!localStorage.getItem("home.intro");
+}
+
+function acknowledgeIntro() {
+  return localStorage.setItem("home.intro", new Date().toISOString());
+}
+
 export const Home: React.FC = () => {
+  const [showIntro, setShowIntro] = useState(!hasReadIntro());
+
   const { gameService, showTimers } = useContext(Context);
 
   const { t } = useAppTranslation();
@@ -114,13 +122,13 @@ export const Home: React.FC = () => {
             </MapPlacement>
           );
         });
-      })
+      }),
   );
 
   mapPlacements.push(
     ...getKeys(buds)
       .filter(
-        (budId) => !!buds[budId].coordinates && buds[budId].location === "home"
+        (budId) => !!buds[budId].coordinates && buds[budId].location === "home",
       )
       .flatMap((id) => {
         const { x, y } = buds[id]!.coordinates!;
@@ -130,7 +138,7 @@ export const Home: React.FC = () => {
             <Bud id={String(id)} x={x} y={y} />
           </MapPlacement>
         );
-      })
+      }),
   );
 
   const bounds = HOME_BOUNDS[state.island.type];
@@ -138,6 +146,26 @@ export const Home: React.FC = () => {
   return (
     <>
       <>
+        <Modal show={showIntro}>
+          <SpeakingModal
+            bumpkinParts={NPC_WEARABLES["pumpkin' pete"]}
+            message={[
+              {
+                text: t("home-intro.one"),
+              },
+              {
+                text: t("home-intro.two"),
+              },
+              {
+                text: t("home-intro.three"),
+              },
+            ]}
+            onClose={() => {
+              setShowIntro(false);
+              acknowledgeIntro();
+            }}
+          />
+        </Modal>
         <div
           className="absolute bg-[#181425]"
           style={{
@@ -155,7 +183,7 @@ export const Home: React.FC = () => {
                   {
                     "opacity-0": !landscaping,
                     "opacity-100": landscaping,
-                  }
+                  },
                 )}
                 style={{
                   // Offset the walls

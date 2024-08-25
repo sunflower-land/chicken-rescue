@@ -3,6 +3,14 @@ import { Dimensions } from "./buildings";
 import { Inventory } from "./game";
 import { BoostTreasure, DecorationTreasure } from "./treasure";
 import { translate } from "lib/i18n/translate";
+import { Template } from "./templates";
+
+/**
+ * getKeys is a ref to Object.keys, but the return is typed literally.
+ */
+export const getKeys = Object.keys as <T extends object>(
+  obj: T,
+) => Array<keyof T>;
 
 export type AchievementDecorationName =
   | "Chef Bear"
@@ -75,9 +83,16 @@ export type SeasonalDecorationName =
   | "Golden Guardian"
   | "Rookie Rook"
   | "Silver Sentinel"
-  | "Silver Stallion";
+  | "Silver Stallion"
+  | "Paper Reed";
 
 export type EventDecorationName =
+  | "Jelly Lamp"
+  | "Paint Can"
+  | "Generosity Flag"
+  | "Benevolence Flag"
+  | "Devotion Flag"
+  | "Splendor Flag"
   | "Community Egg"
   | "Hungry Hare"
   | "Baozi"
@@ -105,6 +120,95 @@ export type PotionHouseDecorationName =
 
 export type InteriorDecorationName = "Rug" | "Wardrobe";
 
+export const DECORATION_TEMPLATES = {
+  "Goblin Gold Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Goblin Silver Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Goblin Bronze Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Bumpkin Gold Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Bumpkin Silver Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Bumpkin Bronze Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Sunflorian Gold Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Sunflorian Silver Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Sunflorian Bronze Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Nightshade Gold Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Nightshade Silver Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+  "Nightshade Bronze Champion": {
+    dimensions: {
+      width: 2,
+      height: 1,
+    },
+    isWithdrawable: () => false,
+  },
+} satisfies Record<string, Template>;
+
+export type TemplateDecorationName = keyof typeof DECORATION_TEMPLATES;
+
 export type DecorationName =
   | AchievementDecorationName
   | ShopDecorationName
@@ -113,9 +217,41 @@ export type DecorationName =
   | BoostTreasure
   | SeasonalDecorationName
   | PotionHouseDecorationName
-  | InteriorDecorationName;
+  | InteriorDecorationName
+  | TemplateDecorationName;
 
 export const DECORATION_DIMENSIONS: Record<DecorationName, Dimensions> = {
+  "Jelly Lamp": {
+    width: 2,
+    height: 2,
+  },
+  ...(getKeys(DECORATION_TEMPLATES) as TemplateDecorationName[]).reduce(
+    (acc, name) => ({
+      ...acc,
+      [name]: DECORATION_TEMPLATES[name].dimensions,
+    }),
+    {} as Record<TemplateDecorationName, Dimensions>,
+  ),
+  "Paint Can": {
+    width: 2,
+    height: 1,
+  },
+  "Benevolence Flag": {
+    width: 1,
+    height: 1,
+  },
+  "Devotion Flag": {
+    width: 1,
+    height: 1,
+  },
+  "Generosity Flag": {
+    width: 1,
+    height: 1,
+  },
+  "Splendor Flag": {
+    width: 1,
+    height: 1,
+  },
   "Gaucho Rug": {
     width: 3,
     height: 2,
@@ -525,6 +661,10 @@ export const DECORATION_DIMENSIONS: Record<DecorationName, Dimensions> = {
   "Festive Tree": {
     height: 2,
     width: 2,
+  },
+  "Paper Reed": {
+    height: 2,
+    width: 1,
   },
 };
 

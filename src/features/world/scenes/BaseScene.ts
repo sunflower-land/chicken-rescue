@@ -26,19 +26,15 @@ import { Room } from "colyseus.js";
 
 import defaultTilesetConfig from "assets/map/tileset.json";
 
-import {
-  AudioLocalStorageKeys,
-  getCachedAudioSetting,
-} from "../../game/lib/audio";
 import { MachineInterpreter } from "features/game/lib/gameMachine";
 import { MachineInterpreter as AuthMachineInterpreter } from "features/auth/lib/authMachine";
-import { capitalize } from "lib/utils/capitalize";
+import { PhaserNavMesh } from "phaser-navmesh";
+import {
+  AUDIO_MUTED_EVENT,
+  getAudioMutedSetting,
+} from "lib/utils/hooks/useIsAudioMuted";
 
 export const WALKING_SPEED = 40;
-
-type SceneTransitionData = {
-  previousSceneId: SceneId;
-};
 
 export type NPCBumpkin = {
   x: number;
@@ -83,9 +79,9 @@ type BaseSceneOptions = {
 
 export const FACTION_NAME_COLORS: Record<FactionName, string> = {
   sunflorians: "#fee761",
-  bumpkins: "#124e89",
-  goblins: "#265c42",
-  nightshades: "#68386c",
+  bumpkins: "#528ec9",
+  goblins: "#669c82",
+  nightshades: "#a878ac",
 };
 
 export abstract class BaseScene extends Phaser.Scene {
@@ -93,11 +89,12 @@ export abstract class BaseScene extends Phaser.Scene {
   eventListener?: (event: EventObject) => void;
 
   public joystick?: VirtualJoystick;
-  private sceneTransitionData?: SceneTransitionData;
   private switchToScene?: SceneId;
   private options: Required<BaseSceneOptions>;
 
   public map: Phaser.Tilemaps.Tilemap = {} as Phaser.Tilemaps.Tilemap;
+
+  npcs: Partial<Record<NPCName, BumpkinContainer>> = {};
 
   currentPlayer: BumpkinContainer | undefined;
   isFacingLeft = false;
@@ -143,6 +140,13 @@ export abstract class BaseScene extends Phaser.Scene {
     string,
     Phaser.Types.Physics.Arcade.ArcadePhysicsCallback
   > = {};
+  otherDiggers: Map<string, { x: number; y: number }> = new Map();
+  /**
+   * navMesh can be used to find paths between two points. The map will need to have
+   * a layer of "walkable rectangles" that the player can walk on.
+   * ref: https://github.com/mikewesthad/navmesh
+   */
+  navMesh: PhaserNavMesh | undefined;
 
   constructor(options: BaseSceneOptions) {
     if (!options.name) {
@@ -163,6 +167,10 @@ export abstract class BaseScene extends Phaser.Scene {
     this.options = defaultedOptions;
   }
 
+  private onAudioMuted = (event: CustomEvent) => {
+    this.sound.mute = event.detail;
+  };
+
   preload() {
     if (this.options.map?.json) {
       const json = {
@@ -175,16 +183,16 @@ export abstract class BaseScene extends Phaser.Scene {
     }
   }
 
-  init(data: SceneTransitionData) {
-    this.sceneTransitionData = data;
-  }
-
   create() {
     const errorLogger = createErrorLogger("phaser_base_scene", Number(this.id));
 
     try {
       this.initialiseMap();
       this.initialiseSounds();
+
+      // set audio mute state and listen for changes
+      this.sound.mute = getAudioMutedSetting();
+      window.addEventListener(AUDIO_MUTED_EVENT as any, this.onAudioMuted);
 
       if (this.options.mmo.enabled) {
         this.initialiseMMO();
@@ -194,7 +202,7 @@ export abstract class BaseScene extends Phaser.Scene {
         this.initialiseControls();
       }
 
-      const from = this.sceneTransitionData?.previousSceneId as SceneId;
+      const from = this.mmoService?.state.context.previousSceneId as SceneId;
 
       let spawn = this.options.player.spawn;
 
@@ -226,7 +234,20 @@ export abstract class BaseScene extends Phaser.Scene {
     } catch (error) {
       errorLogger(JSON.stringify(error));
     }
+
+    this.setUpNavMesh();
   }
+
+  public setUpNavMesh = () => {
+    const meshLayer = this.map.getObjectLayer("NavMesh");
+    if (!meshLayer) return;
+
+    this.navMesh = this.navMeshPlugin.buildMeshFromTiled(
+      "NavMesh",
+      meshLayer,
+      16,
+    );
+  };
 
   private roof: Phaser.Tilemaps.TilemapLayer | null = null;
 
@@ -241,7 +262,7 @@ export abstract class BaseScene extends Phaser.Scene {
       16,
       16,
       1,
-      2
+      2,
     ) as Phaser.Tilemaps.Tileset;
 
     // Set up collider layers
@@ -262,7 +283,7 @@ export abstract class BaseScene extends Phaser.Scene {
     if (this.map.getObjectLayer("Interactable")) {
       const interactablesPolygons = this.map.createFromObjects(
         "Interactable",
-        {}
+        {},
       );
       interactablesPolygons.forEach((polygon) => {
         polygon
@@ -273,7 +294,7 @@ export abstract class BaseScene extends Phaser.Scene {
 
               const distance = Phaser.Math.Distance.BetweenPoints(
                 this.currentPlayer as BumpkinContainer,
-                polygon as Phaser.GameObjects.Polygon
+                polygon as Phaser.GameObjects.Polygon,
               );
 
               if (distance > 50) {
@@ -347,7 +368,7 @@ export abstract class BaseScene extends Phaser.Scene {
       0,
       0,
       this.map.width * SQUARE_WIDTH,
-      this.map.height * SQUARE_WIDTH
+      this.map.height * SQUARE_WIDTH,
     );
   }
 
@@ -358,7 +379,7 @@ export abstract class BaseScene extends Phaser.Scene {
       0,
       0,
       this.map.width * SQUARE_WIDTH,
-      this.map.height * SQUARE_WIDTH
+      this.map.height * SQUARE_WIDTH,
     );
 
     camera.setZoom(this.zoom);
@@ -419,9 +440,12 @@ export abstract class BaseScene extends Phaser.Scene {
       }
 
       if (this.playerEntities[reaction.sessionId]) {
-        this.playerEntities[reaction.sessionId].react(reaction.reaction);
+        this.playerEntities[reaction.sessionId].react(
+          reaction.reaction,
+          reaction.quantity,
+        );
       } else if (reaction.sessionId === server.sessionId) {
-        this.currentPlayer?.react(reaction.reaction);
+        this.currentPlayer?.react(reaction.reaction, reaction.quantity);
       }
     });
 
@@ -431,19 +455,15 @@ export abstract class BaseScene extends Phaser.Scene {
     this.events.on("shutdown", () => {
       removeMessageListener();
       removeReactionListener();
+
+      window.removeEventListener(AUDIO_MUTED_EVENT as any, this.onAudioMuted);
     });
   }
 
   public initialiseSounds() {
-    const audioMuted = getCachedAudioSetting<boolean>(
-      AudioLocalStorageKeys.audioMuted,
-      false
+    this.walkAudioController = new WalkAudioController(
+      this.sound.add(this.options.audio.fx.walk_key),
     );
-    if (!audioMuted) {
-      this.walkAudioController = new WalkAudioController(
-        this.sound.add(this.options.audio.fx.walk_key)
-      );
-    }
   }
 
   public initialiseControls() {
@@ -451,18 +471,18 @@ export abstract class BaseScene extends Phaser.Scene {
     this.cursorKeys = this.input.keyboard?.createCursorKeys();
     if (this.cursorKeys) {
       const mmoLocalSettings = JSON.parse(
-        localStorage.getItem("mmo_settings") ?? "{}"
+        localStorage.getItem("mmo_settings") ?? "{}",
       );
       const layout = mmoLocalSettings.layout ?? "QWERTY";
 
       // add WASD keys
       this.cursorKeys.w = this.input.keyboard?.addKey(
         layout === "QWERTY" ? "W" : "Z",
-        false
+        false,
       );
       this.cursorKeys.a = this.input.keyboard?.addKey(
         layout === "QWERTY" ? "A" : "Q",
-        false
+        false,
       );
       this.cursorKeys.s = this.input.keyboard?.addKey("S", false);
       this.cursorKeys.d = this.input.keyboard?.addKey("D", false);
@@ -502,6 +522,14 @@ export abstract class BaseScene extends Phaser.Scene {
     return this.gameState.username;
   }
 
+  public get selectedItem() {
+    return this.registry.get("selectedItem");
+  }
+
+  public get shortcutItem() {
+    return this.registry.get("shortcutItem");
+  }
+
   createPlayer({
     x,
     y,
@@ -528,7 +556,7 @@ export abstract class BaseScene extends Phaser.Scene {
     const defaultClick = () => {
       const distance = Phaser.Math.Distance.BetweenPoints(
         entity,
-        this.currentPlayer as BumpkinContainer
+        this.currentPlayer as BumpkinContainer,
       );
 
       if (distance > 50) {
@@ -558,33 +586,22 @@ export abstract class BaseScene extends Phaser.Scene {
       y,
       clothing,
       name: npc,
+      faction,
       onClick: defaultClick,
     });
 
     if (!npc) {
-      let nameTagYPosition = 0;
-
-      if (faction) {
-        const color = FACTION_NAME_COLORS[faction as FactionName];
-        const factionTag = this.createPlayerText({
-          x: 0,
-          y: 0,
-          text: `<${capitalize(faction)}>`,
-          color,
-        });
-
-        // Move name tag down
-        nameTagYPosition = 4;
-
-        factionTag.name = "factionTag";
-        entity.add(factionTag);
-      }
+      const color = faction
+        ? FACTION_NAME_COLORS[faction as FactionName]
+        : "#fff";
 
       const nameTag = this.createPlayerText({
         x: 0,
-        y: nameTagYPosition,
+        y: 0,
         text: username ? username : `#${farmId}`,
+        color,
       });
+      nameTag.setShadow(1, 1, "#161424", 0, false, true);
       nameTag.name = "nameTag";
       entity.add(nameTag);
     }
@@ -595,11 +612,12 @@ export abstract class BaseScene extends Phaser.Scene {
 
       // (this.currentPlayer.body as Phaser.Physics.Arcade.Body).width = 10;
       (this.currentPlayer.body as Phaser.Physics.Arcade.Body)
-        .setSize(SQUARE_WIDTH, SQUARE_WIDTH)
+        .setOffset(3, 10)
+        .setSize(10, 8)
         .setCollideWorldBounds(true);
 
       (this.currentPlayer.body as Phaser.Physics.Arcade.Body).setAllowRotation(
-        false
+        false,
       );
 
       // Follow player with camera
@@ -621,24 +639,15 @@ export abstract class BaseScene extends Phaser.Scene {
 
           // Change scenes
           const warpTo = (obj2 as any).data?.list?.warp;
-          if (warpTo) {
-            this.currentPlayer?.stopSpeaking();
-            this.cameras.main.fadeOut(1000);
-
-            this.cameras.main.on(
-              "camerafadeoutcomplete",
-              () => {
-                this.switchToScene = warpTo;
-              },
-              this
-            );
+          if (warpTo && this.currentPlayer?.isWalking) {
+            this.changeScene(warpTo);
           }
 
           const interactable = (obj2 as any).data?.list?.open;
           if (interactable) {
             interactableModalManager.open(interactable);
           }
-        }
+        },
       );
 
       this.physics.add.overlap(
@@ -653,7 +662,7 @@ export abstract class BaseScene extends Phaser.Scene {
           if (cb) {
             cb(obj1, obj2);
           }
-        }
+        },
       );
     } else {
       (entity.body as Phaser.Physics.Arcade.Body)
@@ -713,7 +722,7 @@ export abstract class BaseScene extends Phaser.Scene {
     left: boolean,
     right: boolean,
     up: boolean,
-    down: boolean
+    down: boolean,
   ): number | undefined {
     // calculate the x and y components based on key states
     const x = (right ? 1 : 0) - (left ? 1 : 0);
@@ -731,6 +740,18 @@ export abstract class BaseScene extends Phaser.Scene {
   updatePlayer() {
     if (!this.currentPlayer?.body) {
       return;
+    }
+
+    // Update faction
+    const faction = this.gameState.faction?.name;
+
+    if (this.currentPlayer.faction !== faction) {
+      this.currentPlayer.faction = faction;
+      this.mmoServer?.send(0, { faction });
+      this.checkAndUpdateNameColor(
+        this.currentPlayer,
+        faction ? FACTION_NAME_COLORS[faction] : "white",
+      );
     }
 
     // joystick is active if force is greater than zero
@@ -771,7 +792,7 @@ export abstract class BaseScene extends Phaser.Scene {
     if (this.movementAngle !== undefined) {
       currentPlayerBody.setVelocity(
         this.walkingSpeed * Math.cos((this.movementAngle * Math.PI) / 180),
-        this.walkingSpeed * Math.sin((this.movementAngle * Math.PI) / 180)
+        this.walkingSpeed * Math.sin((this.movementAngle * Math.PI) / 180),
       );
     } else {
       currentPlayerBody.setVelocity(0, 0);
@@ -779,14 +800,15 @@ export abstract class BaseScene extends Phaser.Scene {
 
     this.sendPositionToServer();
 
-    const isMoving = this.movementAngle !== undefined;
+    const isMoving =
+      this.movementAngle !== undefined && this.walkingSpeed !== 0;
 
     if (this.soundEffects) {
       this.soundEffects.forEach((audio) =>
         audio.setVolumeAndPan(
           this.currentPlayer?.x ?? 0,
-          this.currentPlayer?.y ?? 0
-        )
+          this.currentPlayer?.y ?? 0,
+        ),
       );
     } else {
       // eslint-disable-next-line no-console
@@ -916,6 +938,16 @@ export abstract class BaseScene extends Phaser.Scene {
     });
   }
 
+  checkAndUpdateNameColor(entity: BumpkinContainer, color: string) {
+    const nameTag = entity.getByName("nameTag") as
+      | Phaser.GameObjects.Text
+      | undefined;
+
+    if (nameTag && nameTag.style.color !== color) {
+      nameTag.setColor(color);
+    }
+  }
+
   updateFactions() {
     const server = this.mmoServer;
     if (!server) return;
@@ -924,28 +956,12 @@ export abstract class BaseScene extends Phaser.Scene {
       if (!player.faction) return;
 
       if (this.playerEntities[sessionId]) {
-        const nameTag = this.playerEntities[sessionId].getByName("nameTag") as
-          | Phaser.GameObjects.Text
-          | undefined;
-        let factionTag = this.playerEntities[sessionId].getByName(
-          "factionTag"
-        ) as Phaser.GameObjects.Text | undefined;
+        const faction = player.faction;
+        const color = faction
+          ? FACTION_NAME_COLORS[faction as FactionName]
+          : "#fff";
 
-        if (nameTag && factionTag?.text !== `<${capitalize(player.faction)}>`) {
-          const color = FACTION_NAME_COLORS[player.faction as FactionName];
-          factionTag = this.createPlayerText({
-            x: 0,
-            y: 0,
-            text: `<${capitalize(player.faction)}>`,
-            color,
-          });
-
-          // Move name tag down
-          nameTag.setPosition(0, 16);
-
-          factionTag.name = "factionTag";
-          this.playerEntities[sessionId].add(factionTag);
-        }
+        this.checkAndUpdateNameColor(this.playerEntities[sessionId], color);
       }
     });
   }
@@ -956,12 +972,14 @@ export abstract class BaseScene extends Phaser.Scene {
 
     const playerInVIP = this.physics.world.overlap(
       this.hiddenColliders as Phaser.GameObjects.Group,
-      this.currentPlayer
+      this.currentPlayer,
     );
 
     // Render current players
     server.state.players.forEach((player, sessionId) => {
       if (sessionId === server.sessionId) return;
+
+      if (this.otherDiggers.has(sessionId)) return;
 
       const entity = this.playerEntities[sessionId];
 
@@ -990,7 +1008,7 @@ export abstract class BaseScene extends Phaser.Scene {
       // Hide if in club house
       const overlap = this.physics.world.overlap(
         this.hiddenColliders as Phaser.GameObjects.Group,
-        entity
+        entity,
       );
 
       const hidden = !playerInVIP && overlap;
@@ -1006,9 +1024,12 @@ export abstract class BaseScene extends Phaser.Scene {
     if (this.switchToScene) {
       const warpTo = this.switchToScene;
       this.switchToScene = undefined;
+
+      // This will cause a loop
+      // this.registry.get("navigate")(`/world/${warpTo}`);
+
       // this.mmoService?.state.context.server?.send(0, { sceneId: warpTo });
       this.mmoService?.send("SWITCH_SCENE", { sceneId: warpTo });
-      this.scene.start(warpTo, { previousSceneId: this.sceneId });
     }
   }
   updateOtherPlayers() {
@@ -1021,12 +1042,12 @@ export abstract class BaseScene extends Phaser.Scene {
   }
 
   checkDistanceToSprite(
-    sprite: Phaser.GameObjects.Sprite,
-    maxDistance: number
+    sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image,
+    maxDistance: number,
   ) {
     const distance = Phaser.Math.Distance.BetweenPoints(
       sprite,
-      this.currentPlayer as BumpkinContainer
+      this.currentPlayer as BumpkinContainer,
     );
 
     if (distance > maxDistance) return false;
@@ -1034,15 +1055,15 @@ export abstract class BaseScene extends Phaser.Scene {
   }
 
   initialiseNPCs(npcs: NPCBumpkin[]) {
-    npcs.forEach((bumpkin, index) => {
+    npcs.forEach((bumpkin) => {
       const defaultClick = () => {
         const distance = Phaser.Math.Distance.BetweenPoints(
           container,
-          this.currentPlayer as BumpkinContainer
+          this.currentPlayer as BumpkinContainer,
         );
 
         if (distance > 50) {
-          container.speak("You are too far away");
+          container.speak(translate("base.far.away"));
           return;
         }
         npcModalManager.open(bumpkin.npc);
@@ -1071,6 +1092,7 @@ export abstract class BaseScene extends Phaser.Scene {
       this.physics.world.enable(container);
       this.colliders?.add(container);
       this.triggerColliders?.add(container);
+      this.npcs[bumpkin.npc] = container;
     });
   }
 
@@ -1081,4 +1103,25 @@ export abstract class BaseScene extends Phaser.Scene {
       this.switchToScene = sceneId;
     }
   }
+
+  /**
+   * Changes the scene to the desired scene.
+   * @param {SceneId} scene The desired scene.
+   */
+  protected changeScene = (scene: SceneId) => {
+    const originalWalkingSpeed = this.walkingSpeed;
+    this.walkingSpeed = 0;
+
+    this.currentPlayer?.stopSpeaking();
+    this.cameras.main.fadeOut(1000);
+
+    this.cameras.main.on(
+      "camerafadeoutcomplete",
+      () => {
+        this.switchToScene = scene;
+        this.walkingSpeed = originalWalkingSpeed;
+      },
+      this,
+    );
+  };
 }

@@ -14,7 +14,7 @@ import { fromWei, toBN, toWei } from "web3-utils";
 
 import token from "assets/icons/sfl.webp";
 import classNames from "classnames";
-import { setPrecision } from "lib/utils/formatNumber";
+import { formatNumber } from "lib/utils/formatNumber";
 import { getKeys } from "features/game/types/craftables";
 import { ITEM_DETAILS } from "features/game/types/images";
 import { Box } from "components/ui/Box";
@@ -38,7 +38,6 @@ import { CloseButtonPanel } from "features/game/components/CloseablePanel";
 import { getImageUrl } from "lib/utils/getImageURLS";
 import { MachineState } from "features/game/lib/gameMachine";
 import { Context as GameContext } from "features/game/GameProvider";
-import { getBumpkinLevel } from "features/game/lib/level";
 import { GameWallet } from "features/wallet/Wallet";
 
 const imageDomain = CONFIG.NETWORK === "mainnet" ? "buds" : "testnet-buds";
@@ -50,7 +49,7 @@ export function transferInventoryItem(
   >,
   setTo: React.Dispatch<
     React.SetStateAction<Partial<Record<InventoryItemName, Decimal>>>
-  >
+  >,
 ) {
   let amount = new Decimal(1);
 
@@ -86,11 +85,10 @@ interface Props {
       | "wearableIds"
       | "wearableAmounts"
       | "budIds"
-    >
+    >,
   ) => void;
   onClose?: () => void;
   onLoaded?: (loaded: boolean) => void;
-  canDeposit?: boolean;
 }
 
 const VALID_NUMBER = new RegExp(/^\d*\.?\d*$/);
@@ -101,7 +99,6 @@ export const Deposit: React.FC<Props> = ({
   onDeposit,
   onLoaded,
   farmAddress,
-  canDeposit = true,
 }) => {
   const [showIntro, setShowIntro] = useState(true);
   const { t } = useAppTranslation();
@@ -126,7 +123,6 @@ export const Deposit: React.FC<Props> = ({
         onDeposit={onDeposit}
         onLoaded={onLoaded}
         farmAddress={farmAddress}
-        canDeposit={canDeposit}
       />
     </GameWallet>
   );
@@ -165,22 +161,22 @@ const DepositOptions: React.FC<Props> = ({
       try {
         const sflBalanceFn = sflBalanceOf(
           wallet.web3Provider,
-          wallet.myAccount
+          wallet.myAccount,
         );
 
         const inventoryBalanceFn = getInventoryBalances(
           wallet.web3Provider,
-          wallet.myAccount
+          wallet.myAccount,
         );
 
         const wearableBalanceFn = loadWardrobe(
           wallet.web3Provider,
-          wallet.myAccount
+          wallet.myAccount,
         );
 
         const budBalanceFn = getBudsBalance(
           wallet.web3Provider,
-          wallet.myAccount
+          wallet.myAccount,
         );
 
         const [sflBalance, inventoryBalance, wearableBalance, budBalance] =
@@ -277,12 +273,12 @@ const DepositOptions: React.FC<Props> = ({
   const handleDeposit = async () => {
     const itemIds = selectedItems.map((item) => KNOWN_IDS[item]);
     const itemAmounts = selectedItems.map((item) =>
-      toWei(inventoryToDeposit[item]?.toString() as string, getItemUnit(item))
+      toWei(inventoryToDeposit[item]?.toString() as string, getItemUnit(item)),
     );
 
     const wearableIds = selectedWearables.map((item) => ITEM_IDS[item]);
     const wearableAmounts = selectedWearables.map(
-      (item) => wearablesToDeposit[item]
+      (item) => wearablesToDeposit[item],
     ) as number[];
 
     onDeposit({
@@ -298,13 +294,13 @@ const DepositOptions: React.FC<Props> = ({
   };
 
   const amountGreaterThanBalance = toBN(toWei(sflDepositAmount.toString())).gt(
-    toBN(toWei(sflBalance.toString()))
+    toBN(toWei(sflBalance.toString())),
   );
 
   const sflBalString = fromWei(toBN(toWei(sflBalance.toString())));
-  const formattedSflBalance = setPrecision(
-    new Decimal(sflBalString)
-  ).toString();
+  const formattedSflBalance = formatNumber(new Decimal(sflBalString), {
+    decimalPlaces: 4,
+  });
 
   const depositableItems = getKeys(inventoryBalance)
     .filter((item) => inventoryBalance[item]?.gt(0))
@@ -336,24 +332,13 @@ const DepositOptions: React.FC<Props> = ({
     sflBalance.eq(0);
   const validDepositAmount = sflDepositAmount > 0 && !amountGreaterThanBalance;
 
-  // if (!canDeposit) {
-  //   return (
-  //     <div className="p-2 space-y-2">
-  //       <p>{t("deposit.toDepositLevelUp")}</p>
-  //       <Label icon={lockIcon} type="danger">
-  //        {t("deposit.level")}
-  //       </Label>
-  //     </div>
-  //   );
-  // }
-
   return (
     <>
       {status === "loading" && <Loading />}
       {status === "loaded" && emptyWallet && (
         <div className="p-2 space-y-2">
           <p>{t("deposit.noSflOrCollectibles")}</p>
-          <div className="flex text-xs sm:text-xs mb-3 space-x-1">
+          <div className="flex text-xs sm:text-xs pb-8">
             <span className="whitespace-nowrap">
               {t("deposit.farmAddress")}
             </span>
@@ -382,7 +367,7 @@ const DepositOptions: React.FC<Props> = ({
                             "text-shadow shadow-inner shadow-black bg-brown-200 w-full p-2",
                             {
                               "text-error": amountGreaterThanBalance,
-                            }
+                            },
                           )}
                         />
                         <span className="text-xxs md:text-xs absolute top-1/2 -translate-y-1/2 right-2">{`${
@@ -399,7 +384,10 @@ const DepositOptions: React.FC<Props> = ({
                 {hasItemsInInventory && (
                   <>
                     <p className="text-sm">{t("collectibles")}</p>
-                    <div className="flex flex-wrap h-fit -ml-1.5">
+                    <div
+                      className="flex flex-wrap h-fit -ml-1.5 overflow-y-auto scrollable pr-1"
+                      style={{ maxHeight: "200px" }}
+                    >
                       {depositableItems.map((item) => {
                         return (
                           <Box
@@ -557,29 +545,26 @@ const DepositOptions: React.FC<Props> = ({
 
 interface DepositModalProps {
   farmAddress: string;
-  canDeposit: boolean;
   showDepositModal: boolean;
   handleDeposit: (
-    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">
+    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">,
   ) => void;
   handleClose: () => void;
 }
 
 export const DepositModal: React.FC<DepositModalProps> = ({
   farmAddress,
-  canDeposit,
   showDepositModal,
   handleDeposit,
   handleClose,
 }) => {
   return (
     <Modal show={showDepositModal} onHide={handleClose}>
-      <CloseButtonPanel onClose={canDeposit ? handleClose : undefined}>
+      <CloseButtonPanel onClose={handleClose}>
         <Deposit
           farmAddress={farmAddress}
           onDeposit={handleDeposit}
           onClose={handleClose}
-          canDeposit={canDeposit}
         />
       </CloseButtonPanel>
     </Modal>
@@ -587,25 +572,16 @@ export const DepositModal: React.FC<DepositModalProps> = ({
 };
 
 const _farmAddress = (state: MachineState) => state.context.farmAddress ?? "";
-const _xp = (state: MachineState) =>
-  state.context.state.bumpkin?.experience ?? 0;
 
 export const DepositWrapper: React.FC = () => {
   const { gameService } = useContext(GameContext);
   const farmAddress = useSelector(gameService, _farmAddress);
-  const xp = useSelector(gameService, _xp);
 
   const handleDeposit = (
-    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">
+    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">,
   ) => {
     gameService.send("DEPOSIT", args);
   };
 
-  return (
-    <Deposit
-      farmAddress={farmAddress}
-      onDeposit={handleDeposit}
-      canDeposit={getBumpkinLevel(xp) >= 3}
-    />
-  );
+  return <Deposit farmAddress={farmAddress} onDeposit={handleDeposit} />;
 };

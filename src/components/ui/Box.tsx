@@ -3,10 +3,6 @@ import classNames from "classnames";
 import Decimal from "decimal.js-light";
 
 import { Label, LabelType } from "./Label";
-import selectBoxBL from "assets/ui/select/selectbox_bl.png";
-import selectBoxBR from "assets/ui/select/selectbox_br.png";
-import selectBoxTL from "assets/ui/select/selectbox_tl.png";
-import selectBoxTR from "assets/ui/select/selectbox_tr.png";
 import { useLongPress } from "lib/utils/hooks/useLongPress";
 import { setPrecision, shortenCount } from "lib/utils/formatNumber";
 import { isMobile } from "mobile-device-detect";
@@ -14,6 +10,7 @@ import { pixelDarkBorderStyle } from "features/game/lib/style";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SquareIcon } from "./SquareIcon";
 import { SUNNYSIDE } from "assets/sunnyside";
+import { ProgressType, ResizableBar } from "./ProgressBar";
 
 const LABEL_RIGHT_SHIFT_PX = -5 * PIXEL_SCALE;
 const LABEL_TOP_SHIFT_PX = -5 * PIXEL_SCALE;
@@ -51,6 +48,14 @@ export interface BoxProps {
    * Otherwise leave this unset so the shifting is done if the label is outside the viewport.
    */
   parentDivRef?: React.RefObject<HTMLElement>;
+  /**
+   * progress bar for the box, replaces the bottom left and bottom right
+   */
+  progress?: {
+    label?: string;
+    percentage: number;
+    type: ProgressType;
+  };
 }
 
 export const Box: React.FC<BoxProps> = ({
@@ -71,6 +76,7 @@ export const Box: React.FC<BoxProps> = ({
   iconClassName = "",
   parentDivRef,
   alternateIcon,
+  progress,
 }) => {
   const [isHover, setIsHover] = useState(false);
   const [showHiddenCountLabel, setShowHiddenCountLabel] = useState(false);
@@ -79,12 +85,12 @@ export const Box: React.FC<BoxProps> = ({
   const labelRef = useRef<HTMLDivElement>(null);
   const labelCheckerRef = useRef<HTMLDivElement>(null);
 
-  const precisionCount = setPrecision(new Decimal(count || 0));
+  const precisionCount = setPrecision(count ?? 0, 2);
 
   // re-execute function on count change
   useEffect(
     () => setShortCount(shortenCount(precisionCount)),
-    [precisionCount]
+    [precisionCount],
   );
 
   const canClick = !locked && !disabled && !!onClick;
@@ -95,7 +101,7 @@ export const Box: React.FC<BoxProps> = ({
     {
       delay: 500,
       interval: 20,
-    }
+    },
   );
 
   const clickEvents = canBeLongPressed
@@ -178,7 +184,7 @@ export const Box: React.FC<BoxProps> = ({
             "absolute flex justify-center items-center w-full h-full",
             {
               "opacity-75": locked,
-            }
+            },
           )}
         >
           <SquareIcon
@@ -312,32 +318,56 @@ export const Box: React.FC<BoxProps> = ({
             {overlayIcon}
           </div>
         )}
+
+        {progress && (
+          <div
+            className="absolute flex flex-col items-center"
+            style={{
+              top: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
+              left: `-5px`,
+            }}
+          >
+            <ResizableBar
+              percentage={progress.percentage}
+              type={progress.type}
+              outerDimensions={{
+                width: INNER_CANVAS_WIDTH + 4,
+                height: 7,
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/** Selected / hover indicator */}
       {(isSelected || (isHover && !isMobile)) && canClick && (
         <>
+          {/* {!progress && ( */}
+          <>
+            <img
+              className="absolute pointer-events-none"
+              src={SUNNYSIDE.ui.selectBoxBL}
+              style={{
+                top: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
+                left: `${PIXEL_SCALE * 0}px`,
+                width: `${PIXEL_SCALE * 8}px`,
+              }}
+            />
+            <img
+              className="absolute pointer-events-none"
+              src={SUNNYSIDE.ui.selectBoxBR}
+              style={{
+                top: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
+                left: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
+                width: `${PIXEL_SCALE * 8}px`,
+              }}
+            />
+          </>
+          {/* )} */}
+
           <img
             className="absolute pointer-events-none"
-            src={selectBoxBL}
-            style={{
-              top: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
-              left: `${PIXEL_SCALE * 0}px`,
-              width: `${PIXEL_SCALE * 8}px`,
-            }}
-          />
-          <img
-            className="absolute pointer-events-none"
-            src={selectBoxBR}
-            style={{
-              top: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
-              left: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
-              width: `${PIXEL_SCALE * 8}px`,
-            }}
-          />
-          <img
-            className="absolute pointer-events-none"
-            src={selectBoxTL}
+            src={SUNNYSIDE.ui.selectBoxTL}
             style={{
               top: `${PIXEL_SCALE * 1}px`,
               left: `${PIXEL_SCALE * 0}px`,
@@ -346,7 +376,7 @@ export const Box: React.FC<BoxProps> = ({
           />
           <img
             className="absolute pointer-events-none"
-            src={selectBoxTR}
+            src={SUNNYSIDE.ui.selectBoxTR}
             style={{
               top: `${PIXEL_SCALE * 1}px`,
               left: `${PIXEL_SCALE * INNER_CANVAS_WIDTH}px`,
@@ -354,6 +384,11 @@ export const Box: React.FC<BoxProps> = ({
             }}
           />
         </>
+      )}
+      {progress?.label && (
+        <div className="flex justify-center pt-2">
+          <span className="text-xxs whitespace-nowrap">{progress.label}</span>
+        </div>
       )}
     </div>
   );

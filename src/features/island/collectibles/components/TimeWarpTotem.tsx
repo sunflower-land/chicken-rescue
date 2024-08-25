@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 
-import tikiTotem from "src/assets/sfts/time_warp_totem.webp";
-import fastForward from "src/assets/icons/fast_forward.png";
+import tikiTotem from "assets/sfts/time_warp_totem.webp";
+import fastForward from "assets/icons/fast_forward.png";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { CollectibleProps } from "../Collectible";
 import { SUNNYSIDE } from "assets/sunnyside";
@@ -19,7 +19,7 @@ export const TimeWarpTotem: React.FC<CollectibleProps> = ({
   location,
 }) => {
   const { t } = useAppTranslation();
-  const { gameService } = useContext(Context);
+  const { gameService, showTimers } = useContext(Context);
 
   const [_, setRender] = useState(0);
 
@@ -97,15 +97,17 @@ export const TimeWarpTotem: React.FC<CollectibleProps> = ({
           onClick={() => setShowModal(true)}
         />
       )}
-      <div className="absolute bottom-0 left-0">
-        <LiveProgressBar
-          startAt={createdAt}
-          endAt={expiresAt}
-          formatLength="medium"
-          type={"buff"}
-          onComplete={() => setRender((r) => r + 1)}
-        />
-      </div>
+      {showTimers && (
+        <div className="absolute bottom-0 left-0">
+          <LiveProgressBar
+            startAt={createdAt}
+            endAt={expiresAt}
+            formatLength="medium"
+            type={"buff"}
+            onComplete={() => setRender((r) => r + 1)}
+          />
+        </div>
+      )}
 
       <img
         src={tikiTotem}

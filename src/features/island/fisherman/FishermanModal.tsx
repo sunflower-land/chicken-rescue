@@ -4,6 +4,7 @@ import { useActor, useSelector } from "@xstate/react";
 import { SUNNYSIDE } from "assets/sunnyside";
 import plus from "assets/icons/plus.png";
 import lightning from "assets/icons/lightning.png";
+import fullMoon from "assets/icons/full_moon.png";
 import { Box } from "components/ui/Box";
 import { Button } from "components/ui/Button";
 import { Label } from "components/ui/Label";
@@ -30,7 +31,7 @@ import {
 } from "features/game/types/fishing";
 import { MachineState } from "features/game/lib/gameMachine";
 import { isWearableActive } from "features/game/lib/wearables";
-import { translate } from "lib/i18n/translate";
+import { translate, translateTerms } from "lib/i18n/translate";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import {
   getBasketItems,
@@ -168,7 +169,7 @@ const BaitSelection: React.FC<{
     const hasRequirements =
       lastSelectedChum &&
       items[lastSelectedChum as InventoryItemName]?.gte(
-        CHUM_AMOUNTS[lastSelectedChum as Chum] ?? 0
+        CHUM_AMOUNTS[lastSelectedChum as Chum] ?? 0,
       );
 
     if (hasRequirements) {
@@ -208,7 +209,7 @@ const BaitSelection: React.FC<{
     (!state.inventory["Rod"] || state.inventory.Rod.lt(1));
 
   const catches = getKeys(FISH).filter((name) =>
-    FISH[name].baits.includes(bait)
+    FISH[name].baits.includes(bait),
   );
 
   const tide = getTide();
@@ -218,8 +219,8 @@ const BaitSelection: React.FC<{
     <>
       <InnerPanel>
         <div className="p-2">
-          <div className="flex items-center justify-between flex-wrap">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between flex-wrap gap-1">
+            <div className="flex items-center gap-1">
               {tide === "Dusktide" ? (
                 <Label
                   icon={SUNNYSIDE.icons.stopwatch}
@@ -238,11 +239,16 @@ const BaitSelection: React.FC<{
                 </Label>
               )}
 
-              {weather === "Fish Frenzy" || weather === "Full Moon" ? (
+              {weather === "Fish Frenzy" && (
                 <Label icon={lightning} type="vibrant">
                   {weather}
                 </Label>
-              ) : null}
+              )}
+              {weather === "Full Moon" && (
+                <Label icon={fullMoon} type="vibrant">
+                  {weather}
+                </Label>
+              )}
             </div>
 
             <Label icon={SUNNYSIDE.tools.fishing_rod} type="default">
@@ -275,9 +281,11 @@ const BaitSelection: React.FC<{
             <img src={ITEM_DETAILS[bait].image} className="h-10 mr-2" />
             <div>
               <p className="text-sm mb-1">{bait}</p>
-              <p className="text-xs">{ITEM_DETAILS[bait].description}</p>
+              <p className="text-xs">
+                {translateTerms(ITEM_DETAILS[bait].description)}
+              </p>
               {!items[bait] && bait !== "Fishing Lure" && (
-                <Label className="mt-1" type="default">
+                <Label className="mt-2" type="default">
                   {t("statements.craft.composter")}
                 </Label>
               )}
@@ -393,11 +401,11 @@ export const FishermanModal: React.FC<Props> = ({
   const dailyFishingCount = getDailyFishingCount(state);
 
   const [showFishFrenzy, setShowFishFrenzy] = React.useState(
-    weather === "Fish Frenzy" && dailyFishingCount === 0
+    weather === "Fish Frenzy" && dailyFishingCount === 0,
   );
 
   const [showFullMoon, setShowFullMoon] = React.useState(
-    weather === "Full Moon" && dailyFishingCount === 0
+    weather === "Full Moon" && dailyFishingCount === 0,
   );
 
   const [tab, setTab] = useState(0);

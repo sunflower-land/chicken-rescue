@@ -12,7 +12,7 @@ import { NPCName } from "lib/npcs";
 import { getSeasonChangeover } from "lib/utils/getSeasonWeek";
 import cloneDeep from "lodash.clonedeep";
 import { isWearableActive } from "features/game/lib/wearables";
-import { FACTION_POINT_CUTOFF } from "./donateToFaction";
+import { FACTION_OUTFITS } from "features/game/lib/factions";
 
 export const TICKET_REWARDS: Record<QuestNPCName, number> = {
   "pumpkin' pete": 1,
@@ -25,6 +25,7 @@ export const TICKET_REWARDS: Record<QuestNPCName, number> = {
   cornwell: 4,
   tywin: 5,
   jester: 4,
+  pharaoh: 5,
 };
 
 export function generateDeliveryTickets({
@@ -118,7 +119,8 @@ export type QuestNPCName =
   | "finn"
   | "finley"
   | "miranda"
-  | "jester";
+  | "jester"
+  | "pharaoh";
 
 // All available quest npcs
 export const QUEST_NPC_NAMES: QuestNPCName[] = [
@@ -134,19 +136,18 @@ export const QUEST_NPC_NAMES: QuestNPCName[] = [
 ];
 
 const DELIVERY_FRIENDSHIP_POINTS = 3;
-export const FACTION_POINT_MULTIPLIER = 5;
 
 export function populateOrders(
   game: GameState,
   createdAt: number = Date.now(),
-  isSkipped = false
+  isSkipped = false,
 ) {
   const orders = game.delivery.orders;
   const slots = getTotalSlots(game);
 
   while (orders.length < slots) {
     const upcomingOrderTimes = game.delivery.orders.map(
-      (order) => order.readyAt
+      (order) => order.readyAt,
     );
     const baseTime = Math.max(...upcomingOrderTimes, createdAt);
 
@@ -178,12 +179,25 @@ export function getOrderSellPrice<T>(game: GameState, order: Order): T {
     mul += 0.05;
   }
 
+  if (game.bumpkin?.skills["SFL Swindler"] && order.reward.sfl) {
+    mul += 0.1;
+  }
+
   const items = getKeys(order.items);
   if (
     items.some((name) => name in COOKABLE_CAKES) &&
     isWearableActive({ name: "Chef Apron", game })
   ) {
     mul += 0.2;
+  }
+
+  // Apply the faction crown boost if in the right faction
+  const factionName = game.faction?.name;
+  if (
+    factionName &&
+    isWearableActive({ game, name: FACTION_OUTFITS[factionName].crown })
+  ) {
+    mul += 0.25;
   }
 
   if (order.reward.sfl) {
@@ -282,7 +296,7 @@ export function deliverOrder({
     bumpkin.activity = trackActivity(
       "Coins Earned",
       bumpkin.activity,
-      new Decimal(coinsReward)
+      new Decimal(coinsReward),
     );
   }
 
@@ -293,12 +307,6 @@ export function deliverOrder({
     const amount = tickets || new Decimal(0);
 
     game.inventory[seasonalTicket] = count.add(amount);
-
-    if (game.faction && createdAt < FACTION_POINT_CUTOFF.getTime()) {
-      game.faction.points =
-        game.faction.points +
-        new Decimal(amount).mul(FACTION_POINT_MULTIPLIER).toNumber();
-    }
   }
 
   const rewardItems = order.reward.items ?? {};

@@ -1,8 +1,13 @@
 import React, { useContext, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { Reward, PlantedCrop, PlacedItem } from "features/game/types/game";
-import { CROPS } from "features/game/types/crops";
+import {
+  Reward,
+  PlantedCrop,
+  PlacedItem,
+  InventoryItemName,
+} from "features/game/types/game";
+import { CROPS, CROP_SEEDS } from "features/game/types/crops";
 import { PIXEL_SCALE, TEST_FARM } from "features/game/lib/constants";
 import { harvestAudio, plantAudio } from "lib/utils/sfx";
 import {
@@ -22,37 +27,48 @@ import { BuildingName } from "features/game/types/buildings";
 import { ZoomContext } from "components/ZoomProvider";
 import { CROP_COMPOST } from "features/game/types/composters";
 import { gameAnalytics } from "lib/gameAnalytics";
-import { Modal } from "components/ui/Modal";
-import { CloseButtonPanel } from "features/game/components/CloseablePanel";
-import { Label } from "components/ui/Label";
-import { ITEM_DETAILS } from "features/game/types/images";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { SeedName } from "features/game/types/seeds";
-import { SeedSelection } from "./components/SeedSelection";
 import { getBumpkinLevel } from "features/game/lib/level";
 import { ModalContext } from "features/game/components/modal/ModalProvider";
-import lockIcon from "assets/skills/lock.png";
 import { getKeys } from "features/game/types/craftables";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { Transition } from "@headlessui/react";
+import { QuickSelect } from "features/greenhouse/QuickSelect";
+import { formatNumber } from "lib/utils/formatNumber";
+import { hasFeatureAccess } from "lib/flags";
+
+export function getYieldColour(yieldAmount: number) {
+  if (yieldAmount < 2) {
+    return "white";
+  }
+
+  if (yieldAmount < 10) {
+    return "#ffeb37"; // Yellow
+  }
+
+  return "#71e358"; // Green
+}
 
 const selectCrops = (state: MachineState) => state.context.state.crops;
 const selectBuildings = (state: MachineState) => state.context.state.buildings;
 const selectLevel = (state: MachineState) =>
   getBumpkinLevel(state.context.state.bumpkin?.experience ?? 0);
 
-const selectHarvests = (state: MachineState) =>
-  getKeys(CROPS()).reduce(
+const selectHarvests = (state: MachineState) => {
+  return getKeys(CROPS).reduce(
     (total, crop) =>
       total +
       (state.context.state.bumpkin?.activity?.[`${crop} Harvested`] ?? 0),
-    0
+    0,
   );
+};
 
 const selectPlants = (state: MachineState) =>
-  getKeys(CROPS()).reduce(
+  getKeys(CROPS).reduce(
     (total, crop) =>
       total + (state.context.state.bumpkin?.activity?.[`${crop} Planted`] ?? 0),
-    0
+    0,
   );
 
 const selectCropsSold = (state: MachineState) =>
@@ -60,7 +76,7 @@ const selectCropsSold = (state: MachineState) =>
 
 const compareBuildings = (
   prev: Partial<Record<BuildingName, PlacedItem[]>>,
-  next: Partial<Record<BuildingName, PlacedItem[]>>
+  next: Partial<Record<BuildingName, PlacedItem[]>>,
 ) => {
   return getCompletedWellCount(prev) === getCompletedWellCount(next);
 };
@@ -85,11 +101,10 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
   } = useContext(Context);
   const [procAnimation, setProcAnimation] = useState<JSX.Element>();
   const [touchCount, setTouchCount] = useState(0);
-  const [showMissingSeeds, setShowMissingSeeds] = useState(false);
-  const [showSeedNotSelected, setShowSeedNotSelected] = useState(false);
+  const [showQuickSelect, setShowQuickSelect] = useState(false);
   const [reward, setReward] = useState<Omit<Reward, "sfl">>();
-  const [showMissingShovel, setShowMissingShovel] = useState(false);
   const clickedAt = useRef<number>(0);
+  const [pulsating, setPulsating] = useState(false);
 
   const crops = useSelector(gameService, selectCrops, (prev, next) => {
     return JSON.stringify(prev[id]) === JSON.stringify(next[id]);
@@ -98,6 +113,9 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
   const harvestCount = useSelector(gameService, selectHarvests);
   const plantCount = useSelector(gameService, selectPlants);
   const soldCount = useSelector(gameService, selectCropsSold);
+  const harvested = useRef<PlantedCrop>();
+  const [showHarvested, setShowHarvested] = useState(false);
+
   const { openModal } = useContext(ModalContext);
 
   const crop = crops?.[id]?.crop;
@@ -122,10 +140,11 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
 
   if (!isFertile) return <NonFertilePlot />;
 
-  const harvestCrop = (crop: PlantedCrop) => {
+  const harvestCrop = async (crop: PlantedCrop) => {
     const newState = gameService.send("crop.harvested", {
       index: id,
     });
+
     if (newState.matches("hoarding")) return;
 
     harvestAudio.play();
@@ -148,7 +167,7 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
           fps={HARVEST_PROC_ANIMATION.fps}
           steps={HARVEST_PROC_ANIMATION.steps}
           onPause={() => setProcAnimation(<></>)}
-        />
+        />,
       );
     }
 
@@ -159,15 +178,21 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
         event: "Tutorial:SunflowerHarvested:Completed",
       });
     }
+
+    harvested.current = crop;
+
+    if (showAnimations) {
+      setShowHarvested(true);
+
+      await new Promise((res) => setTimeout(res, 2000));
+
+      setShowHarvested(false);
+    }
   };
 
   const onClick = (seed: SeedName = selectedItem as SeedName) => {
     const now = Date.now();
 
-    if (!inventory.Shovel) {
-      setShowMissingShovel(true);
-      return;
-    }
     // small buffer to prevent accidental double clicks
     if (now - clickedAt.current < 100) {
       return;
@@ -182,7 +207,7 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
 
     // increase touch count if there is a reward
     const readyToHarvest =
-      !!crop && isReadyToHarvest(now, crop, CROPS()[crop.name]);
+      !!crop && isReadyToHarvest(now, crop, CROPS[crop.name]);
 
     if (crop?.reward && readyToHarvest) {
       if (touchCount < 1) {
@@ -215,28 +240,15 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
 
     // plant
     if (!crop) {
-      // TEMP Disable
-      // const hasSeeds = getKeys(inventory).some(
-      //   (name) =>
-      //     inventory[name]?.gte(1) && name in SEEDS() && !(name in FRUIT_SEEDS())
-      // );
-      // if (!hasSeeds && !isMobile) {
-      //   setShowMissingSeeds(true);
-      //   return;
-      // }
+      if (
+        hasFeatureAccess(state, "CROP_QUICK_SELECT") &&
+        (!seed || !(seed in CROP_SEEDS) || !inventory[seed]?.gte(1))
+      ) {
+        setShowQuickSelect(true);
+        return;
+      }
 
-      // const seedIsReady =
-      //   seed &&
-      //   inventory[seed]?.gte(1) &&
-      //   seed in SEEDS() &&
-      //   !(seed in FRUIT_SEEDS());
-
-      // if (!seedIsReady && !isMobile) {
-      //   setShowSeedNotSelected(true);
-      //   return;
-      // }
-
-      const state = gameService.send("seed.planted", {
+      const newState = gameService.send("seed.planted", {
         index: id,
         item: seed,
         cropId: uuidv4().slice(0, 8),
@@ -245,7 +257,7 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
       plantAudio.play();
 
       const planted =
-        state.context.state.bumpkin?.activity?.["Sunflower Planted"] ?? 0;
+        newState.context.state.bumpkin?.activity?.["Sunflower Planted"] ?? 0;
 
       if (planted === 1) {
         gameAnalytics.trackMilestone({
@@ -255,9 +267,9 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
 
       if (
         planted >= 3 &&
-        selectedItem === "Sunflower Seed" &&
-        !state.context.state.inventory["Sunflower Seed"]?.gt(0) &&
-        !state.context.state.inventory["Basic Scarecrow"]
+        seed === "Sunflower Seed" &&
+        !newState.context.state.inventory["Sunflower Seed"]?.gt(0) &&
+        !newState.context.state.inventory["Basic Scarecrow"]
       ) {
         openModal("BLACKSMITH");
       }
@@ -284,57 +296,32 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
 
   return (
     <>
-      <Modal show={showMissingSeeds} onHide={() => setShowMissingSeeds(false)}>
-        <CloseButtonPanel onClose={() => setShowMissingSeeds(false)}>
-          <div className="flex flex-col items-center">
-            <Label className="mt-2" icon={SUNNYSIDE.icons.seeds} type="danger">
-              {t("onCollectReward.Missing.Seed")}
-            </Label>
-            <img
-              src={ITEM_DETAILS.Market.image}
-              className="w-10 mx-auto my-2"
-            />
-            <p className="text-center text-sm mb-2">
-              {t("onCollectReward.Market")}
-            </p>
-          </div>
-        </CloseButtonPanel>
-      </Modal>
-      <Modal
-        show={showSeedNotSelected}
-        onHide={() => setShowSeedNotSelected(false)}
+      <Transition
+        appear={true}
+        show={showQuickSelect}
+        enter="transition-opacity duration-300"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-opacity duration-300"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+        className="flex top-[-255%] left-[50%] absolute z-40"
       >
-        <CloseButtonPanel onClose={() => setShowSeedNotSelected(false)}>
-          <SeedSelection
-            onPlant={(seed) => {
-              shortcutItem(seed);
-              onClick(seed);
-              setShowSeedNotSelected(false);
-            }}
-            inventory={inventory}
-          />
-        </CloseButtonPanel>
-      </Modal>
+        <QuickSelect
+          icon={SUNNYSIDE.icons.seeds}
+          options={getKeys(CROP_SEEDS).map((seed) => ({
+            name: seed as InventoryItemName,
+            icon: CROP_SEEDS[seed].yield as InventoryItemName,
+          }))}
+          onClose={() => setShowQuickSelect(false)}
+          onSelected={(seed) => {
+            onClick(seed as SeedName);
+            setShowQuickSelect(false);
+          }}
+          type={t("quickSelect.cropSeeds")}
+        />
+      </Transition>
 
-      <Modal
-        show={showMissingShovel}
-        onHide={() => setShowMissingShovel(false)}
-      >
-        <CloseButtonPanel onClose={() => setShowMissingShovel(false)}>
-          <div className="flex flex-col items-center">
-            <Label className="mt-2" icon={lockIcon} type="danger">
-              {t("onCollectReward.Missing.Shovel")}
-            </Label>
-            <img
-              src={ITEM_DETAILS.Shovel.image}
-              className="w-10 mx-auto my-2"
-            />
-            <p className="text-sm mb-2 text-center">
-              {t("onCollectReward.Missing.Shovel.description")}
-            </p>
-          </div>
-        </CloseButtonPanel>
-      </Modal>
       <div onClick={() => onClick()} className="w-full h-full relative">
         {harvestCount < 3 &&
           harvestCount + 1 === Number(id) &&
@@ -376,6 +363,7 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
           procAnimation={procAnimation}
           touchCount={touchCount}
           showTimers={showTimers}
+          pulsating={showQuickSelect && pulsating}
         />
       </div>
       <ChestReward
@@ -388,6 +376,29 @@ export const Plot: React.FC<Props> = ({ id, index }) => {
           })
         }
       />
+
+      {/* Harvest Animation */}
+      {showAnimations && (
+        <Transition
+          appear={true}
+          id="oil-reserve-collected-amount"
+          show={showHarvested}
+          enter="transition-opacity transition-transform duration-200"
+          enterFrom="opacity-0 translate-y-4"
+          enterTo="opacity-100 -translate-y-0"
+          leave="transition-opacity duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+          className="flex -top-2 left-[40%] absolute z-40 pointer-events-none"
+        >
+          <span
+            className="text-sm yield-text"
+            style={{
+              color: getYieldColour(harvested.current?.amount ?? 0),
+            }}
+          >{`+${formatNumber(harvested.current?.amount ?? 0)}`}</span>
+        </Transition>
+      )}
     </>
   );
 };

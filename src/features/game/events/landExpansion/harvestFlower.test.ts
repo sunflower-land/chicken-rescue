@@ -7,21 +7,12 @@ import Decimal from "decimal.js-light";
 const GAME_STATE = { ...TEST_FARM, bumpkin: INITIAL_BUMPKIN };
 
 describe("harvestFlower", () => {
-  it("throws if the bumpkin does not exist", () => {
-    expect(() =>
-      harvestFlower({
-        state: { ...GAME_STATE, bumpkin: undefined },
-        action: { type: "flower.harvested", id: "1" },
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("throws an error if the flower bed does not exist", () => {
     expect(() =>
       harvestFlower({
         state: GAME_STATE,
         action: { type: "flower.harvested", id: "1" },
-      })
+      }),
     ).toThrow("Flower bed does not exist");
   });
 
@@ -45,7 +36,7 @@ describe("harvestFlower", () => {
           },
         },
         action: { type: "flower.harvested", id: flowerBedId },
-      })
+      }),
     ).toThrow("Flower bed does not have a flower");
   });
 
@@ -74,7 +65,7 @@ describe("harvestFlower", () => {
           },
         },
         action: { type: "flower.harvested", id: flowerBedId },
-      })
+      }),
     ).toThrow("Flower is not ready to harvest");
   });
 
@@ -225,5 +216,42 @@ describe("harvestFlower", () => {
     });
 
     expect(state.flowers.discovered["Yellow Pansy"]).toEqual(["Sunflower"]);
+  });
+
+  it("adds a reward to the inventory", () => {
+    const flowerBedId = "123";
+    const state = harvestFlower({
+      state: {
+        ...GAME_STATE,
+        flowers: {
+          discovered: {},
+          flowerBeds: {
+            [flowerBedId]: {
+              createdAt: 0,
+              height: 0,
+              width: 0,
+              x: 0,
+              y: 0,
+              flower: {
+                amount: 1,
+                name: "Red Pansy",
+                plantedAt: 0,
+                reward: {
+                  items: [
+                    {
+                      name: "Desert Rose",
+                      amount: 1,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+      action: { type: "flower.harvested", id: flowerBedId },
+    });
+
+    expect(state.inventory["Desert Rose"]).toEqual(new Decimal(1));
   });
 });

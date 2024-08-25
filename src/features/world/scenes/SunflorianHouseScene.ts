@@ -1,24 +1,32 @@
-import mapJSON from "assets/map/faction_house.json";
+import mapJSON from "assets/map/sunflorian_house.json";
 
 import { SceneId } from "../mmoMachine";
-import { BaseScene, NPCBumpkin } from "./BaseScene";
+import { NPCBumpkin } from "./BaseScene";
+import { FactionHouseScene } from "./FactionHouseScene";
 
 export const SUNFLORIAN_HOUSE_NPCS: NPCBumpkin[] = [
   {
-    x: 410,
-    y: 200,
+    x: 136,
+    y: 325,
     npc: "solara",
     direction: "left",
   },
   {
-    x: 57,
-    y: 360,
+    x: 390,
+    y: 223,
     npc: "flora",
-    direction: "right",
+    direction: "left",
+  },
+  {
+    x: 94,
+    y: 212,
+    npc: "chef lumen",
   },
 ];
 
-export class SunflorianHouseScene extends BaseScene {
+export type PetStateSprite = "pet_sleeping" | "pet_hungry" | "pet_happy";
+
+export class SunflorianHouseScene extends FactionHouseScene {
   sceneId: SceneId = "sunflorian_house";
 
   constructor() {
@@ -31,6 +39,11 @@ export class SunflorianHouseScene extends BaseScene {
 
   preload() {
     super.preload();
+
+    this.load.image("pet_sleeping", "world/sunflorians_pet_sleeping.webp");
+    this.load.image("pet_happy", "world/sunflorians_pet_happy.webp");
+    this.load.image("pet_hungry", "world/sunflorians_pet_hungry.webp");
+    this.makeFetchRequest();
   }
 
   create() {
@@ -40,5 +53,8 @@ export class SunflorianHouseScene extends BaseScene {
     });
 
     this.initialiseNPCs(SUNFLORIAN_HOUSE_NPCS);
+    this.setupPrize({ x: 240, y: 384 });
+    this.setUpPet();
+    this.setupNotice({ x: 312, y: 226 });
   }
 }

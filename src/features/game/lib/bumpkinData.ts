@@ -10,14 +10,14 @@ export const INITIAL_EXPANSIONS =
     ? 3
     : getLandLimit(INITIAL_BUMPKIN_LEVEL as BumpkinLevel);
 
-export const INITIAL_BUMPKIN: Bumpkin = {
+export const TEST_BUMPKIN: Bumpkin = {
   id: 1,
-  experience: 1,
+  experience: 1000,
   tokenUri: "bla",
   equipped: {
     body: "Beige Farmer Potion",
     hair: "Basic Hair",
-    shirt: "Gift Giver",
+    shirt: "Blue Farmer Shirt",
     pants: "Brown Suspenders",
 
     shoes: "Black Farmer Boots",
@@ -31,5 +31,6 @@ export const INITIAL_BUMPKIN: Bumpkin = {
   activity: {
     "Reindeer Carrot Fed": 50,
     "Sunflower Planted": 5,
+    "Tree Chopped": 5,
   },
 };

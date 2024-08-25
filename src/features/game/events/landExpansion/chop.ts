@@ -69,6 +69,10 @@ export function getChoppedAt({
     totalSeconds = totalSeconds * 0.5;
   }
 
+  if (isCollectibleActive({ name: "Timber Hourglass", game })) {
+    totalSeconds = totalSeconds * 0.75;
+  }
+
   const buff = TREE_RECOVERY_TIME - totalSeconds;
 
   return createdAt - buff * 1000;
@@ -79,7 +83,7 @@ export function getChoppedAt({
  */
 export function getRequiredAxeAmount(
   inventory: Inventory,
-  gameState: GameState
+  gameState: GameState,
 ) {
   if (isCollectibleBuilt({ name: "Foreman Beaver", game: gameState })) {
     return new Decimal(0);

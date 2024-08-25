@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import pontoon from "assets/land/levels/pontoon.gif";
-import island from "assets/land/islands/island.webp";
+import { SUNNYSIDE } from "assets/sunnyside";
 
 import { ExpansionConstruction } from "features/game/types/game";
 import { PIXEL_SCALE } from "features/game/lib/constants";
@@ -23,7 +22,7 @@ export const Pontoon: React.FC<Props> = ({ expansion, onDone }) => {
 
   const [showPopover, setShowPopover] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(
-    (expansion.readyAt - Date.now()) / 1000
+    (expansion.readyAt - Date.now()) / 1000,
   );
   const { t } = useAppTranslation();
 
@@ -42,10 +41,7 @@ export const Pontoon: React.FC<Props> = ({ expansion, onDone }) => {
   }, []);
 
   // Land is still being built
-  const constructionTime = Math.floor(
-    (expansion.readyAt - expansion.createdAt) / 1000
-  );
-
+  const constructionTime = (expansion.readyAt - expansion.createdAt) / 1000;
   return (
     <div
       onMouseEnter={() => setShowPopover(true)}
@@ -53,7 +49,7 @@ export const Pontoon: React.FC<Props> = ({ expansion, onDone }) => {
       className="w-full h-full"
     >
       <img
-        src={pontoon}
+        src={SUNNYSIDE.land.pontoon}
         style={{
           top: `${PIXEL_SCALE * 20}px`,
           left: `${PIXEL_SCALE * -10}px`,
@@ -71,7 +67,7 @@ export const Pontoon: React.FC<Props> = ({ expansion, onDone }) => {
         }}
       >
         <TimerPopover
-          image={island}
+          image={SUNNYSIDE.land.island}
           description={t("landscape.timerPopover")}
           showPopover={showPopover}
           timeLeft={secondsLeft}
@@ -89,6 +85,7 @@ export const Pontoon: React.FC<Props> = ({ expansion, onDone }) => {
           style={{
             top: `${PIXEL_SCALE * 82}px`,
             left: `${PIXEL_SCALE * 45}px`,
+            whiteSpace: "nowrap",
           }}
         />
       )}

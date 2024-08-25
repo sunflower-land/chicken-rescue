@@ -53,8 +53,8 @@ describe("fruitHarvested", () => {
             harvestsLeft: 3,
             harvestedAt: 0,
           },
-          FRUIT().Apple
-        )
+          FRUIT().Apple,
+        ),
       ).toBeFalsy();
     });
 
@@ -69,8 +69,8 @@ describe("fruitHarvested", () => {
             harvestsLeft: 2,
             harvestedAt: appleSeed.plantSeconds,
           },
-          FRUIT().Apple
-        )
+          FRUIT().Apple,
+        ),
       ).toBeFalsy();
     });
 
@@ -85,8 +85,8 @@ describe("fruitHarvested", () => {
             harvestsLeft: 3,
             harvestedAt: 0,
           },
-          FRUIT().Apple
-        )
+          FRUIT().Apple,
+        ),
       ).toBeFalsy();
     });
 
@@ -101,26 +101,10 @@ describe("fruitHarvested", () => {
             harvestsLeft: 2,
             harvestedAt: appleSeed.plantSeconds,
           },
-          FRUIT().Apple
-        )
+          FRUIT().Apple,
+        ),
       ).toBeFalsy();
     });
-  });
-
-  it("throws an error if the player doesn't have a bumpkin", () => {
-    expect(() =>
-      harvestFruit({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-        },
-        action: {
-          type: "fruit.harvested",
-          index: "0",
-        },
-        createdAt: dateNow,
-      })
-    ).toThrow("You do not have a Bumpkin");
   });
 
   it("does not harvest on non-existent fruit patch", () => {
@@ -132,7 +116,7 @@ describe("fruitHarvested", () => {
           index: "-1",
         },
         createdAt: dateNow,
-      })
+      }),
     ).toThrow("Fruit patch does not exist");
   });
 
@@ -145,7 +129,7 @@ describe("fruitHarvested", () => {
           index: "1",
         },
         createdAt: dateNow,
-      })
+      }),
     ).toThrow("Nothing was planted");
   });
 
@@ -175,7 +159,7 @@ describe("fruitHarvested", () => {
           index: "0",
         },
         createdAt: dateNow,
-      })
+      }),
     ).toThrow("Not ready");
   });
 
@@ -205,7 +189,7 @@ describe("fruitHarvested", () => {
           index: "0",
         },
         createdAt: dateNow,
-      })
+      }),
     ).toThrow("Fruit is still replenishing");
   });
 
@@ -235,7 +219,7 @@ describe("fruitHarvested", () => {
           index: "0",
         },
         createdAt: dateNow,
-      })
+      }),
     ).toThrow("No harvest left");
   });
 
@@ -461,7 +445,325 @@ describe("fruitHarvested", () => {
 
     expect(fruit?.amount).toEqual(1);
     expect(fruit?.harvestedAt).toEqual(
-      dateNow - (FRUIT_SEEDS()["Orange Seed"].plantSeconds * 1000) / 2
+      dateNow - (FRUIT_SEEDS()["Orange Seed"].plantSeconds * 1000) / 2,
+    );
+  });
+
+  it("gives a 50% growth time reduction when Lemon Tea Bath is placed", () => {
+    const { fruitPatches } = GAME_STATE;
+    const fruitPatch = (fruitPatches as Record<number, FruitPatch>)[0];
+    const initialHarvest = 2;
+
+    const state = harvestFruit({
+      state: {
+        ...GAME_STATE,
+        inventory: {
+          "Lemon Tea Bath": new Decimal(1),
+        },
+        collectibles: {
+          "Lemon Tea Bath": [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+        },
+        fruitPatches: {
+          0: {
+            ...fruitPatch,
+            fruit: {
+              name: "Lemon",
+              plantedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              amount: 1,
+              harvestsLeft: initialHarvest,
+              harvestedAt: 2,
+            },
+          },
+        },
+      },
+      action: {
+        type: "fruit.harvested",
+        index: "0",
+      },
+      createdAt: dateNow,
+    });
+
+    const { fruitPatches: fruitPatchesAfterHarvest } = state;
+    const fruit = fruitPatchesAfterHarvest?.[0].fruit;
+
+    expect(fruit?.amount).toEqual(1);
+    expect(fruit?.harvestedAt).toEqual(
+      dateNow - (FRUIT_SEEDS()["Lemon Seed"].plantSeconds * 1000) / 2,
+    );
+  });
+
+  it("gives a 25% growth time reduction when Lemon Frog is placed", () => {
+    const { fruitPatches } = GAME_STATE;
+    const fruitPatch = (fruitPatches as Record<number, FruitPatch>)[0];
+    const initialHarvest = 2;
+
+    const state = harvestFruit({
+      state: {
+        ...GAME_STATE,
+        inventory: {
+          "Lemon Frog": new Decimal(1),
+        },
+        collectibles: {
+          "Lemon Frog": [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+        },
+        fruitPatches: {
+          0: {
+            ...fruitPatch,
+            fruit: {
+              name: "Lemon",
+              plantedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              amount: 1,
+              harvestsLeft: initialHarvest,
+              harvestedAt: 2,
+            },
+          },
+        },
+      },
+      action: {
+        type: "fruit.harvested",
+        index: "0",
+      },
+      createdAt: dateNow,
+    });
+
+    const { fruitPatches: fruitPatchesAfterHarvest } = state;
+    const fruit = fruitPatchesAfterHarvest?.[0].fruit;
+
+    expect(fruit?.amount).toEqual(1);
+    expect(fruit?.harvestedAt).toEqual(
+      dateNow - FRUIT_SEEDS()["Lemon Seed"].plantSeconds * 1000 * 0.25,
+    );
+  });
+
+  it("gives a 62.5% growth time reduction when Lemon Tea Bath is placed", () => {
+    const { fruitPatches } = GAME_STATE;
+    const fruitPatch = (fruitPatches as Record<number, FruitPatch>)[0];
+    const initialHarvest = 2;
+
+    const state = harvestFruit({
+      state: {
+        ...GAME_STATE,
+        inventory: {
+          "Lemon Tea Bath": new Decimal(1),
+          "Lemon Frog": new Decimal(1),
+        },
+        collectibles: {
+          "Lemon Tea Bath": [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+          "Lemon Frog": [
+            {
+              coordinates: { x: 1, y: 1 },
+              createdAt: 0,
+              id: "123",
+              readyAt: 0,
+            },
+          ],
+        },
+        fruitPatches: {
+          0: {
+            ...fruitPatch,
+            fruit: {
+              name: "Lemon",
+              plantedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              amount: 1,
+              harvestsLeft: initialHarvest,
+              harvestedAt: 2,
+            },
+          },
+        },
+      },
+      action: {
+        type: "fruit.harvested",
+        index: "0",
+      },
+      createdAt: dateNow,
+    });
+
+    const { fruitPatches: fruitPatchesAfterHarvest } = state;
+    const fruit = fruitPatchesAfterHarvest?.[0].fruit;
+
+    expect(fruit?.amount).toEqual(1);
+    expect(fruit?.harvestedAt).toEqual(
+      dateNow - FRUIT_SEEDS()["Lemon Seed"].plantSeconds * 1000 * 0.625,
+    );
+  });
+
+  it("gives a 50% growth time reduction on tomatoes when Tomato Clown is placed", () => {
+    const { fruitPatches } = GAME_STATE;
+    const fruitPatch = (fruitPatches as Record<number, FruitPatch>)[0];
+    const initialHarvest = 2;
+
+    const state = harvestFruit({
+      state: {
+        ...GAME_STATE,
+        inventory: {
+          "Tomato Clown": new Decimal(1),
+        },
+        collectibles: {
+          "Tomato Clown": [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+        },
+        fruitPatches: {
+          0: {
+            ...fruitPatch,
+            fruit: {
+              name: "Tomato",
+              plantedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              amount: 1,
+              harvestsLeft: initialHarvest,
+              harvestedAt: 2,
+            },
+          },
+        },
+      },
+      action: {
+        type: "fruit.harvested",
+        index: "0",
+      },
+      createdAt: dateNow,
+    });
+
+    const { fruitPatches: fruitPatchesAfterHarvest } = state;
+    const fruit = fruitPatchesAfterHarvest?.[0].fruit;
+
+    expect(fruit?.amount).toEqual(1);
+    expect(fruit?.harvestedAt).toEqual(
+      dateNow - (FRUIT_SEEDS()["Tomato Seed"].plantSeconds * 1000) / 2,
+    );
+  });
+
+  it("includes 25% Growth Time reduction on Tomatoes when Cannonball is placed", () => {
+    const { fruitPatches } = GAME_STATE;
+    const fruitPatch = (fruitPatches as Record<number, FruitPatch>)[0];
+    const initialHarvest = 2;
+
+    const state = harvestFruit({
+      state: {
+        ...GAME_STATE,
+        inventory: {
+          Cannonball: new Decimal(1),
+        },
+        collectibles: {
+          Cannonball: [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+        },
+        fruitPatches: {
+          0: {
+            ...fruitPatch,
+            fruit: {
+              name: "Tomato",
+              plantedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              amount: 1,
+              harvestsLeft: initialHarvest,
+              harvestedAt: 2,
+            },
+          },
+        },
+      },
+      action: {
+        type: "fruit.harvested",
+        index: "0",
+      },
+      createdAt: dateNow,
+    });
+
+    const { fruitPatches: fruitPatchesAfterHarvest } = state;
+    const fruit = fruitPatchesAfterHarvest?.[0].fruit;
+
+    expect(fruit?.amount).toEqual(1);
+    expect(fruit?.harvestedAt).toEqual(
+      dateNow - FRUIT_SEEDS()["Tomato Seed"].plantSeconds * 1000 * 0.25,
+    );
+  });
+
+  it("gives a 62.5% Growth Time reduction when both Tomato Clown and Cannonball are placed", () => {
+    const { fruitPatches } = GAME_STATE;
+    const fruitPatch = (fruitPatches as Record<number, FruitPatch>)[0];
+    const initialHarvest = 2;
+
+    const state = harvestFruit({
+      state: {
+        ...GAME_STATE,
+        inventory: {
+          "Tomato Clown": new Decimal(1),
+          Cannonball: new Decimal(1),
+        },
+        collectibles: {
+          "Tomato Clown": [
+            {
+              coordinates: { x: 0, y: 0 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+          Cannonball: [
+            {
+              coordinates: { x: 1, y: 1 },
+              createdAt: 0,
+              id: "1",
+              readyAt: 0,
+            },
+          ],
+        },
+        fruitPatches: {
+          0: {
+            ...fruitPatch,
+            fruit: {
+              name: "Tomato",
+              plantedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              amount: 1,
+              harvestsLeft: initialHarvest,
+              harvestedAt: 2,
+            },
+          },
+        },
+      },
+      action: {
+        type: "fruit.harvested",
+        index: "0",
+      },
+      createdAt: dateNow,
+    });
+
+    const { fruitPatches: fruitPatchesAfterHarvest } = state;
+    const fruit = fruitPatchesAfterHarvest?.[0].fruit;
+
+    expect(fruit?.amount).toEqual(1);
+    expect(fruit?.harvestedAt).toEqual(
+      dateNow - FRUIT_SEEDS()["Tomato Seed"].plantSeconds * 1000 * 0.625,
     );
   });
 

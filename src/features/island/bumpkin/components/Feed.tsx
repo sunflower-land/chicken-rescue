@@ -8,7 +8,7 @@ import { ITEM_DETAILS } from "features/game/types/images";
 import { Consumable, isJuice } from "features/game/types/consumables";
 import { getFoodExpBoost } from "features/game/expansion/lib/boosts";
 
-import firePit from "src/assets/buildings/fire_pit.png";
+import { SUNNYSIDE } from "assets/sunnyside";
 import { Bumpkin } from "features/game/types/game";
 import { SplitScreenView } from "components/ui/SplitScreenView";
 import { FeedBumpkinDetails } from "components/ui/layouts/FeedBumpkinDetails";
@@ -58,7 +58,7 @@ export const Feed: React.FC<Props> = ({ food }) => {
             {t("statements.feed.bumpkin.two")}
           </span>
           <img
-            src={firePit}
+            src={SUNNYSIDE.building.firePit}
             className="my-2"
             alt={"Fire Pit"}
             style={{
@@ -82,7 +82,7 @@ export const Feed: React.FC<Props> = ({ food }) => {
     });
 
     const currentLevel = getBumpkinLevel(
-      newState.context.state.bumpkin?.experience ?? 0
+      newState.context.state.bumpkin?.experience ?? 0,
     );
 
     while (currentLevel > previousLevel) {
@@ -111,7 +111,7 @@ export const Feed: React.FC<Props> = ({ food }) => {
           }}
           properties={{
             xp: new Decimal(
-              getFoodExpBoost(selected, bumpkin as Bumpkin, game, buds ?? {})
+              getFoodExpBoost(selected, bumpkin as Bumpkin, game, buds ?? {}),
             ),
           }}
           actionView={

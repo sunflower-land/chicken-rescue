@@ -5,8 +5,7 @@ import { Button } from "components/ui/Button";
 import { Context } from "features/game/GameProvider";
 import { ChoreV2, ChoreV2Name } from "features/game/types/game";
 
-import { setPrecision } from "lib/utils/formatNumber";
-import Decimal from "decimal.js-light";
+import { formatNumber } from "lib/utils/formatNumber";
 import { ITEM_DETAILS } from "features/game/types/images";
 import { ResizableBar } from "components/ui/ProgressBar";
 import { SUNNYSIDE } from "assets/sunnyside";
@@ -15,14 +14,14 @@ import { getSeasonalTicket } from "features/game/types/seasons";
 import { getSeasonChangeover } from "lib/utils/getSeasonWeek";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { SquareIcon } from "components/ui/SquareIcon";
-import { FACTION_POINT_ICONS } from "features/world/ui/factions/FactionDonationPanel";
 import { MachineState } from "features/game/lib/gameMachine";
 
-import { FACTION_POINT_MULTIPLIER } from "features/game/events/landExpansion/deliver";
 import classNames from "classnames";
 import { generateChoreTickets } from "features/game/events/landExpansion/completeChore";
-import { FACTION_POINT_CUTOFF } from "features/game/events/landExpansion/donateToFaction";
 import { Loading } from "features/auth/components";
+import { NPCIcon } from "features/island/bumpkin/components/NPC";
+import { NPC_WEARABLES } from "lib/npcs";
+import { ConfirmationModal } from "components/ui/ConfirmationModal";
 
 const isDateOnSameDayAsToday = (date: Date) => {
   const today = new Date();
@@ -44,7 +43,6 @@ interface Props {
 const _autosaving = (state: MachineState) => state.matches("autosaving");
 const _bumpkin = (state: MachineState) => state.context.state.bumpkin;
 const _farmId = (state: MachineState) => state.context.farmId;
-const _faction = (state: MachineState) => state.context.state.faction;
 
 export const DailyChore: React.FC<Props> = ({
   id,
@@ -55,12 +53,12 @@ export const DailyChore: React.FC<Props> = ({
   const { gameService } = useContext(Context);
   const { t } = useAppTranslation();
 
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
 
   const autosaving = useSelector(gameService, _autosaving);
   const bumpkin = useSelector(gameService, _bumpkin);
   const farmId = useSelector(gameService, _farmId);
-  const faction = useSelector(gameService, _faction);
 
   useEffect(() => {
     if (isSkipping && !autosaving) {
@@ -97,88 +95,87 @@ export const DailyChore: React.FC<Props> = ({
     id: farmId,
   });
 
-  const descriptionTextClass = isCodex ? "sm:text-xs" : "text-xs";
+  const descriptionTextClass = isCodex ? "text-xxs" : "text-xs";
 
   const tickets = generateChoreTickets({
     game: gameService.state.context.state,
     id,
   });
   return (
-    <InnerPanel className="flex flex-col">
-      <div
-        className={classNames("flex space-x-1 p-1", {
-          "pb-0": isCodex,
-        })}
-      >
-        <div className={`${descriptionTextClass} flex-1 space-y-1.5 mb-0.5`}>
-          <p>{chore.description}</p>
-          <div className="flex items-center">
-            <ResizableBar
-              percentage={progressPercentage}
-              type="progress"
-              outerDimensions={{
-                width: isCodex ? 40 : 50,
-                height: 7,
-              }}
-            />
-            <span className="text-xs ml-2 font-secondary">{`${setPrecision(
-              new Decimal(progress)
-            )}/${chore.requirement}`}</span>
-          </div>
-        </div>
-        {/* Rewards */}
-        {!chore.completedAt && (
-          <div className="flex flex-col text-xs space-y-1">
-            <div className="flex items-center justify-end space-x-1">
-              <span className="mb-0.5 font-secondary">{tickets}</span>
-              <SquareIcon
-                icon={ITEM_DETAILS[getSeasonalTicket()].image}
-                width={6}
-              />
+    <>
+      <InnerPanel className="flex flex-col w-full">
+        <div
+          className={classNames("flex space-x-1 p-1", {
+            "pb-0 pl-0": isCodex,
+          })}
+        >
+          {isCodex && (
+            <div className="pb-1 relative">
+              <NPCIcon parts={NPC_WEARABLES["hank"]} />
             </div>
-            {faction && Date.now() < FACTION_POINT_CUTOFF.getTime() && (
+          )}
+          <div className={`${descriptionTextClass} flex-1 space-y-1.5 mb-0.5`}>
+            <p>{chore.description}</p>
+            <div className="flex items-center">
+              <ResizableBar
+                percentage={progressPercentage}
+                type="progress"
+                outerDimensions={{
+                  width: isCodex ? 40 : 50,
+                  height: 7,
+                }}
+              />
+              <span className="text-xs ml-2 font-secondary">{`${formatNumber(progress)}/${formatNumber(chore.requirement)}`}</span>
+            </div>
+          </div>
+          {/* Rewards */}
+          {!chore.completedAt && (
+            <div className="flex flex-col text-xs space-y-1">
               <div className="flex items-center justify-end space-x-1">
-                <span
-                  className={classNames("mb-0.5 ", {
-                    "text-error": !faction,
-                  })}
-                >
-                  {tickets * FACTION_POINT_MULTIPLIER}
-                </span>
+                <span className="mb-0.5 font-secondary">{tickets}</span>
                 <SquareIcon
-                  icon={FACTION_POINT_ICONS[faction.name]}
+                  icon={ITEM_DETAILS[getSeasonalTicket()].image}
                   width={6}
                 />
               </div>
-            )}
-          </div>
-        )}
-        {chore.completedAt && (
-          <div className="flex items-center">
-            <SquareIcon icon={SUNNYSIDE.icons.confirm} width={8} />
-          </div>
-        )}
-      </div>
-      {!isReadOnly && !chore.completedAt && (
-        <div className="flex space-x-1 w-full sm:w-2/3">
-          {!isDateOnSameDayAsToday(new Date(chore.createdAt)) && (
-            <Button
-              className="text-xxs h-8"
-              onClick={() => handleSkip(id)}
-              disabled={ticketTasksAreFrozen}
-            >
-              {t("skip")}
-            </Button>
+            </div>
           )}
-          <Button
-            disabled={!isTaskComplete || ticketTasksAreFrozen}
-            className="text-xxs h-8"
-            onClick={() => handleComplete(id)}
-          >
-            {t("complete")}
-          </Button>
+          {chore.completedAt && (
+            <div className="flex items-center">
+              <SquareIcon icon={SUNNYSIDE.icons.confirm} width={8} />
+            </div>
+          )}
         </div>
-      )}
-    </InnerPanel>
+        {!isReadOnly && !chore.completedAt && (
+          <div className="flex space-x-1 w-full">
+            {!isDateOnSameDayAsToday(new Date(chore.createdAt)) && (
+              <Button
+                className="text-xxs h-8"
+                onClick={() => setShowConfirmationModal(true)}
+                disabled={ticketTasksAreFrozen}
+              >
+                {t("skip")}
+              </Button>
+            )}
+            <Button
+              disabled={!isTaskComplete || ticketTasksAreFrozen}
+              className="text-xxs h-8"
+              onClick={() => handleComplete(id)}
+            >
+              {t("complete")}
+            </Button>
+          </div>
+        )}
+      </InnerPanel>
+
+      <ConfirmationModal
+        show={showConfirmationModal}
+        onHide={() => setShowConfirmationModal(false)}
+        messages={[t("hayseedHankv2.confirmSkipChore")]}
+        onCancel={() => setShowConfirmationModal(false)}
+        onConfirm={() => handleSkip(id)}
+        confirmButtonLabel={t("skip")}
+      />
+    </>
   );
 };

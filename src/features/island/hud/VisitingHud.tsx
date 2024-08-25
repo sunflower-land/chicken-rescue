@@ -50,6 +50,7 @@ export const VisitingHud: React.FC = () => {
         selectedItem={selectedItem as InventoryItemName}
         isFarming={false}
         isFullUser={false}
+        hideActions
       />
       <BumpkinProfile isFullUser={false} />
       <div
@@ -75,6 +76,6 @@ export const VisitingHud: React.FC = () => {
         <TravelButton isVisiting={true} />
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

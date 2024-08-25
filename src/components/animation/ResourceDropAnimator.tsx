@@ -1,9 +1,8 @@
 import classNames from "classnames";
-import Decimal from "decimal.js-light";
 import { InventoryItemName } from "features/game/types/game";
 import { ITEM_DETAILS } from "features/game/types/images";
 import { setImageWidth } from "lib/images";
-import { setPrecision } from "lib/utils/formatNumber";
+import { formatNumber } from "lib/utils/formatNumber";
 import { randomInt } from "lib/utils/random";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -17,7 +16,7 @@ export const ResourceDropAnimatorComponent: React.FC<Props> = ({
   resourceAmount,
 }: Props) => {
   const { current: direction } = useRef<"left" | "right">(
-    randomInt(0, 2) === 0 ? "left" : "right"
+    randomInt(0, 2) === 0 ? "left" : "right",
   );
   const textRef = useRef<HTMLSpanElement>(null);
   const [playing, setPlaying] = useState(true);
@@ -40,7 +39,7 @@ export const ResourceDropAnimatorComponent: React.FC<Props> = ({
             {
               "drop-animation-left": direction === "left",
               "drop-animation-right": direction === "right",
-            }
+            },
           )}
           style={{
             transition: "opacity 0.2s ease-in",
@@ -51,14 +50,14 @@ export const ResourceDropAnimatorComponent: React.FC<Props> = ({
           {/* Resource count display */}
           <span
             ref={textRef}
-            className="text-sm p-1"
+            className="yield-text text-white font-pixel"
             style={{ opacity: 0 }}
-          >{`+${setPrecision(new Decimal(resourceAmount))}`}</span>
+          >{`+${formatNumber(resourceAmount)}`}</span>
 
           {/* Resource image */}
           <img
             src={ITEM_DETAILS[resourceName].image}
-            className={`img-highlight-extra-heavy`}
+            className={`img-highlight-heavy`}
             style={{ opacity: 0 }}
             onLoad={(e) => {
               setImageWidth(e.currentTarget);

@@ -4,7 +4,7 @@ import Spritesheet, {
 } from "components/animation/SpriteAnimator";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 
-import sprouting from "assets/cropMachine/stage3_collector_sprout_sheet.webp";
+import { SUNNYSIDE } from "assets/sunnyside";
 import { calculateFPS } from "../lib/calculateFps";
 import { ZoomContext } from "components/ZoomProvider";
 
@@ -21,8 +21,8 @@ export const Sprouting = ({ paused }: Props) => {
         320, 80, 160, 160, 80, 800, 80, 160, 160, 80, 800, 80, 160, 160, 80,
         480,
       ],
-      3.84
-    )
+      3.84,
+    ),
   );
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export const Sprouting = ({ paused }: Props) => {
         bottom: `${PIXEL_SCALE * 0}px`,
         imageRendering: "pixelated",
       }}
-      image={sprouting}
+      image={SUNNYSIDE.building.sproutingCropMachine}
       widthFrame={80}
       heightFrame={70}
       zoomScale={scale}

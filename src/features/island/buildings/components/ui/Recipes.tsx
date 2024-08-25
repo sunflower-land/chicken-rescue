@@ -32,6 +32,7 @@ import { FeatureName, hasFeatureAccess } from "lib/flags";
 import { BuildingName } from "features/game/types/buildings";
 import { BuildingOilTank } from "../building/BuildingOilTank";
 import pumpkinSoup from "assets/food/pumpkin_soup.png";
+import powerup from "assets/icons/level_up.png";
 
 interface Props {
   selected: Cookable;
@@ -56,6 +57,7 @@ interface Props {
  * @crafting Whether the building is in the process of crafting a food item.
  * @craftingService The crafting service.
  */
+
 export const Recipes: React.FC<Props> = ({
   selected,
   setSelected,
@@ -79,31 +81,14 @@ export const Recipes: React.FC<Props> = ({
 
   const lessIngredients = () =>
     getKeys(selected.ingredients).some((name) =>
-      selected?.ingredients[name]?.greaterThan(inventory[name] || 0)
+      selected?.ingredients[name]?.greaterThan(inventory[name] || 0),
     );
 
-  const cook = () => {
-    onCook(selected.name);
+  const cook = async () => {
     onClose();
-  };
-
-  const Action = () => {
-    return (
-      <>
-        <Button
-          disabled={lessIngredients() || crafting || selected.disabled}
-          className="text-xxs sm:text-sm mt-1 whitespace-nowrap"
-          onClick={() => cook()}
-        >
-          {t("cook")}
-        </Button>
-        {crafting && (
-          <p className="sm:text-xs text-center my-1">
-            {t("sceneDialogues.chefIsBusy")}
-          </p>
-        )}
-      </>
-    );
+    // delay to allow the modal to close to avoid content flashing
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    onCook(selected.name);
   };
 
   const validRecipes = recipes.filter((recipes) => {
@@ -114,37 +99,63 @@ export const Recipes: React.FC<Props> = ({
 
     return hasFeatureAccess(
       state,
-      FLAGGED_RECIPES[recipes.name as ConsumableName] as FeatureName
+      FLAGGED_RECIPES[recipes.name as ConsumableName] as FeatureName,
     );
   });
+
+  const isOilBoosted =
+    state.buildings?.[buildingName]?.[0].crafting?.boost?.["Oil"];
 
   return (
     <SplitScreenView
       panel={
-        <CraftingRequirements
-          gameState={state}
-          details={{
-            item: selected.name,
-          }}
-          hideDescription
-          requirements={{
-            resources: selected.ingredients,
-            xp: new Decimal(
-              getFoodExpBoost(
-                selected,
-                state.bumpkin as Bumpkin,
+        <>
+          {selected.name === "Reindeer Carrot" &&
+            Date.now() < new Date("2024-06-22").getTime() && (
+              <Label className="mx-auto" type="info" icon={powerup}>
+                {t("firepit.increasedXP")}
+              </Label>
+            )}
+          <CraftingRequirements
+            gameState={state}
+            details={{
+              item: selected.name,
+            }}
+            hideDescription
+            requirements={{
+              resources: selected.ingredients,
+              xp: new Decimal(
+                getFoodExpBoost(
+                  selected,
+                  state.bumpkin as Bumpkin,
+                  state,
+                  state.buds ?? {},
+                ),
+              ),
+              timeSeconds: getCookingTime(
+                getCookingOilBoost(selected.name, state, buildingId).timeToCook,
+                state.bumpkin,
                 state,
-                state.buds ?? {}
-              )
-            ),
-            timeSeconds: getCookingTime(
-              getCookingOilBoost(selected.name, state, buildingId).timeToCook,
-              state.bumpkin,
-              state
-            ),
-          }}
-          actionView={Action()}
-        />
+              ),
+            }}
+            actionView={
+              <>
+                <Button
+                  disabled={lessIngredients() || crafting || selected.disabled}
+                  className="text-xxs sm:text-sm mt-1 whitespace-nowrap"
+                  onClick={() => cook()}
+                >
+                  {t("cook")}
+                </Button>
+                {crafting && (
+                  <p className="sm:text-xs text-center my-1">
+                    {t("sceneDialogues.chefIsBusy")}
+                  </p>
+                )}
+              </>
+            }
+          />
+        </>
       }
       content={
         <>
@@ -152,6 +163,7 @@ export const Recipes: React.FC<Props> = ({
             <InProgressInfo
               craftingService={craftingService}
               onClose={onClose}
+              isOilBoosted={!!isOilBoosted}
             />
           )}
           {crafting && (

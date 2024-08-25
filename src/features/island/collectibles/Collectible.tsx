@@ -12,7 +12,7 @@ import { MachineState } from "features/game/lib/gameMachine";
 import { Context } from "features/game/GameProvider";
 import { InnerPanel } from "components/ui/Panel";
 import { SquareIcon } from "components/ui/SquareIcon";
-import lockIcon from "assets/skills/lock.png";
+import { SUNNYSIDE } from "assets/sunnyside";
 import { hasMoveRestriction } from "features/game/types/removeables";
 import {
   COLLECTIBLE_COMPONENTS,
@@ -54,7 +54,7 @@ const InProgressCollectible: React.FC<Props> = ({
   const [showTooltip, setShowTooltip] = useState(false);
 
   const totalSeconds = (readyAt - createdAt) / 1000;
-  const secondsLeft = Math.floor((readyAt - Date.now()) / 1000);
+  const secondsLeft = (readyAt - Date.now()) / 1000;
 
   return (
     <>
@@ -171,7 +171,7 @@ const LandscapingCollectible: React.FC<Props> = (props) => {
   const [isRestricted, restrictionReason] = hasMoveRestriction(
     props.name,
     props.id,
-    gameState
+    gameState,
   );
   if (isRestricted) {
     return (
@@ -189,7 +189,7 @@ const LandscapingCollectible: React.FC<Props> = (props) => {
           >
             <InnerPanel className="absolute whitespace-nowrap w-fit z-50">
               <div className="flex items-center space-x-2 mx-1 p-1">
-                <SquareIcon icon={lockIcon} width={5} />
+                <SquareIcon icon={SUNNYSIDE.icons.lock} width={5} />
                 <span className="text-xxs mb-0.5">{restrictionReason}</span>
               </div>
             </InnerPanel>

@@ -6,12 +6,13 @@ import {
   PIRATE_CAKE,
   FISH,
   Consumable,
+  FACTION_FOOD,
 } from "features/game/types/consumables";
 import { Context } from "features/game/GameProvider";
 import { useActor } from "@xstate/react";
 import { Feed } from "./Feed";
 import { Modal } from "components/ui/Modal";
-import foodIcon from "src/assets/food/chicken_drumstick.png";
+import foodIcon from "assets/food/chicken_drumstick.png";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
 import { getBumpkinLevel } from "features/game/lib/level";
 import { LevelUp } from "./LevelUp";
@@ -50,9 +51,10 @@ export const NPCModal: React.FC<Props> = ({ isOpen, onClose }) => {
       .sort(
         (a, b) =>
           BUILDING_ORDER.indexOf(a.building) -
-          BUILDING_ORDER.indexOf(b.building)
+          BUILDING_ORDER.indexOf(b.building),
       ),
     ...Object.values(PIRATE_CAKE),
+    ...Object.values(FACTION_FOOD),
     ...Object.values(FISH).sort((a, b) => a.name.localeCompare(b.name)),
   ];
 

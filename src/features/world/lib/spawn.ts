@@ -1,5 +1,6 @@
 import { Coordinates } from "features/game/expansion/components/MapPlacement";
 import { SceneId } from "../mmoMachine";
+import { CONFIG } from "lib/config";
 
 export type SpawnLocation = Record<
   SceneId,
@@ -16,32 +17,34 @@ export const SPAWNS: () => SpawnLocation = () => ({
       y: 200,
     },
   },
-  goblin_house: {
-    // Make sure everyone doesn't spawn in same spot
+  portal_example: {
     default: {
-      x: 230 + randomXOffset,
-      y: 420 - randomYOffset,
+      x: 400 + randomXOffset,
+      y: 450 - randomYOffset,
+    },
+  },
+  goblin_house: {
+    default: {
+      x: 239,
+      y: 436,
     },
   },
   sunflorian_house: {
-    // Make sure everyone doesn't spawn in same spot
     default: {
-      x: 230 + randomXOffset,
-      y: 420 - randomYOffset,
+      x: 239,
+      y: 432,
     },
   },
   nightshade_house: {
-    // Make sure everyone doesn't spawn in same spot
     default: {
-      x: 230 + randomXOffset,
-      y: 420 - randomYOffset,
+      x: 240,
+      y: 432,
     },
   },
   bumpkin_house: {
-    // Make sure everyone doesn't spawn in same spot
     default: {
-      x: 230 + randomXOffset,
-      y: 420 - randomYOffset,
+      x: 240,
+      y: 434,
     },
   },
   faction_house: {
@@ -56,6 +59,26 @@ export const SPAWNS: () => SpawnLocation = () => ({
     default: {
       x: 235,
       y: 845,
+    },
+    beach: {
+      x: 25,
+      y: 656,
+    },
+    nightshade_house: {
+      x: 120,
+      y: 448,
+    },
+    sunflorian_house: {
+      x: 344,
+      y: 651,
+    },
+    goblin_house: {
+      x: 122,
+      y: 786,
+    },
+    bumpkin_house: {
+      x: 376,
+      y: 462,
     },
   },
   retreat: {
@@ -99,9 +122,22 @@ export const SPAWNS: () => SpawnLocation = () => ({
     },
   },
   beach: {
-    default: {
-      x: 450,
-      y: 652,
+    default:
+      CONFIG.NETWORK === "amoy"
+        ? {
+            // // For artefact area
+            x: 256,
+            y: 159,
+            // x: 528,
+            // y: 736,
+          }
+        : {
+            x: 528,
+            y: 736,
+          },
+    kingdom: {
+      x: 532,
+      y: 257,
     },
   },
 

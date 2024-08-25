@@ -37,10 +37,7 @@ export type GreenHouseCrop = {
   disabled?: boolean;
 };
 
-export const GREENHOUSE_CROPS: () => Record<
-  GreenHouseCropName,
-  GreenHouseCrop
-> = () => ({
+export const GREENHOUSE_CROPS: Record<GreenHouseCropName, GreenHouseCrop> = {
   Rice: {
     sellPrice: 320,
     harvestSeconds: 32 * 60 * 60,
@@ -55,34 +52,31 @@ export const GREENHOUSE_CROPS: () => Record<
     description: "Zesty with a rich history.",
     bumpkinLevel: 10,
   },
-});
+};
 
-export const GREENHOUSE_SEEDS: () => Record<
-  GreenHouseCropSeedName,
-  Seed
-> = () => ({
+export const GREENHOUSE_SEEDS: Record<GreenHouseCropSeedName, Seed> = {
   "Rice Seed": {
     price: 240,
     description: "A staple food for many.",
     bumpkinLevel: 40,
     plantSeconds: 32 * 60 * 60,
-    requiredIsland: "desert",
+    plantingSpot: "Greenhouse",
   },
   "Olive Seed": {
     price: 320,
     description: "Zesty with a rich history.",
     bumpkinLevel: 40,
     plantSeconds: 44 * 60 * 60,
-    requiredIsland: "desert",
+    plantingSpot: "Greenhouse",
   },
-});
+};
 
 export type GreenHouseCropSeedName = `${GreenHouseCropName} Seed`;
 
 /**
  * Crops and their original prices
  */
-export const CROPS: () => Record<CropName, Crop> = () => ({
+export const CROPS: Record<CropName, Crop> = {
   Sunflower: {
     name: "Sunflower",
     description: translate("description.sunflower"),
@@ -181,17 +175,18 @@ export const CROPS: () => Record<CropName, Crop> = () => ({
     bumpkinLevel: 7,
     harvestSeconds: 36 * 60 * 60,
   },
-});
+};
 
 export type CropSeedName = `${CropName} Seed`;
 
-export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
+export const CROP_SEEDS: Record<CropSeedName, Seed> = {
   "Sunflower Seed": {
     price: 0.01,
     description: translate("description.sunflower"),
     plantSeconds: 60,
     bumpkinLevel: 1,
     yield: "Sunflower",
+    plantingSpot: "Crop Plot",
   },
   "Potato Seed": {
     price: 0.1,
@@ -199,6 +194,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     plantSeconds: 5 * 60,
     bumpkinLevel: 1,
     yield: "Potato",
+    plantingSpot: "Crop Plot",
   },
   "Pumpkin Seed": {
     description: translate("description.pumpkin"),
@@ -206,6 +202,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     plantSeconds: 30 * 60,
     bumpkinLevel: 2,
     yield: "Pumpkin",
+    plantingSpot: "Crop Plot",
   },
   "Carrot Seed": {
     description: translate("description.carrot"),
@@ -213,6 +210,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     plantSeconds: 60 * 60,
     bumpkinLevel: 2,
     yield: "Carrot",
+    plantingSpot: "Crop Plot",
   },
   "Cabbage Seed": {
     description: translate("description.cabbage"),
@@ -220,6 +218,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 3,
     plantSeconds: 2 * 60 * 60,
     yield: "Cabbage",
+    plantingSpot: "Crop Plot",
   },
   "Soybean Seed": {
     price: 1.5,
@@ -227,6 +226,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 10,
     plantSeconds: 3 * 60 * 60,
     yield: "Soybean",
+    plantingSpot: "Crop Plot",
   },
   "Beetroot Seed": {
     description: translate("description.beetroot"),
@@ -234,6 +234,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 3,
     plantSeconds: 4 * 60 * 60,
     yield: "Beetroot",
+    plantingSpot: "Crop Plot",
   },
   "Cauliflower Seed": {
     description: translate("description.cauliflower"),
@@ -241,6 +242,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 4,
     plantSeconds: 8 * 60 * 60,
     yield: "Cauliflower",
+    plantingSpot: "Crop Plot",
   },
   "Parsnip Seed": {
     description: translate("description.parsnip"),
@@ -248,6 +250,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 4,
     plantSeconds: 12 * 60 * 60,
     yield: "Parsnip",
+    plantingSpot: "Crop Plot",
   },
   "Eggplant Seed": {
     description: translate("description.eggplant"),
@@ -255,6 +258,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 5,
     plantSeconds: 16 * 60 * 60,
     yield: "Eggplant",
+    plantingSpot: "Crop Plot",
   },
   "Corn Seed": {
     description: translate("description.corn"),
@@ -262,6 +266,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 5,
     plantSeconds: 20 * 60 * 60,
     yield: "Corn",
+    plantingSpot: "Crop Plot",
   },
   "Radish Seed": {
     description: translate("description.radish"),
@@ -269,6 +274,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 5,
     plantSeconds: 24 * 60 * 60,
     yield: "Radish",
+    plantingSpot: "Crop Plot",
   },
   "Wheat Seed": {
     description: translate("description.wheat"),
@@ -276,6 +282,7 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 5,
     plantSeconds: 24 * 60 * 60,
     yield: "Wheat",
+    plantingSpot: "Crop Plot",
   },
   "Kale Seed": {
     price: 7,
@@ -283,5 +290,6 @@ export const CROP_SEEDS: () => Record<CropSeedName, Seed> = () => ({
     bumpkinLevel: 7,
     plantSeconds: 36 * 60 * 60,
     yield: "Kale",
+    plantingSpot: "Crop Plot",
   },
-});
+};

@@ -6,6 +6,7 @@ import { BumpkinItem } from "./bumpkin";
 import powerup from "assets/icons/level_up.png";
 import lightning from "assets/icons/lightning.png";
 import bee from "assets/icons/bee.webp";
+import chefHat from "assets/icons/chef_hat.png";
 import { ITEM_DETAILS } from "./images";
 import { translate } from "lib/i18n/translate";
 
@@ -92,6 +93,7 @@ export const BUMPKIN_ITEM_BUFF_LABELS: Partial<Record<BumpkinItem, BuffLabel>> =
       shortDescription: translate("bumpkinItemBuff.Luna.s.hat.boost"),
       labelType: "info",
       boostTypeIcon: SUNNYSIDE.icons.stopwatch,
+      boostedItemIcon: chefHat,
     },
     "Infernal Pitchfork": {
       shortDescription: translate("bumpkinItemBuff.infernal.pitchfork.boost"),
@@ -128,7 +130,7 @@ export const BUMPKIN_ITEM_BUFF_LABELS: Partial<Record<BumpkinItem, BuffLabel>> =
     },
     "Luminous Anglerfish Topper": {
       shortDescription: translate(
-        "bumpkinItemBuff.luminous.anglerfish.topper.boost"
+        "bumpkinItemBuff.luminous.anglerfish.topper.boost",
       ),
       labelType: "success",
       boostTypeIcon: powerup,
@@ -239,5 +241,280 @@ export const BUMPKIN_ITEM_BUFF_LABELS: Partial<Record<BumpkinItem, BuffLabel>> =
       labelType: "success",
       boostTypeIcon: powerup,
       boostedItemIcon: ITEM_DETAILS.Soybean.image,
+    },
+    "Goblin Armor": {
+      shortDescription: translate("bumpkinItemBuff.goblin.armor"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Goblin Helmet": {
+      shortDescription: translate("bumpkinItemBuff.goblin.helmet"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Goblin Pants": {
+      shortDescription: translate("bumpkinItemBuff.goblin.pants"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Goblin Sabatons": {
+      shortDescription: translate("bumpkinItemBuff.goblin.sabatons"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Goblin Axe": {
+      shortDescription: translate("bumpkinItemBuff.goblin.axe"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Nightshade Armor": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.armor"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Nightshade Helmet": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.helmet"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Nightshade Pants": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.pants"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Nightshade Sabatons": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.sabatons"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Nightshade Sword": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.sword"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Bumpkin Armor": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.armor"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Bumpkin Helmet": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.helmet"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Bumpkin Sword": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.sword"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Bumpkin Pants": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.pants"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Bumpkin Sabatons": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.sabatons"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Sunflorian Armor": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.armor"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Sunflorian Sword": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.sword"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Sunflorian Helmet": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.helmet"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Sunflorian Pants": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.pants"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Sunflorian Sabatons": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.sabatons"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Mark.image,
+    },
+    "Camel Onesie": {
+      shortDescription: "+0.1 Fruit Patch Yield",
+      labelType: "success",
+      boostedItemIcon: powerup,
+    },
+    "Crab Trap": {
+      shortDescription: translate("bumpkinItemBuff.crab.trap"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Crab.image,
+    },
+    "Lemon Shield": {
+      shortDescription: translate("bumpkinItemBuff.lemon.shield.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Lemon.image,
+    },
+    "Infernal Drill": {
+      shortDescription: translate("bumpkinItemBuff.infernal.drill.boost"),
+      labelType: "vibrant",
+      boostTypeIcon: lightning,
+      boostedItemIcon: ITEM_DETAILS.Oil.image,
+    },
+    "Ancient Shovel": {
+      shortDescription: translate("bumpkinItemBuff.ancient.shovel.boost"),
+      labelType: "vibrant",
+      boostTypeIcon: lightning,
+      boostedItemIcon: ITEM_DETAILS.Oil.image,
+    },
+    "Oil Overalls": {
+      shortDescription: translate("bumpkinItemBuff.oil.overalls.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Oil.image,
+    },
+    "Dev Wrench": {
+      shortDescription: translate("bumpkinItemBuff.dev.wrench.boost"),
+      labelType: "info",
+      boostTypeIcon: SUNNYSIDE.icons.stopwatch,
+      boostedItemIcon: ITEM_DETAILS.Oil.image,
+    },
+    "Bionic Drill": {
+      shortDescription: translate("bumpkinItemBuff.bionic.drill"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: SUNNYSIDE.tools.sand_shovel,
+    },
+    "Grape Pants": {
+      shortDescription: translate("bumpkinItemBuff.grape.pants"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Grape.image,
+    },
+    "Pirate Potion": {
+      shortDescription: translate("bumpkinItemBuff.pirate.potion"),
+      labelType: "vibrant",
+      boostTypeIcon: lightning,
+      boostedItemIcon: ITEM_DETAILS["Pirate Bounty"].image,
+    },
+    "Bumpkin Crown": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.crown.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS["Pirate Bounty"].image,
+    },
+    "Goblin Crown": {
+      shortDescription: translate("bumpkinItemBuff.goblin.crown.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS["Pirate Bounty"].image,
+    },
+    "Nightshade Crown": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.crown.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS["Pirate Bounty"].image,
+    },
+    "Sunflorian Crown": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.crown.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS["Pirate Bounty"].image,
+    },
+    "Bumpkin Shield": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.shield.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Wood.image,
+    },
+    "Goblin Shield": {
+      shortDescription: translate("bumpkinItemBuff.goblin.shield.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Wood.image,
+    },
+    "Nightshade Shield": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.shield.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Wood.image,
+    },
+    "Sunflorian Shield": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.shield.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Wood.image,
+    },
+    "Bumpkin Quiver": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.quiver.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Sunflower.image,
+    },
+    "Goblin Quiver": {
+      shortDescription: translate("bumpkinItemBuff.goblin.quiver.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Sunflower.image,
+    },
+    "Nightshade Quiver": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.quiver.boost"),
+      labelType: "success",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Sunflower.image,
+    },
+    "Sunflorian Quiver": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.quiver.boost"),
+      labelType: "vibrant",
+      boostTypeIcon: powerup,
+      boostedItemIcon: ITEM_DETAILS.Sunflower.image,
+    },
+    "Bumpkin Medallion": {
+      shortDescription: translate("bumpkinItemBuff.bumpkin.medallion.boost"),
+      labelType: "info",
+      boostTypeIcon: SUNNYSIDE.icons.stopwatch,
+      boostedItemIcon: chefHat,
+    },
+    "Goblin Medallion": {
+      shortDescription: translate("bumpkinItemBuff.goblin.medallion.boost"),
+      labelType: "info",
+      boostTypeIcon: SUNNYSIDE.icons.stopwatch,
+      boostedItemIcon: chefHat,
+    },
+    "Nightshade Medallion": {
+      shortDescription: translate("bumpkinItemBuff.nightshade.medallion.boost"),
+      labelType: "info",
+      boostTypeIcon: SUNNYSIDE.icons.stopwatch,
+      boostedItemIcon: chefHat,
+    },
+    "Sunflorian Medallion": {
+      shortDescription: translate("bumpkinItemBuff.sunflorian.medallion.boost"),
+      labelType: "info",
+      boostTypeIcon: SUNNYSIDE.icons.stopwatch,
+      boostedItemIcon: chefHat,
     },
   };

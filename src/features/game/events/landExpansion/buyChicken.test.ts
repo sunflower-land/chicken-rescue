@@ -4,25 +4,6 @@ import { buyChicken } from "./buyChicken";
 import { ANIMALS } from "features/game/types/craftables";
 
 describe("buyChicken", () => {
-  it("throws an error if no bumpkin exists", () => {
-    expect(() =>
-      buyChicken({
-        state: {
-          ...TEST_FARM,
-          bumpkin: undefined,
-        },
-        action: {
-          id: "1234asd",
-          coordinates: {
-            x: 2,
-            y: 2,
-          },
-          type: "chicken.bought",
-        },
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("requires coins to purchase chicken", () => {
     expect(() =>
       buyChicken({
@@ -51,7 +32,7 @@ describe("buyChicken", () => {
           },
           type: "chicken.bought",
         },
-      })
+      }),
     ).toThrow("Insufficient Coins");
   });
 
@@ -285,7 +266,7 @@ describe("buyChicken", () => {
     });
 
     expect(state.bumpkin?.activity?.["Coins Spent"]).toEqual(
-      ANIMALS.Chicken.price ?? 0
+      ANIMALS.Chicken.price ?? 0,
     );
   });
 
@@ -320,7 +301,7 @@ describe("buyChicken", () => {
           },
           type: "chicken.bought",
         },
-      })
+      }),
     ).toThrow("Insufficient space for more chickens");
   });
 
@@ -356,7 +337,7 @@ describe("buyChicken", () => {
           },
           type: "chicken.bought",
         },
-      })
+      }),
     ).toThrow("Insufficient space for more chickens");
   });
 

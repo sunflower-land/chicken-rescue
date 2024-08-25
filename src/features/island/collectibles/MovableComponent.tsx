@@ -58,7 +58,7 @@ export const RESOURCE_MOVE_EVENTS: Record<
 };
 
 function getMoveAction(
-  name: InventoryItemName | "Bud"
+  name: InventoryItemName | "Bud",
 ): GameEventName<PlacementEvent> {
   if (name in BUILDINGS_DIMENSIONS) {
     return "building.moved";
@@ -84,13 +84,16 @@ function getMoveAction(
 }
 
 export function getRemoveAction(
-  name: InventoryItemName | "Bud"
+  name: InventoryItemName | "Bud",
 ): GameEventName<PlacementEvent> | null {
   if (
     name in BUILDINGS_DIMENSIONS &&
     name !== "Manor" &&
     name !== "Town Center" &&
-    name !== "House"
+    name !== "House" &&
+    name !== "Market" &&
+    name !== "Fire Pit" &&
+    name !== "Workbench"
   ) {
     return "building.removed";
   }
@@ -99,7 +102,10 @@ export function getRemoveAction(
     name in RESOURCES ||
     name === "Manor" ||
     name === "House" ||
-    name === "Town Center"
+    name === "Town Center" ||
+    name === "Market" ||
+    name === "Fire Pit" ||
+    name === "Workbench"
   ) {
     return null;
   }
@@ -161,7 +167,7 @@ export const MoveableComponent: React.FC<MovableProps> = ({
   const [isRestricted, restrictionReason] = hasRemoveRestriction(
     name,
     id,
-    gameService.state.context.state
+    gameService.state.context.state,
   );
 
   /**
@@ -450,7 +456,7 @@ export const MoveableComponent: React.FC<MovableProps> = ({
                     }}
                   >
                     <InnerPanel className="absolute whitespace-nowrap w-fit z-50">
-                      <div className="text-xxs mx-1 p-1">
+                      <div className="text-xs mx-1 p-1">
                         <span>{restrictionReason}</span>
                       </div>
                     </InnerPanel>

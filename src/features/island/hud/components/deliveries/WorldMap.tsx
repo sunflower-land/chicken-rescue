@@ -9,7 +9,6 @@ import { SUNNYSIDE } from "assets/sunnyside";
 import { useNavigate } from "react-router-dom";
 import { OuterPanel } from "components/ui/Panel";
 import { useSound } from "lib/utils/hooks/useSound";
-import { hasFeatureAccess } from "lib/flags";
 import { getBumpkinLevel } from "features/game/lib/level";
 import { Label } from "components/ui/Label";
 
@@ -28,8 +27,25 @@ export const WorldMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   }, []);
 
   const level = getBumpkinLevel(
-    gameService.state.context.state.bumpkin?.experience ?? 0
+    gameService.state.context.state.bumpkin?.experience ?? 0,
   );
+  const hasFaction = gameService.state.context.state.faction;
+  const canTeleportToFactionHouse = level >= 7 && hasFaction;
+
+  const getFactionHouseRoute = () => {
+    switch (hasFaction?.name) {
+      case "bumpkins":
+        return "/world/bumpkin_house";
+      case "goblins":
+        return "/world/goblin_house";
+      case "nightshades":
+        return "/world/nightshade_house";
+      case "sunflorians":
+        return "/world/sunflorian_house";
+      default:
+        return "";
+    }
+  };
 
   return (
     <OuterPanel className="w-full relative shadow-xl">
@@ -71,9 +87,7 @@ export const WorldMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           onClose();
         }}
       >
-        <span className="balance-text text-xxs sm:text-sm">
-          {t("world.home")}
-        </span>
+        <span className="map-text text-xxs sm:text-sm">{t("world.home")}</span>
       </div>
 
       <div
@@ -96,39 +110,78 @@ export const WorldMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {level < 2 ? (
           <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
         ) : (
-          <span className="balance-text text-xxs sm:text-sm">
+          <span className="map-text text-xxs sm:text-sm">
             {t("world.plaza")}
           </span>
         )}
       </div>
 
-      {hasFeatureAccess(gameService.state.context.state, "KINGDOM") && (
-        <div
-          style={{
-            width: "18%",
-            height: "24%",
-            border: showDebugBorders ? "2px solid red" : "",
-            position: "absolute",
-            left: "35%",
-            bottom: "50%",
-          }}
-          className="flex justify-center items-center cursor-pointer"
-          onClick={() => {
-            if (level < 7) return;
-            travel.play();
-            navigate("/world/kingdom");
-            onClose();
-          }}
-        >
-          {level < 7 ? (
-            <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
-          ) : (
-            <span className="balance-text text-xxs sm:text-sm">
-              {t("world.kingdom")}
-            </span>
-          )}
-        </div>
-      )}
+      <div
+        style={{
+          width: "18%",
+          height: "15%",
+          border: showDebugBorders ? "2px solid red" : "",
+          position: "absolute",
+          left: "35%",
+          bottom: "61%",
+        }}
+        className="flex justify-center items-center cursor-pointer"
+        onClick={() => {
+          if (level < 7) return;
+          travel.play();
+          navigate("/world/kingdom");
+          onClose();
+        }}
+      >
+        {level < 7 ? (
+          <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
+        ) : (
+          <span className="map-text text-xxs sm:text-sm">
+            {t("world.kingdom")}
+          </span>
+        )}
+      </div>
+
+      <div
+        style={{
+          width: "18%",
+          height: "15%",
+          border: showDebugBorders ? "2px solid red" : "",
+          position: "absolute",
+          left: "35%",
+          bottom: "46%",
+        }}
+        className="flex justify-center items-center cursor-pointer"
+        onClick={() => {
+          if (!canTeleportToFactionHouse) return;
+          travel.play();
+          navigate(getFactionHouseRoute());
+          onClose();
+        }}
+      >
+        {!canTeleportToFactionHouse ? (
+          <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
+        ) : (
+          <span className="map-text text-xxs sm:text-sm">
+            {t("world.faction")}
+          </span>
+        )}
+      </div>
+
+      <div
+        style={{
+          width: "12%",
+          height: "18%",
+          border: showDebugBorders ? "2px solid red" : "",
+          position: "absolute",
+          left: "24%",
+          bottom: "42%",
+        }}
+      >
+        <Label className="shadow-md" type="vibrant">
+          {t("world.newArea")}
+        </Label>
+      </div>
 
       <div
         style={{
@@ -150,7 +203,7 @@ export const WorldMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {level < 4 ? (
           <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
         ) : (
-          <span className="balance-text text-xxs sm:text-sm">
+          <span className="map-text text-xxs sm:text-sm">
             {t("world.beach")}
           </span>
         )}
@@ -176,7 +229,7 @@ export const WorldMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {level < 6 ? (
           <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
         ) : (
-          <span className="balance-text text-xxs sm:text-sm">
+          <span className="map-text text-xxs sm:text-sm">
             {t("world.woodlands")}
           </span>
         )}
@@ -202,7 +255,7 @@ export const WorldMap: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {level < 5 ? (
           <img src={lockIcon} className="h-6 ml-1 img-highlight-heavy" />
         ) : (
-          <span className="balance-text text-xxs sm:text-sm">
+          <span className="map-text text-xxs sm:text-sm">
             {t("world.retreat")}
           </span>
         )}

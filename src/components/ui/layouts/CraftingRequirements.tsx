@@ -19,6 +19,7 @@ import { NPC } from "features/island/bumpkin/components/NPC";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { getImageUrl } from "lib/utils/getImageURLS";
 import { ITEM_ICONS } from "features/island/hud/components/inventory/Chest";
+import { translateTerms } from "lib/i18n/translate";
 
 /**
  * The props for the details for items.
@@ -99,7 +100,7 @@ interface Props {
 
 function getDetails(
   game: GameState,
-  details: ItemDetailsProps
+  details: ItemDetailsProps,
 ): {
   limit: Decimal;
   count: Decimal;
@@ -113,7 +114,7 @@ function getDetails(
 
     return {
       count: inventoryCount,
-      description: ITEM_DETAILS[details.item].description,
+      description: translateTerms(ITEM_DETAILS[details.item].description),
       image:
         ITEM_ICONS(game.island.type)[details.item] ??
         ITEM_DETAILS[details.item].image,
@@ -195,7 +196,7 @@ export const CraftingRequirements: React.FC<Props> = ({
             </div>
           )}
           {details.wearable && (
-            <div className="relative sm:w-4/5 my-1  flex">
+            <div className="relative sm:w-4/5 my-1 flex">
               <img src={icon} className="sm:w-full w-14 my-2 rounded-lg" />
               <div className="sm:absolute -ml-4 bottom-16 w-10 h-4 right-0">
                 <NPC
@@ -212,7 +213,7 @@ export const CraftingRequirements: React.FC<Props> = ({
           <span className="sm:text-center">{title}</span>
         </div>
         {!hideDescription && description !== "?" && (
-          <span className="text-xs sm:mt-1 whitespace-pre-line sm:text-center">
+          <span className="text-xs mb-2 sm:mt-1 whitespace-pre-line sm:text-center">
             {description}
           </span>
         )}
@@ -224,7 +225,7 @@ export const CraftingRequirements: React.FC<Props> = ({
     if (!boost) return <></>;
 
     return (
-      <div className="flex flex-col space-y-1 mt-2">
+      <div className="flex flex-col space-y-1 mb-2">
         <div className="flex justify-start sm:justify-center">
           <Label type="info" className="text-center">
             {boost}
@@ -238,7 +239,7 @@ export const CraftingRequirements: React.FC<Props> = ({
     if (!requirements) return <></>;
 
     return (
-      <div className="border-t border-white w-full my-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap sm:flex-col sm:items-center sm:flex-nowrap">
+      <div className="border-t border-white w-full mb-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap sm:flex-col sm:items-center sm:flex-nowrap">
         {/* Item ingredients requirements */}
         {!!requirements.resources &&
           getKeys(requirements.resources).map((ingredientName, index) => (
@@ -315,7 +316,7 @@ export const CraftingRequirements: React.FC<Props> = ({
           <Label
             icon={SUNNYSIDE.icons.stopwatch}
             type="warning"
-            className="my-1 mx-auto"
+            className="my-1 mx-auto whitespace-nowrap"
           >
             {formatDateRange(details.from, details.to as Date)}
           </Label>
@@ -323,7 +324,7 @@ export const CraftingRequirements: React.FC<Props> = ({
         {getItemDetail({ hideDescription })}
         {limit && (
           <p className="my-1 text-xs text-left sm:text-center">{`${t(
-            "max"
+            "max",
           )} ${limit} ${t("statements.perplayer")}`}</p>
         )}
         {getBoost()}

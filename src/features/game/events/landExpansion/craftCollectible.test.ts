@@ -1,5 +1,5 @@
 import Decimal from "decimal.js-light";
-import "lib/__mocks__/configMock.ts";
+import "lib/__mocks__/configMock";
 import { TEST_FARM } from "../../lib/constants";
 import { GameState } from "../../types/game";
 import { craftCollectible } from "./craftCollectible";
@@ -19,7 +19,7 @@ describe("craftCollectible", () => {
           type: "collectible.crafted",
           name: "Sunflower Statue" as any,
         },
-      })
+      }),
     ).toThrow("Item does not exist");
   });
 
@@ -35,7 +35,7 @@ describe("craftCollectible", () => {
           type: "collectible.crafted",
           name: "Immortal Pear",
         },
-      })
+      }),
     ).toThrow("Insufficient ingredient: Gold");
   });
 
@@ -56,7 +56,7 @@ describe("craftCollectible", () => {
           type: "collectible.crafted",
           name: "Laurie the Chuckle Crow",
         },
-      })
+      }),
     ).toThrow("Insufficient Coins");
   });
 
@@ -94,7 +94,7 @@ describe("craftCollectible", () => {
           type: "collectible.crafted",
           name: "Immortal Pear",
         },
-      })
+      }),
     ).toThrow("Not enough stock");
   });
 
@@ -128,8 +128,8 @@ describe("craftCollectible", () => {
           inventory: {
             Sunflower: new Decimal(150),
             "Basic Land": new Decimal(10),
-            Gold: new Decimal(100),
-            "Wooden Compass": new Decimal(50),
+            Sand: new Decimal(100),
+            Hieroglyph: new Decimal(50),
           },
           buildings: {},
           collectibles: {
@@ -149,7 +149,7 @@ describe("craftCollectible", () => {
           coordinates: { x: 0, y: 5 },
           id: "123",
         },
-      })
+      }),
     ).toThrow("ID already exists");
   });
 
@@ -162,8 +162,8 @@ describe("craftCollectible", () => {
           inventory: {
             Sunflower: new Decimal(150),
             "Basic Land": new Decimal(10),
-            Gold: new Decimal(100),
-            "Wooden Compass": new Decimal(50),
+            Sand: new Decimal(100),
+            Hieroglyph: new Decimal(50),
           },
           buildings: {},
           collectibles: {
@@ -183,7 +183,7 @@ describe("craftCollectible", () => {
           coordinates: { x: 0, y: 0 },
           id: "456",
         },
-      })
+      }),
     ).toThrow("Decoration collides");
   });
 
@@ -195,8 +195,8 @@ describe("craftCollectible", () => {
         inventory: {
           Sunflower: new Decimal(150),
           "Basic Land": new Decimal(10),
-          Gold: new Decimal(100),
-          "Wooden Compass": new Decimal(50),
+          Sand: new Decimal(100),
+          Hieroglyph: new Decimal(50),
         },
         buildings: {},
         collectibles: {},

@@ -1,19 +1,20 @@
 import { Button } from "components/ui/Button";
-import { Panel } from "components/ui/Panel";
 import { KNOWN_IDS } from "features/game/types";
 import React, { ChangeEvent, useState } from "react";
-import { Modal } from "components/ui/Modal";
 import GameABI from "lib/blockchain/abis/SunflowerLandGame.json";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import { BumpkinItem, ITEM_IDS } from "features/game/types/bumpkin";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { ContentComponentProps } from "../GameOptions";
 
 interface Props {
   network: "mainnet" | "amoy";
 }
 
-const HoarderCheck: React.FC<Props> = ({ network }) => {
+export const DEV_HoarderCheck: React.FC<Props & ContentComponentProps> = ({
+  network,
+}) => {
   const { t } = useAppTranslation();
   const [loading, setLoading] = useState(false);
   const [farmId, setFarmId] = useState("");
@@ -49,7 +50,7 @@ const HoarderCheck: React.FC<Props> = ({ network }) => {
 
       const maxIds = Object.keys(current)
         .filter(
-          (k) => ((current as any)[k] ?? 0) - ((previous as any)[k] ?? 0) > 0
+          (k) => ((current as any)[k] ?? 0) - ((previous as any)[k] ?? 0) > 0,
         )
         .map(String)
         .map((key) => (KNOWN_IDS as any)[key]);
@@ -62,11 +63,11 @@ const HoarderCheck: React.FC<Props> = ({ network }) => {
       const gameContract =
         network === "mainnet"
           ? "0xfB84a7D985f9336987C89e1518E9A897b013080B"
-          : "0x27A6599DD1B1257B0e0f10fE2C83716b26c48f02";
+          : "0x05BbC2c442A7468538e68B1F70a97C9140227b0e";
       const web3 = new Web3(rpc);
       const contract = new web3.eth.Contract(
         GameABI as AbiItem[],
-        gameContract
+        gameContract,
       );
       const maxAmount = await contract.methods.getMaxItemAmounts(maxIds).call();
       const inventoryLimits: string[] = [];
@@ -100,7 +101,7 @@ const HoarderCheck: React.FC<Props> = ({ network }) => {
         const id = ITEM_IDS[wearableName as BumpkinItem];
         const storage = web3.utils.soliditySha3(
           { type: "uint256", value: String(id) },
-          { type: "uint", value: "13" }
+          { type: "uint", value: "13" },
         ) as string;
 
         const hex = await web3.eth.getStorageAt(gameContract, storage);
@@ -116,7 +117,7 @@ const HoarderCheck: React.FC<Props> = ({ network }) => {
           const limit = await getOnChainMax(key);
           if (diff > limit) {
             wardrobeLimits.push(
-              `${key} (Diff ${diff} > Limit ${await getOnChainMax(key)})`
+              `${key} (Diff ${diff} > Limit ${await getOnChainMax(key)})`,
             );
           }
         }
@@ -129,11 +130,11 @@ const HoarderCheck: React.FC<Props> = ({ network }) => {
   }
 
   if (loading) {
-    return <Panel>{t("loading")}</Panel>;
+    return <div>{t("loading")}</div>;
   }
 
   return (
-    <Panel className="flex flex-col p-1">
+    <>
       {network}
       <input
         style={{
@@ -162,24 +163,6 @@ const HoarderCheck: React.FC<Props> = ({ network }) => {
 
       <Button onClick={search} className="pt-2">
         {t("check")}
-      </Button>
-    </Panel>
-  );
-};
-
-export const DEV_HoardingCheck: React.FC<Props> = ({ network }) => {
-  const { t } = useAppTranslation();
-  const [show, setShow] = useState(false);
-  return (
-    <>
-      <Modal show={show} onHide={() => setShow(false)}>
-        <HoarderCheck network={network} />
-      </Modal>
-      <Button onClick={() => setShow(!show)}>
-        {`Hoarding Check`}
-        {" ("}
-        {network}
-        {")"}
       </Button>
     </>
   );

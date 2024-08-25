@@ -112,7 +112,7 @@
 }
 
 :root {
-  --font-family: "Basic", sans-serif, "LXGW WenKai TC", cursive;
+  --font-family: "Basic", "Ark", sans-serif;
 
   /* Font Size Variables */
   --text-xxs-size: 20px;
@@ -176,6 +176,21 @@
   src: url("https://sunflower-land.com/testnet-assets/fonts/Secondary.ttf");
 }
 
+@font-face {
+  font-family: "Born2bSporty";
+  src: url("https://sunflower-land.com/testnet-assets/fonts/Born2bSportyFS.otf");
+}
+
+@font-face {
+  font-family: "Basis33";
+  src: url("https://sunflower-land.com/testnet-assets/fonts/basis33.ttf");
+}
+
+@font-face {
+  font-family: "Ark";
+  src: url("https://sunflower-land.com/testnet-assets/fonts/ark-pixel-zh_cn.ttf");
+}
+
 html {
   min-height: calc(100% + env(safe-area-inset-top));
 }
@@ -186,7 +201,6 @@ body {
   overflow: hidden;
   color: #181425;
   font-size: var(--text-sm-size);
-  word-spacing: 3px;
   line-height: var(--text-sm-line-height);
   -webkit-font-smoothing: antialiased;
 }
@@ -444,9 +458,41 @@ img {
   letter-spacing: 1px;
   font-size: 28px !important;
 
-  text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
-    1px 1px 0 black, -2px 0 0 black, 2px 0 0 black, 0 -2px 0 black,
-    0 2px 0 black, -2px -2px 0 black, 2px -2px 0 black, -2px 2px 0 black,
+  text-shadow:
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -2px 0 0 black,
+    2px 0 0 black,
+    0 -2px 0 black,
+    0 2px 0 black,
+    -2px -2px 0 black,
+    2px -2px 0 black,
+    -2px 2px 0 black,
+    2px 2px 0 black;
+}
+
+.map-text {
+  color: white;
+  /* text-shadow: 1px 1px black; */
+  font-family: "Secondary";
+  /* paint-order: stroke;
+  -webkit-text-stroke: 3px black; */
+  letter-spacing: 1px;
+
+  text-shadow:
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -2px 0 0 black,
+    2px 0 0 black,
+    0 -2px 0 black,
+    0 2px 0 black,
+    -2px -2px 0 black,
+    2px -2px 0 black,
+    -2px 2px 0 black,
     2px 2px 0 black;
 }
 
@@ -459,9 +505,18 @@ img {
   -webkit-text-stroke: 3px black; */
   letter-spacing: 1px;
 
-  text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
-    1px 1px 0 black, -2px 0 0 black, 2px 0 0 black, 0 -2px 0 black,
-    0 2px 0 black, -2px -2px 0 black, 2px -2px 0 black, -2px 2px 0 black,
+  text-shadow:
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -2px 0 0 black,
+    2px 0 0 black,
+    0 -2px 0 black,
+    0 2px 0 black,
+    -2px -2px 0 black,
+    2px -2px 0 black,
+    -2px 2px 0 black,
     2px 2px 0 black;
 }
 
@@ -778,7 +833,7 @@ img {
   top: 0;
   width: 100%;
   height: 100%;
-  background-image: url("/src/assets/ui/brown_wall.webp");
+  background-image: url("https://sunflower-land.com/testnet-assets/ui/brown_wall.webp");
   background-repeat: repeat;
   background-size: calc(22px * 2.625);
   /* background-position: 50% 0; */
@@ -1210,37 +1265,51 @@ img {
 }
 
 .swarm-bee-1 {
-  animation: fly-up-right 4s, bee-1 4s;
+  animation:
+    fly-up-right 4s,
+    bee-1 4s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
 .swarm-bee-2 {
-  animation: fly-up-right 4s, bee-2 4s;
+  animation:
+    fly-up-right 4s,
+    bee-2 4s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
 .swarm-bee-3 {
-  animation: fly-up-right 4s, bee-3 4s;
+  animation:
+    fly-up-right 4s,
+    bee-3 4s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
 .swarm-bee-4 {
-  animation: fly-up-left 4s, bee-4 4s;
+  animation:
+    fly-up-left 4s,
+    bee-4 4s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
 .swarm-bee-5 {
-  animation: fly-up-left 4s, bee-5 4s;
+  animation:
+    fly-up-left 4s,
+    bee-5 4s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
 .swarm-bee-6 {
-  animation: fly-up-left 4s, bee-6 4s;
+  animation:
+    fly-up-left 4s,
+    bee-6 4s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
 .swarm-bee-7 {
-  animation: fly-up-right 3s, bee-7 3s;
+  animation:
+    fly-up-right 3s,
+    bee-7 3s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.36, 0.03, 0.18, 1.08);
 }
@@ -1279,6 +1348,38 @@ a {
   -webkit-font-smoothing: antialiased;
 }
 
+.font-Ark {
+  font-family: "Ark", sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
 th {
   font-weight: normal;
+}
+
+.loading::after {
+  display: inline-block;
+  animation: dotty steps(1, end) 1s infinite;
+  content: "";
+  min-width: 0.6rem;
+  text-align: left;
+}
+
+@keyframes dotty {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+  100% {
+    content: "";
+  }
 }

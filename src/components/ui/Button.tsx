@@ -3,7 +3,7 @@ import classnames from "classnames";
 import Decimal from "decimal.js-light";
 import { useSound } from "lib/utils/hooks/useSound";
 
-import primaryButton from "assets/ui/light_button.png";
+import { SUNNYSIDE } from "assets/sunnyside";
 
 import { useLongPress } from "lib/utils/hooks/useLongPress";
 import { PIXEL_SCALE } from "features/game/lib/constants";
@@ -34,13 +34,13 @@ export const Button: React.FC<Props> = ({
     {
       delay: 500,
       interval: longPressInterval,
-    }
+    },
   );
 
   const button = useSound("button");
 
   const onClickWithSound = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
     button.play();
     onClick?.(event);
@@ -53,14 +53,14 @@ export const Button: React.FC<Props> = ({
   return (
     <button
       className={classnames(
-        "w-full p-1 text-sm object-contain justify-center items-center hover:brightness-90 cursor-pointer flex disabled:opacity-50 ",
+        "w-full p-1 text-sm object-contain justify-center items-center hover:brightness-90 cursor-pointer flex disabled:opacity-50",
         className,
-        { "cursor-not-allowed": disabled }
+        { "cursor-not-allowed": disabled },
       )}
       type={type}
       disabled={disabled}
       style={{
-        borderImage: `url(${primaryButton})`,
+        borderImage: `url(${SUNNYSIDE.ui.primaryButton})`,
         borderStyle: "solid",
         borderWidth: `8px 8px 10px 8px`,
         borderImageSlice: "3 3 4 3 fill",

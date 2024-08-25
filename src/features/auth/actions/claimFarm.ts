@@ -17,16 +17,17 @@ export async function claimFarm(request: Request) {
         Authorization: `Bearer ${request.token}`,
         "X-Transaction-ID": request.transactionId,
       },
-    }
+    },
   );
+  const { errorCode, ...payload } = await response.json();
 
   if (response.status === 429) {
-    throw new Error(ERRORS.TOO_MANY_REQUESTS);
+    throw new Error(errorCode ?? ERRORS.TOO_MANY_REQUESTS);
   }
 
   if (response.status >= 400) {
-    throw new Error(ERRORS.CLAIM_FARM_SERVER_ERROR);
+    throw new Error(errorCode ?? ERRORS.CLAIM_FARM_SERVER_ERROR);
   }
 
-  return await response.json();
+  return payload;
 }

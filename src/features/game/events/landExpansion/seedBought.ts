@@ -9,7 +9,6 @@ import { getBumpkinLevel } from "features/game/lib/level";
 import { Seed, SeedName, SEEDS } from "features/game/types/seeds";
 import { isWearableActive } from "features/game/lib/wearables";
 import { FLOWER_SEEDS } from "features/game/types/flowers";
-import { hasRequiredIslandExpansion } from "features/game/lib/hasRequiredIslandExpansion";
 
 export type SeedBoughtAction = {
   type: "seed.bought";
@@ -21,7 +20,7 @@ export function getBuyPrice(
   name: SeedName,
   seed: Seed,
   inventory: Inventory,
-  game: GameState
+  game: GameState,
 ) {
   if (
     name in FLOWER_SEEDS() &&
@@ -86,13 +85,15 @@ export function seedBought({ state, action }: Options) {
     throw new Error("Not enough stock");
   }
 
-  const requiredIsland = seed.requiredIsland;
+  const requiredPlantingSpot = seed.plantingSpot;
 
   if (
-    requiredIsland &&
-    !hasRequiredIslandExpansion(stateCopy.island.type, requiredIsland)
+    requiredPlantingSpot &&
+    stateCopy.inventory[requiredPlantingSpot]?.lessThan(1)
   ) {
-    throw new Error("You do not have the required island expansion");
+    throw new Error(
+      "You do not have the planting spot needed to plant this seed",
+    );
   }
 
   const price = getBuyPrice(item, seed, stateCopy.inventory, stateCopy);
@@ -107,12 +108,12 @@ export function seedBought({ state, action }: Options) {
   bumpkin.activity = trackActivity(
     "Coins Spent",
     bumpkin?.activity,
-    new Decimal(totalExpenses)
+    new Decimal(totalExpenses),
   );
   bumpkin.activity = trackActivity(
     `${item} Bought`,
     bumpkin?.activity,
-    new Decimal(amount)
+    new Decimal(amount),
   );
 
   stateCopy.coins = stateCopy.coins - totalExpenses;

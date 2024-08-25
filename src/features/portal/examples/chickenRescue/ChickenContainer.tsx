@@ -15,7 +15,7 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
           {
             start: 0,
             end: 5,
-          }
+          },
         ),
         repeat: -1,
         frameRate: 10,
@@ -30,7 +30,7 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
           {
             start: 6,
             end: 11,
-          }
+          },
         ),
         repeat: -1,
         frameRate: 10,
@@ -45,7 +45,7 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
           {
             start: 12,
             end: 17,
-          }
+          },
         ),
         repeat: -1,
         frameRate: 10,
@@ -60,7 +60,7 @@ export class ChickenContainer extends Phaser.GameObjects.Container {
           {
             start: 18,
             end: 23,
-          }
+          },
         ),
         repeat: -1,
         frameRate: 10,

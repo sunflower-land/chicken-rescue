@@ -15,7 +15,7 @@ export function isCollectibleBuilt({
   const placedInHome =
     game.home.collectibles[name] &&
     game.home.collectibles[name]?.some(
-      (placed) => placed.readyAt <= Date.now()
+      (placed) => placed.readyAt <= Date.now(),
     );
 
   return !!placedOnFarm || !!placedInHome;
@@ -23,6 +23,13 @@ export function isCollectibleBuilt({
 
 export const EXPIRY_COOLDOWNS: Partial<Record<CollectibleName, number>> = {
   "Time Warp Totem": 2 * 60 * 60 * 1000,
+  "Gourmet Hourglass": 4 * 60 * 60 * 1000,
+  "Harvest Hourglass": 6 * 60 * 60 * 1000,
+  "Timber Hourglass": 4 * 60 * 60 * 1000,
+  "Ore Hourglass": 3 * 60 * 60 * 1000,
+  "Orchard Hourglass": 6 * 60 * 60 * 1000,
+  "Blossom Hourglass": 4 * 60 * 60 * 1000,
+  "Fisher's Hourglass": 4 * 60 * 60 * 1000,
 };
 
 /**
@@ -41,13 +48,13 @@ export function isCollectibleActive({
   const placedOnFarm =
     game.collectibles[name] &&
     game.collectibles[name]?.some(
-      (placed) => placed.createdAt + cooldown > Date.now()
+      (placed) => placed.createdAt + cooldown > Date.now(),
     );
 
   const placedInHome =
     game.home.collectibles[name] &&
     game.home.collectibles[name]?.some(
-      (placed) => placed.createdAt + cooldown > Date.now()
+      (placed) => placed.createdAt + cooldown > Date.now(),
     );
 
   return !!placedOnFarm || !!placedInHome;

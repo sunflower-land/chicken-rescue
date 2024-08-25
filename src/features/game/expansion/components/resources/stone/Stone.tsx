@@ -37,7 +37,7 @@ interface Props {
 }
 
 export const Stone: React.FC<Props> = ({ id, index }) => {
-  const { gameService, shortcutItem } = useContext(Context);
+  const { gameService, shortcutItem, showAnimations } = useContext(Context);
 
   const [touchCount, setTouchCount] = useState(0);
 
@@ -67,14 +67,14 @@ export const Stone: React.FC<Props> = ({ id, index }) => {
   const resource = useSelector(
     gameService,
     (state) => state.context.state.stones[id],
-    compareResource
+    compareResource,
   );
   const inventory = useSelector(
     gameService,
     selectInventory,
     (prev, next) =>
       HasTool(prev) === HasTool(next) &&
-      (prev.Logger ?? new Decimal(0)).equals(next.Logger ?? new Decimal(0))
+      (prev.Logger ?? new Decimal(0)).equals(next.Logger ?? new Decimal(0)),
   );
 
   const needsHelp = useSelector(gameService, showHelper);
@@ -105,13 +105,18 @@ export const Stone: React.FC<Props> = ({ id, index }) => {
     });
 
     if (!newState.matches("hoarding")) {
-      setCollecting(true);
-      setCollectedAmount(resource.stone.amount);
+      if (showAnimations) {
+        setCollecting(true);
+        setCollectedAmount(resource.stone.amount);
+      }
+
       miningFallAudio.play();
 
-      await new Promise((res) => setTimeout(res, 3000));
-      setCollecting(false);
-      setCollectedAmount(undefined);
+      if (showAnimations) {
+        await new Promise((res) => setTimeout(res, 3000));
+        setCollecting(false);
+        setCollectedAmount(undefined);
+      }
     }
   };
 

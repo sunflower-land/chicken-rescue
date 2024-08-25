@@ -15,7 +15,7 @@ import {
   GreenHouseFruitSeedName,
 } from "./fruits";
 import { FLOWER_SEEDS, FlowerSeedName } from "./flowers";
-import { IslandType } from "./game";
+import { ResourceName } from "./resources";
 
 export type SeedName =
   | CropSeedName
@@ -29,6 +29,7 @@ export type Seed = {
   description: string;
   plantSeconds: number;
   bumpkinLevel: number;
+  plantingSpot: ResourceName | "Greenhouse";
   yield?:
     | CropName
     | FruitName
@@ -36,13 +37,12 @@ export type Seed = {
     | GreenHouseCropName
     | GreenHouseFruitName;
   disabled?: boolean;
-  requiredIsland?: IslandType;
 };
 
 export const SEEDS: () => Record<SeedName, Seed> = () => ({
-  ...CROP_SEEDS(),
+  ...CROP_SEEDS,
   ...FRUIT_SEEDS(),
   ...FLOWER_SEEDS(),
   ...GREENHOUSE_FRUIT_SEEDS(),
-  ...GREENHOUSE_SEEDS(),
+  ...GREENHOUSE_SEEDS,
 });

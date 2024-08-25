@@ -4,10 +4,6 @@ import { Modal } from "components/ui/Modal";
 import ReCAPTCHA from "react-google-recaptcha";
 import * as AuthProvider from "features/auth/lib/Provider";
 
-import wisingWell from "assets/buildings/wishing_well.png";
-import goblinHead from "assets/npcs/goblin_head.png";
-import token from "assets/icons/sfl.webp";
-
 import { Panel } from "components/ui/Panel";
 import { Button } from "components/ui/Button";
 import { wallet } from "lib/blockchain/wallet";
@@ -16,13 +12,12 @@ import { shortAddress } from "lib/utils/shortAddress";
 import { CONFIG } from "lib/config";
 import { SomethingWentWrong } from "features/auth/components/SomethingWentWrong";
 import classNames from "classnames";
-import Decimal from "decimal.js-light";
 import {
   MachineInterpreter,
   wishingWellMachine,
 } from "../../../../goblins/wishingWell/wishingWellMachine";
 import { WishingWellTokens } from "../../../../goblins/wishingWell/actions/loadWishingWell";
-import { setPrecision } from "lib/utils/formatNumber";
+import { formatNumber } from "lib/utils/formatNumber";
 import useUiRefresher from "lib/utils/hooks/useUiRefresher";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { mintTestnetTokens } from "lib/blockchain/Pair";
@@ -32,6 +27,7 @@ import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { GameWallet } from "features/wallet/Wallet";
 import { Label } from "components/ui/Label";
 import giftIcon from "assets/icons/gift.png";
+import token from "assets/icons/sfl.webp";
 import { Context } from "features/game/GameProvider";
 import { BumpkinParts, tokenUriBuilder } from "lib/utils/tokenUriBuilder";
 import { Loading } from "features/auth/components";
@@ -94,11 +90,18 @@ const GrantWish = ({ totalTokensInWell, onClick }: GrantWishArgs) => {
           <h1 className="text-lg mb-4 text-center">
             {t("wishingWell.wish.grantTime")}
           </h1>
-          <img src={wisingWell} alt="wishing well" className="w-16 mb-2" />
+          <img
+            src={SUNNYSIDE.building.wishingwell}
+            alt="wishing well"
+            className="w-16 mb-2"
+          />
         </div>
         <p className="mb-4 text-sm">
           {t("statements.wishing.well.worthwell", {
-            rewards: Number(fromWei(totalTokensInWell.toString())).toFixed(2),
+            rewards: formatNumber(
+              Number(fromWei(totalTokensInWell.toString())),
+              { decimalPlaces: 4 },
+            ),
           })}
         </p>
         <p className="mb-2 text-sm">{t("statements.wishing.well.lucky")}</p>
@@ -117,7 +120,11 @@ const ZeroTokens = ({ onClick }: ZeroTokensArgs) => {
       <div className="p-2">
         <div className="flex flex-col items-center mb-3">
           <h1 className="text-lg mb-4 text-center">{t("uhOh")}</h1>
-          <img src={goblinHead} alt="skeleton death" className="w-16 mb-2" />
+          <img
+            src={SUNNYSIDE.npcs.goblinHead}
+            alt="skeleton death"
+            className="w-16 mb-2"
+          />
         </div>
         <p className="mb-4 text-sm">{t("wishingWell.noReward")}</p>
         <p className="mb-2 text-sm">{t("wishingWell.wish.lucky")}</p>
@@ -168,7 +175,11 @@ const NoWish = ({ totalTokensInWell, hasLPTokens, onClick }: NoWishArgs) => {
       <div className="p-2">
         <div className="flex flex-col items-center mb-3">
           <h1 className="text-lg mb-2 text-center">{t("wishing.well")}</h1>
-          <img src={wisingWell} alt="wishing well" className="w-16" />
+          <img
+            src={SUNNYSIDE.building.wishingwell}
+            alt="wishing well"
+            className="w-16"
+          />
         </div>
         <p className="mb-4 text-sm">{t("wishingWell.info.one")}</p>
         <p className="mb-4 text-sm">
@@ -184,7 +195,10 @@ const NoWish = ({ totalTokensInWell, hasLPTokens, onClick }: NoWishArgs) => {
         </p>
         <p className="mb-4 text-sm">
           {t("statements.wishing.well.worthwell", {
-            rewards: Number(fromWei(totalTokensInWell.toString())).toFixed(2),
+            rewards: formatNumber(
+              Number(fromWei(totalTokensInWell.toString())),
+              { decimalPlaces: 4 },
+            ),
           })}
         </p>
         <div className="flex justify-center items-center mb-4">
@@ -286,7 +300,7 @@ export const WishingWellModal: React.FC<Props> = ({ onClose }) => {
   const goToQuickSwap = () => {
     window.open(
       "https://quickswap.exchange/#/add/0xd1f9c58e33933a993a3891f8acfe05a68e1afc05/ETH/v2",
-      "_blank"
+      "_blank",
     );
   };
 
@@ -358,8 +372,10 @@ export const WishingWellModal: React.FC<Props> = ({ onClose }) => {
             <Granted
               reward={
                 machine.context.totalRewards
-                  ? setPrecision(machine.context.totalRewards).toString()
-                  : new Decimal(0).toString()
+                  ? formatNumber(machine.context.totalRewards, {
+                      decimalPlaces: 4,
+                    })
+                  : "?"
               }
               lockedTime={wishingWell.lockedTime}
               onClose={handleClose}

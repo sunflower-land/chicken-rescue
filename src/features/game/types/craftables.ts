@@ -13,12 +13,14 @@ import {
   MegaStoreCollectibleName,
   PotionHouseItemName,
   SoldOutCollectibleName,
+  TreasureCollectibleItem,
 } from "./collectibles";
 import { BoostTreasure } from "./treasure";
-import { MarineMarvelName } from "./fishing";
+import { MarineMarvelName, OldFishName } from "./fishing";
 import { SeasonalBanner } from "./seasons";
-import { EpicFlowerName } from "./flowers";
+import { EpicFlowerName, MutantFlowerName } from "./flowers";
 import { translate } from "lib/i18n/translate";
+import { FactionShopCollectibleName } from "./factionShop";
 
 export { FLAGS };
 
@@ -94,7 +96,8 @@ export type MutantChicken =
   | "El Pollo Veloz"
   | "Banana Chicken"
   | "Crim Peckster"
-  | "Knight Chicken";
+  | "Knight Chicken"
+  | "Pharaoh Chicken";
 
 export interface LimitedItem extends CraftableItem {
   maxSupply?: number;
@@ -207,10 +210,14 @@ export type CollectibleName =
   | "Undead Rooster"
   | PotionHouseItemName
   | MarineMarvelName
+  | OldFishName
   | MegaStoreCollectibleName
   | EpicFlowerName
   | FactionBanner
-  | "Lifetime Farmer Banner";
+  | "Lifetime Farmer Banner"
+  | FactionShopCollectibleName
+  | TreasureCollectibleItem
+  | MutantFlowerName;
 
 export type ToolName =
   | "Axe"
@@ -799,6 +806,11 @@ export const MUTANT_CHICKENS: Record<MutantChicken, LimitedItem> = {
     description: translate("description.knight.chicken"),
     type: LimitedItemType.MutantChicken,
   },
+  "Pharaoh Chicken": {
+    name: "Pharaoh Chicken",
+    description: translate("description.pharaoh.chicken"),
+    type: LimitedItemType.MutantChicken,
+  },
 };
 
 export const WAR_BANNERS: Record<WarBanner, CraftableItem> = {
@@ -1048,7 +1060,7 @@ export const ANIMALS: Record<Animal, CraftableItem> = {
  * getKeys is a ref to Object.keys, but the return is typed literally.
  */
 export const getKeys = Object.keys as <T extends object>(
-  obj: T
+  obj: T,
 ) => Array<keyof T>;
 
 /**
@@ -1056,26 +1068,8 @@ export const getKeys = Object.keys as <T extends object>(
  */
 type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T];
 export const getEntries = Object.entries as <T extends object>(
-  obj: T
+  obj: T,
 ) => Entries<T>[];
-
-export const LIMITED_ITEMS = {
-  ...BLACKSMITH_ITEMS,
-  ...BARN_ITEMS,
-  ...MARKET_ITEMS,
-  ...FLAGS,
-  ...MOM_EVENT_ITEMS,
-  ...QUEST_ITEMS,
-  ...MUTANT_CHICKENS,
-  ...SALESMAN_ITEMS,
-  ...WAR_TENT_ITEMS,
-};
-
-export const isLimitedItem = (itemName: any) => {
-  return !!getKeys(LIMITED_ITEMS).find(
-    (limitedItemName) => limitedItemName === itemName
-  );
-};
 
 export type Dimensions = { width: number; height: number };
 
@@ -1087,7 +1081,7 @@ const flagsDimension = getKeys(FLAGS).reduce(
       height: 1,
     },
   }),
-  {} as Record<Flag, Dimensions>
+  {} as Record<Flag, Dimensions>,
 );
 
 export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
@@ -1145,6 +1139,7 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Banana Chicken": { width: 1, height: 2 },
   "Crim Peckster": { width: 1, height: 1 },
   "Knight Chicken": { width: 1, height: 1 },
+  "Pharaoh Chicken": { width: 1, height: 1 },
   // War Tent Items
   "War Skull": { width: 1, height: 1 },
   "War Tombstone": { width: 1, height: 1 },
@@ -1218,6 +1213,7 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Goblin Faction Banner": { height: 2, width: 1 },
   "Nightshade Faction Banner": { height: 2, width: 1 },
   "Clash of Factions Banner": { width: 1, height: 2 },
+  "Pharaoh's Treasure Banner": { width: 1, height: 2 },
   "Lifetime Farmer Banner": { width: 1, height: 2 },
 
   // Dawn Breaker SFTs
@@ -1263,9 +1259,11 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Radiant Ray": { width: 2, height: 1 },
   "Phantom Barracuda": { width: 2, height: 1 },
   "Gilded Swordfish": { width: 2, height: 1 },
-  "Kraken Tentacle": { width: 1, height: 1 },
   "Crimson Carp": { width: 2, height: 1 },
   "Battle Fish": { width: 2, height: 1 },
+  "Lemon Shark": { width: 2, height: 1 },
+
+  "Kraken Tentacle": { width: 1, height: 1 },
 
   // Catch the Kraken SFTs
   Walrus: { width: 2, height: 2 },
@@ -1292,6 +1290,7 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Flower Rug": { width: 3, height: 3 },
   "Tea Rug": { width: 3, height: 3 },
   "Green Field Rug": { width: 3, height: 3 },
+
   // Flowers
   "Prism Petal": { width: 1, height: 1 },
   "Celestial Frostbloom": { width: 1, height: 1 },
@@ -1317,6 +1316,78 @@ export const COLLECTIBLES_DIMENSIONS: Record<CollectibleName, Dimensions> = {
   "Regular Pawn": { width: 1, height: 1 },
   "Silver Squire": { width: 1, height: 1 },
   "Rice Panda": { width: 1, height: 2 },
+  // Faction Shop
+  "Sunflorian Throne": { width: 1, height: 2 },
+  "Nightshade Throne": { width: 1, height: 2 },
+  "Goblin Throne": { width: 1, height: 2 },
+  "Bumpkin Throne": { width: 1, height: 2 },
+  "Golden Sunflorian Egg": { width: 1, height: 1 },
+  "Goblin Mischief Egg": { width: 1, height: 1 },
+  "Bumpkin Charm Egg": { width: 1, height: 1 },
+  "Nightshade Veil Egg": { width: 1, height: 1 },
+  "Emerald Goblin Goblet": { width: 1, height: 1 },
+  "Opal Sunflorian Goblet": { width: 1, height: 1 },
+  "Sapphire Bumpkin Goblet": { width: 1, height: 1 },
+  "Amethyst Nightshade Goblet": { width: 1, height: 1 },
+  "Golden Faction Goblet": { width: 1, height: 1 },
+  "Ruby Faction Goblet": { width: 1, height: 1 },
+  "Sunflorian Bunting": { width: 2, height: 1 },
+  "Nightshade Bunting": { width: 2, height: 1 },
+  "Goblin Bunting": { width: 2, height: 1 },
+  "Bumpkin Bunting": { width: 2, height: 1 },
+  "Sunflorian Candles": { width: 1, height: 1 },
+  "Nightshade Candles": { width: 1, height: 1 },
+  "Goblin Candles": { width: 1, height: 1 },
+  "Bumpkin Candles": { width: 1, height: 1 },
+  "Sunflorian Left Wall Sconce": { width: 1, height: 1 },
+  "Nightshade Left Wall Sconce": { width: 1, height: 1 },
+  "Goblin Left Wall Sconce": { width: 1, height: 1 },
+  "Bumpkin Left Wall Sconce": { width: 1, height: 1 },
+  "Sunflorian Right Wall Sconce": { width: 1, height: 1 },
+  "Nightshade Right Wall Sconce": { width: 1, height: 1 },
+  "Goblin Right Wall Sconce": { width: 1, height: 1 },
+  "Bumpkin Right Wall Sconce": { width: 1, height: 1 },
+  "Gourmet Hourglass": { width: 1, height: 1 },
+  "Harvest Hourglass": { width: 1, height: 1 },
+  "Timber Hourglass": { width: 1, height: 1 },
+  "Ore Hourglass": { width: 1, height: 1 },
+  "Orchard Hourglass": { width: 1, height: 1 },
+  "Blossom Hourglass": { width: 1, height: 1 },
+  "Fisher's Hourglass": { width: 1, height: 1 },
+  "Sunflorian Faction Rug": { width: 3, height: 2 },
+  "Nightshade Faction Rug": { width: 3, height: 2 },
+  "Goblin Faction Rug": { width: 3, height: 2 },
+  "Bumpkin Faction Rug": { width: 3, height: 2 },
+  "Desert Rose": { width: 1, height: 1 },
+
+  "Hapy Jar": { width: 1, height: 2 },
+  "Duamutef Jar": { width: 1, height: 2 },
+  "Qebehsenuef Jar": { width: 1, height: 2 },
+  "Imsety Jar": { width: 1, height: 2 },
+  "Adrift Ark": { width: 2, height: 2 },
+  Castellan: { width: 2, height: 2 },
+  "Sunlit Citadel": { width: 2, height: 2 },
+  "Pharaoh Gnome": { width: 1, height: 1 },
+
+  // To update dimensions
+  Sarcophagus: { width: 1, height: 2 },
+  Cannonball: { width: 1, height: 1 },
+  "Clay Tablet": { width: 1, height: 1 },
+  "Snake in Jar": { width: 1, height: 1 },
+  "Reveling Lemon": { width: 1, height: 1 },
+  "Anubis Jackal": { width: 2, height: 2 },
+  Sundial: { width: 1, height: 1 },
+  "Sand Golem": { width: 1, height: 1 },
+  "Cactus King": { width: 1, height: 1 },
+  "Lemon Frog": { width: 1, height: 1 },
+  "Scarab Beetle": { width: 1, height: 1 },
+  "Lemon Tea Bath": { width: 3, height: 2 },
+  "Tomato Clown": { width: 1, height: 1 },
+  Pyramid: { width: 2, height: 2 },
+  Oasis: { width: 3, height: 4 },
+  "Baobab Tree": { width: 3, height: 3 },
+  Camel: { width: 2, height: 1 },
+  "Tomato Bombard": { width: 2, height: 2 },
 };
 
 export const ANIMAL_DIMENSIONS: Record<"Chicken", Dimensions> = {

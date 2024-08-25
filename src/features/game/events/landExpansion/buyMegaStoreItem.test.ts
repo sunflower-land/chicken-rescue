@@ -7,21 +7,6 @@ describe("buyMegaStoreItem", () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.clearAllTimers());
 
-  it("throws an error if there is no bumpkin", () => {
-    expect(() =>
-      buyMegaStoreItem({
-        state: {
-          ...TEST_FARM,
-          bumpkin: undefined,
-        },
-        action: {
-          type: "megastoreItem.bought",
-          name: "Devil Wings",
-        },
-      })
-    ).toThrow("Bumpkin not found");
-  });
-
   it("throws an error if the item is not available", () => {
     expect(() =>
       buyMegaStoreItem({
@@ -37,7 +22,7 @@ describe("buyMegaStoreItem", () => {
           type: "megastoreItem.bought",
           name: "Soil Krabby",
         },
-      })
+      }),
     ).toThrow("This item is not available");
   });
 
@@ -73,7 +58,7 @@ describe("buyMegaStoreItem", () => {
           name: "Nana",
         },
         createdAt: new Date("2024-01-01").getTime(),
-      })
+      }),
     ).toThrow("You already have reached the max allowed for this item");
   });
 
@@ -110,7 +95,7 @@ describe("buyMegaStoreItem", () => {
           name: "Tiki Pants",
         },
         createdAt: new Date("2023-10-01").getTime(),
-      })
+      }),
     ).toThrow("You already have reached the max allowed for this item");
   });
 
@@ -139,7 +124,7 @@ describe("buyMegaStoreItem", () => {
           type: "megastoreItem.bought",
           name: "Soil Krabby",
         },
-      })
+      }),
     ).toThrow("Not enough SFL");
   });
 
@@ -174,7 +159,7 @@ describe("buyMegaStoreItem", () => {
           type: "megastoreItem.bought",
           name: "Tiki Mask",
         },
-      })
+      }),
     ).toThrow(`Not enough ${seasonTicket}`);
   });
 
@@ -204,7 +189,7 @@ describe("buyMegaStoreItem", () => {
           type: "megastoreItem.bought",
           name: "Knowledge Crab",
         },
-      })
+      }),
     ).toThrow(`Not enough Crimstone`);
   });
 

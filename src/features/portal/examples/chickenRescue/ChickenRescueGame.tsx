@@ -4,9 +4,9 @@ import NinePatchPlugin from "phaser3-rex-plugins/plugins/ninepatch-plugin.js";
 import VirtualJoystickPlugin from "phaser3-rex-plugins/plugins/virtualjoystick-plugin.js";
 
 import { Preloader } from "features/world/scenes/Preloader";
-import { PortalContext } from "./lib/PortalProvider";
 import { useActor } from "@xstate/react";
 import { ChickenRescueScene } from "./ChickenRescueScene";
+import { PortalContext } from "./lib/PortalProvider";
 
 export const ChickenRescueGame: React.FC = () => {
   const { portalService } = useContext(PortalContext);
@@ -53,7 +53,7 @@ export const ChickenRescueGame: React.FC = () => {
         default: "arcade",
         arcade: {
           debug: true,
-          gravity: { y: 0 },
+          gravity: { x: 0, y: 0 },
         },
       },
       scene: scenes,

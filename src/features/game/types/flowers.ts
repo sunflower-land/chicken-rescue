@@ -2,6 +2,7 @@ import { getKeys } from "./craftables";
 import { CropName } from "./crops";
 import { FruitName } from "./fruits";
 import { translate } from "lib/i18n/translate";
+import { ResourceName } from "./resources";
 
 type PansyName =
   | "Red Pansy"
@@ -57,6 +58,7 @@ export type FlowerSeed = {
   description: string;
   plantSeconds: number;
   disabled: boolean;
+  plantingSpot: ResourceName | "Greenhouse";
 };
 
 type FlowerSeeds = {
@@ -80,7 +82,7 @@ export const FLOWER_SEEDS: () => Record<FlowerSeedName, FlowerSeed> = () => ({
     plantSeconds: 1 * 24 * 60 * 60,
     description: translate("description.sunpetal.seed"),
     disabled: false,
-    requiredIsland: "spring",
+    plantingSpot: "Flower Bed",
   },
   "Bloom Seed": {
     price: 32,
@@ -88,7 +90,7 @@ export const FLOWER_SEEDS: () => Record<FlowerSeedName, FlowerSeed> = () => ({
     plantSeconds: 2 * 24 * 60 * 60,
     description: translate("description.bloom.seed"),
     disabled: false,
-    requiredIsland: "spring",
+    plantingSpot: "Flower Bed",
   },
   "Lily Seed": {
     price: 48,
@@ -96,7 +98,7 @@ export const FLOWER_SEEDS: () => Record<FlowerSeedName, FlowerSeed> = () => ({
     plantSeconds: 5 * 24 * 60 * 60,
     description: translate("description.lily.seed"),
     disabled: false,
-    requiredIsland: "spring",
+    plantingSpot: "Flower Bed",
   },
 });
 
@@ -312,7 +314,7 @@ const IMAGES: Record<FlowerName, string> = {
 };
 
 export const FLOWER_LIFECYCLE: Record<FlowerName, Lifecycle> = getKeys(
-  IMAGES
+  IMAGES,
 ).reduce(
   (acc, name) => ({
     ...acc,
@@ -324,11 +326,11 @@ export const FLOWER_LIFECYCLE: Record<FlowerName, Lifecycle> = getKeys(
       ready: `flowers/${IMAGES[name]}_ready.webp`,
     },
   }),
-  {} as Record<FlowerName, Lifecycle>
+  {} as Record<FlowerName, Lifecycle>,
 );
 
 export const DESERT_FLOWER_LIFECYCLE: Record<FlowerName, Lifecycle> = getKeys(
-  IMAGES
+  IMAGES,
 ).reduce(
   (acc, name) => ({
     ...acc,
@@ -340,5 +342,7 @@ export const DESERT_FLOWER_LIFECYCLE: Record<FlowerName, Lifecycle> = getKeys(
       ready: `flowers/desert/${IMAGES[name]}_ready.webp`,
     },
   }),
-  {} as Record<FlowerName, Lifecycle>
+  {} as Record<FlowerName, Lifecycle>,
 );
+
+export type MutantFlowerName = "Desert Rose";

@@ -6,7 +6,6 @@ import { completeChore } from "./completeChore";
 import { ChoreV2 } from "features/game/types/game";
 import { SEASONS } from "features/game/types/seasons";
 import cloneDeep from "lodash.clonedeep";
-import { FACTION_POINT_CUTOFF } from "./donateToFaction";
 
 describe("chore.completed", () => {
   beforeEach(() => {
@@ -56,7 +55,7 @@ describe("chore.completed", () => {
             },
           },
         },
-      })
+      }),
     ).toThrow("Chore ID not supplied");
   });
 
@@ -104,51 +103,8 @@ describe("chore.completed", () => {
             },
           },
         },
-      })
+      }),
     ).toThrow("Chore is not completed");
-  });
-
-  it("errors if the bumpkin does not exist", () => {
-    const { startDate } = SEASONS["Witches' Eve"];
-
-    const oneMinuteAfterStart = new Date(startDate.getTime() + 1 * 60 * 1000);
-
-    jest.useFakeTimers();
-    jest.setSystemTime(oneMinuteAfterStart);
-
-    const chore: ChoreV2 = {
-      activity: "Sunflower Harvested",
-      description: "Harvest 30 Sunflowers",
-      createdAt: oneMinuteAfterStart.getTime(),
-      bumpkinId: INITIAL_BUMPKIN.id,
-      startCount: 0,
-      requirement: 30,
-    };
-
-    expect(() =>
-      completeChore({
-        createdAt: oneMinuteAfterStart.getTime(),
-        action: {
-          type: "chore.completed",
-          id: 1,
-        },
-        state: {
-          ...TEST_FARM,
-          bumpkin: undefined,
-          chores: {
-            choresCompleted: 0,
-            choresSkipped: 0,
-            chores: {
-              "1": chore,
-              "2": chore,
-              "3": chore,
-              "4": chore,
-              "5": chore,
-            },
-          },
-        },
-      })
-    ).toThrow("No bumpkin found");
   });
 
   it("adds the reward into the inventory", () => {
@@ -300,7 +256,7 @@ describe("chore.completed", () => {
           id: 1,
         },
         state,
-      })
+      }),
     ).toThrow("Chore is already completed");
   });
 
@@ -349,7 +305,7 @@ describe("chore.completed", () => {
             },
           },
         },
-      })
+      }),
     ).toThrow("Not the same bumpkin");
   });
 
@@ -401,159 +357,6 @@ describe("chore.completed", () => {
     expect(state.chores?.choresCompleted).toBe(1);
   });
 
-  it("does not reward faction points if the faction does not exist", () => {
-    const now = Date.now();
-
-    const chore: ChoreV2 = {
-      activity: "Sunflower Harvested",
-      description: "Harvest 30 Sunflowers",
-      createdAt: now,
-      bumpkinId: INITIAL_BUMPKIN.id,
-      startCount: 0,
-      requirement: 30,
-    };
-
-    const state = completeChore({
-      createdAt: now,
-      action: {
-        type: "chore.completed",
-        id: 1,
-      },
-      state: {
-        ...TEST_FARM,
-        bumpkin: {
-          ...INITIAL_BUMPKIN,
-          activity: {
-            "Sunflower Harvested": 50,
-          },
-        },
-        chores: {
-          choresCompleted: 0,
-          choresSkipped: 0,
-          chores: {
-            "1": chore,
-            "2": chore,
-            "3": chore,
-            "4": chore,
-            "5": chore,
-          },
-        },
-      },
-    });
-
-    expect(state.faction?.points).toBeUndefined();
-  });
-
-  it("rewards 5 faction points for every ticket rewarded", () => {
-    const now = Date.now();
-
-    const chore: ChoreV2 = {
-      activity: "Sunflower Harvested",
-      description: "Harvest 30 Sunflowers",
-      createdAt: now,
-      bumpkinId: INITIAL_BUMPKIN.id,
-      startCount: 0,
-      requirement: 30,
-    };
-
-    const state = completeChore({
-      createdAt: now,
-      action: {
-        type: "chore.completed",
-        id: 1,
-      },
-      state: {
-        ...TEST_FARM,
-        faction: {
-          name: "bumpkins",
-          pledgedAt: 0,
-          points: 0,
-          donated: {
-            daily: {
-              sfl: {},
-              resources: {},
-            },
-            totalItems: {},
-          },
-        },
-        bumpkin: {
-          ...INITIAL_BUMPKIN,
-          activity: {
-            "Sunflower Harvested": 50,
-          },
-        },
-        chores: {
-          choresCompleted: 0,
-          choresSkipped: 0,
-          chores: {
-            "1": chore,
-            "2": chore,
-            "3": chore,
-            "4": chore,
-            "5": chore,
-          },
-        },
-      },
-    });
-
-    expect(state.faction?.points).toBe(5);
-  });
-
-  it("does not reward faction points after the faction point cutover", () => {
-    const now = Date.now();
-
-    const chore: ChoreV2 = {
-      activity: "Sunflower Harvested",
-      description: "Harvest 30 Sunflowers",
-      createdAt: now,
-      bumpkinId: INITIAL_BUMPKIN.id,
-      startCount: 0,
-      requirement: 30,
-    };
-
-    const state = completeChore({
-      createdAt: new Date(FACTION_POINT_CUTOFF.getTime() + 1).getTime(),
-      action: {
-        type: "chore.completed",
-        id: 1,
-      },
-      state: {
-        ...TEST_FARM,
-        faction: {
-          name: "bumpkins",
-          pledgedAt: 0,
-          points: 0,
-          donated: {
-            daily: {
-              sfl: {},
-              resources: {},
-            },
-            totalItems: {},
-          },
-        },
-        bumpkin: {
-          ...INITIAL_BUMPKIN,
-          activity: {
-            "Sunflower Harvested": 50,
-          },
-        },
-        chores: {
-          choresCompleted: 0,
-          choresSkipped: 0,
-          chores: {
-            "1": chore,
-            "2": chore,
-            "3": chore,
-            "4": chore,
-            "5": chore,
-          },
-        },
-      },
-    });
-
-    expect(state.faction?.points).toBe(0);
-  });
-
   it("rewards easy tickets", () => {
     const now = new Date("2024-05-09").getTime();
 
@@ -578,14 +381,8 @@ describe("chore.completed", () => {
         faction: {
           name: "bumpkins",
           pledgedAt: 0,
+          history: {},
           points: 0,
-          donated: {
-            daily: {
-              sfl: {},
-              resources: {},
-            },
-            totalItems: {},
-          },
         },
         bumpkin: {
           ...INITIAL_BUMPKIN,
@@ -634,14 +431,8 @@ describe("chore.completed", () => {
         faction: {
           name: "bumpkins",
           pledgedAt: 0,
+          history: {},
           points: 0,
-          donated: {
-            daily: {
-              sfl: {},
-              resources: {},
-            },
-            totalItems: {},
-          },
         },
         bumpkin: {
           ...INITIAL_BUMPKIN,
@@ -693,14 +484,8 @@ describe("chore.completed", () => {
         faction: {
           name: "bumpkins",
           pledgedAt: 0,
+          history: {},
           points: 0,
-          donated: {
-            daily: {
-              sfl: {},
-              resources: {},
-            },
-            totalItems: {},
-          },
         },
         bumpkin: {
           ...INITIAL_BUMPKIN,
@@ -751,14 +536,8 @@ describe("chore.completed", () => {
         faction: {
           name: "bumpkins",
           pledgedAt: 0,
+          history: {},
           points: 0,
-          donated: {
-            daily: {
-              sfl: {},
-              resources: {},
-            },
-            totalItems: {},
-          },
         },
         bumpkin: {
           ...INITIAL_BUMPKIN,

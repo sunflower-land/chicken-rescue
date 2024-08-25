@@ -27,7 +27,7 @@ export class SleepingChickenContainer extends Phaser.GameObjects.Container {
           {
             start: 0,
             end: 1,
-          }
+          },
         ),
         repeat: -1,
         frameRate: 2,

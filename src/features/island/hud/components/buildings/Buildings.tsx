@@ -8,8 +8,6 @@ import { Button } from "components/ui/Button";
 import { SplitScreenView } from "components/ui/SplitScreenView";
 import { CraftingRequirements } from "components/ui/layouts/CraftingRequirements";
 
-import lock from "assets/skills/lock.png";
-
 import Decimal from "decimal.js-light";
 import { SUNNYSIDE } from "assets/sunnyside";
 import { Label } from "components/ui/Label";
@@ -40,7 +38,7 @@ const VALID_BUILDINGS: BuildingName[] = [
   "Greenhouse" as BuildingName,
   "Crop Machine" as BuildingName,
 ].sort(
-  (a, b) => BUILDINGS[a][0].unlocksAtLevel - BUILDINGS[b][0].unlocksAtLevel
+  (a, b) => BUILDINGS[a][0].unlocksAtLevel - BUILDINGS[b][0].unlocksAtLevel,
 );
 
 export const Buildings: React.FC<Props> = ({ onClose }) => {
@@ -55,7 +53,7 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
   const { t } = useAppTranslation();
   const buildingBlueprints = BUILDINGS[selectedName];
   const buildingUnlockLevels = buildingBlueprints.map(
-    ({ unlocksAtLevel }) => unlocksAtLevel
+    ({ unlocksAtLevel }) => unlocksAtLevel,
   );
   const buildingsInInventory = inventory[selectedName] || new Decimal(0);
   // Some buildings have multiple blueprints, so we need to check if the next blueprint is available else fallback to the first one
@@ -63,14 +61,14 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
     ? buildingsInInventory.toNumber()
     : 0;
   const numOfBuildingAllowed = buildingUnlockLevels.filter(
-    (level) => getBumpkinLevel(state.bumpkin?.experience ?? 0) >= level
+    (level) => getBumpkinLevel(state.bumpkin?.experience ?? 0) >= level,
   ).length;
   const nextLockedLevel = buildingUnlockLevels.find(
-    (level) => getBumpkinLevel(state.bumpkin?.experience ?? 0) < level
+    (level) => getBumpkinLevel(state.bumpkin?.experience ?? 0) < level,
   );
 
   const isAlreadyCrafted = inventory[selectedName]?.greaterThanOrEqualTo(
-    BUILDINGS[selectedName].length
+    BUILDINGS[selectedName].length,
   );
 
   const ingredients = buildingBlueprints[0].ingredients.reduce(
@@ -78,14 +76,14 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
       ...acc,
       [ingredient.item]: new Decimal(ingredient.amount),
     }),
-    {}
+    {},
   );
 
   const { coins } = buildingBlueprints[nextBlueprintIndex];
 
   const lessIngredients = () =>
     buildingBlueprints[nextBlueprintIndex].ingredients.some((ingredient) =>
-      ingredient.amount?.greaterThan(inventory[ingredient.item] || 0)
+      ingredient.amount?.greaterThan(inventory[ingredient.item] || 0),
     );
 
   const craft = () => {
@@ -105,7 +103,7 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
     if (
       !hasRequiredIslandExpansion(
         state.island.type,
-        buildingBlueprints[nextBlueprintIndex].requiredIsland
+        buildingBlueprints[nextBlueprintIndex].requiredIsland,
       )
     ) {
       return (
@@ -117,7 +115,7 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
                 : t("islandupgrade.otherIsland", {
                     island: capitalize(
                       buildingBlueprints[nextBlueprintIndex]
-                        .requiredIsland as IslandType
+                        .requiredIsland as IslandType,
                     ),
                   }),
           })}
@@ -174,7 +172,7 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
                 ...acc,
                 [ingredient.item]: new Decimal(ingredient.amount),
               }),
-              {}
+              {},
             ),
           }}
           actionView={getAction()}
@@ -200,7 +198,7 @@ export const Buildings: React.FC<Props> = ({ onClose }) => {
 
             let secondaryIcon = undefined;
             if (isLocked) {
-              secondaryIcon = lock;
+              secondaryIcon = SUNNYSIDE.icons.lock;
             }
 
             if (inventory[name]?.greaterThanOrEqualTo(BUILDINGS[name].length)) {

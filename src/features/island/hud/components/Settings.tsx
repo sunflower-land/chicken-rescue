@@ -2,10 +2,6 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { Context } from "features/game/GameProvider";
 
-import more from "assets/ui/more.png";
-import settings from "assets/icons/settings.png";
-import sound_on from "assets/icons/sound_on.png";
-
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { ResizableBar } from "components/ui/ProgressBar";
 import { AudioMenu } from "features/game/components/AudioMenu";
@@ -16,6 +12,8 @@ import {
   getGoblinSongCount,
 } from "assets/songs/playlist";
 import { SUNNYSIDE } from "assets/sunnyside";
+import settings from "assets/icons/settings.png";
+import sound_on from "assets/icons/sound_on.png";
 import { useLocation } from "react-router-dom";
 import { GameOptionsModal } from "./settings-menu/GameOptions";
 import { useSound } from "lib/utils/hooks/useSound";
@@ -103,7 +101,7 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
   const settingButton = (
     index: number,
     onClick: () => void,
-    children: JSX.Element
+    children: JSX.Element,
   ) => {
     const rightMargin = 8;
 
@@ -149,7 +147,7 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
           left: `${PIXEL_SCALE * 4}px`,
           width: `${PIXEL_SCALE * 14}px`,
         }}
-      />
+      />,
     );
 
   const audioButton = (index: number) =>
@@ -166,7 +164,7 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
           left: `${PIXEL_SCALE * 5}px`,
           width: `${PIXEL_SCALE * 13}px`,
         }}
-      />
+      />,
     );
 
   const progressBarButton = (index: number) =>
@@ -187,7 +185,7 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
           percentage={70}
           type={showTimers ? "progress" : "error"}
         />
-      </div>
+      </div>,
     );
 
   const moreButton = (index: number) =>
@@ -197,14 +195,14 @@ export const Settings: React.FC<Props> = ({ isFarming }) => {
         setOpenSettingsMenu(true);
       },
       <img
-        src={more}
+        src={SUNNYSIDE.ui.more}
         className="absolute"
         style={{
           top: `${PIXEL_SCALE * 10}px`,
           left: `${PIXEL_SCALE * 6}px`,
           width: `${PIXEL_SCALE * 10}px`,
         }}
-      />
+      />,
     );
 
   // list of buttons to show in the HUD from right to left in order
