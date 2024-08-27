@@ -20,18 +20,44 @@ export function goHome() {
 
 export function purchase({ sfl }: { sfl: number }) {
   if (!isInIframe) {
-    console.error(`Sunflower Land not available - are you in an iframe?`);
+    alert(`Sunflower Land not available - are you in an iframe?`);
   }
 
   window.parent.postMessage({ event: "purchase", sfl, items: {} }, "*");
 }
 
+/**
+ * Starts a minigame attempt
+ */
+export function startAttempt() {
+  if (!isInIframe) {
+    alert(`Sunflower Land running in test mode - attempt started`);
+  } else {
+    window.parent.postMessage({ event: "attemptStarted" }, "*");
+  }
+}
+
+/**
+ * Submits a minigame score
+ */
+export function submitScore({ score }: { score: number }) {
+  if (!isInIframe) {
+    alert(`Sunflower Land running in test mode - score submitted`);
+  } else {
+    window.parent.postMessage({ event: "scoreSubmitted", score }, "*");
+  }
+}
+
+/**
+ * @deprecated Use `attemptStarted` and `scoreSubmitted` instead
+ * When to want to store the score
+ */
 export function played({ score }: { score: number }) {
   if (!isInIframe) {
-    console.error(`Sunflower Land not available - are you in an iframe?`);
+    alert(`Sunflower Land running in test mode - played`);
+  } else {
+    window.parent.postMessage({ event: "played", score }, "*");
   }
-
-  window.parent.postMessage({ event: "played", score }, "*");
 }
 
 export function authorisePortal() {
