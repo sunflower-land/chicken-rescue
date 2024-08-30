@@ -1,12 +1,11 @@
-import appleTree from "assets/fruit/apple/apple_tree.png";
-import orangeTree from "assets/fruit/orange/orange_tree.png";
-import blueberryBush from "assets/fruit/blueberry/blueberry_bush.png";
 import bananaTree from "assets/fruit/banana/banana_tree.png";
 import bananaTreeReady from "assets/fruit/banana/banana_tree_ready.png";
-import harvestedTree from "assets/fruit/harvested_tree.png";
-import harvestedBush from "assets/fruit/harvested_bush.png";
-import deadTree from "assets/fruit/dead_tree.webp";
-import bushShrub from "assets/fruit/bush_shrub.png";
+import lemonTree from "assets/fruit/lemon/lemonTree.webp";
+import lemonTreeReady from "assets/fruit/lemon/lemonTreeReady.webp";
+import tomatoPlant from "assets/fruit/tomato/tomatoPlant.webp";
+import tomatoPlantReady from "assets/fruit/tomato/tomatoPlantReady.webp";
+
+import { SUNNYSIDE } from "assets/sunnyside";
 import { FruitName } from "features/game/types/fruits";
 import { CROP_LIFECYCLE } from "../plots/lib/plant";
 
@@ -28,25 +27,25 @@ export const FRUIT_LIFECYCLE: Record<FruitName, FruitLifecycle> = {
     seedling: CROP_LIFECYCLE.Sunflower.seedling,
     halfway: CROP_LIFECYCLE.Sunflower.halfway,
     almost: CROP_LIFECYCLE.Sunflower.almost,
-    ready: appleTree,
-    harvested: harvestedTree,
-    dead: deadTree,
+    ready: SUNNYSIDE.fruit.apple_tree,
+    harvested: SUNNYSIDE.fruit.harvestedTree,
+    dead: SUNNYSIDE.fruit.deadTree,
   },
   Orange: {
     seedling: CROP_LIFECYCLE.Sunflower.seedling,
     halfway: CROP_LIFECYCLE.Sunflower.halfway,
     almost: CROP_LIFECYCLE.Sunflower.almost,
-    ready: orangeTree,
-    harvested: harvestedTree,
-    dead: deadTree,
+    ready: SUNNYSIDE.fruit.orangeTree,
+    harvested: SUNNYSIDE.fruit.harvestedTree,
+    dead: SUNNYSIDE.fruit.deadTree,
   },
   Blueberry: {
     seedling: CROP_LIFECYCLE.Sunflower.seedling,
     halfway: CROP_LIFECYCLE.Sunflower.halfway,
     almost: CROP_LIFECYCLE.Sunflower.almost,
-    ready: blueberryBush,
-    harvested: harvestedBush,
-    dead: bushShrub,
+    ready: SUNNYSIDE.fruit.blueberryBush,
+    harvested: SUNNYSIDE.fruit.harvestedBush,
+    dead: SUNNYSIDE.fruit.bushShrub,
   },
   Banana: {
     seedling: CROP_LIFECYCLE.Sunflower.seedling,
@@ -54,6 +53,22 @@ export const FRUIT_LIFECYCLE: Record<FruitName, FruitLifecycle> = {
     almost: CROP_LIFECYCLE.Sunflower.almost,
     ready: bananaTreeReady,
     harvested: bananaTree,
-    dead: bushShrub,
+    dead: SUNNYSIDE.fruit.bushShrub,
+  },
+  Tomato: {
+    seedling: CROP_LIFECYCLE.Sunflower.seedling,
+    halfway: CROP_LIFECYCLE.Sunflower.halfway,
+    almost: CROP_LIFECYCLE.Sunflower.almost,
+    ready: tomatoPlantReady,
+    harvested: tomatoPlant,
+    dead: SUNNYSIDE.fruit.bushShrub,
+  },
+  Lemon: {
+    seedling: CROP_LIFECYCLE.Sunflower.seedling,
+    halfway: CROP_LIFECYCLE.Sunflower.halfway,
+    almost: CROP_LIFECYCLE.Sunflower.almost,
+    ready: lemonTreeReady,
+    harvested: lemonTree,
+    dead: SUNNYSIDE.fruit.deadTree,
   },
 };

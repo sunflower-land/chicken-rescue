@@ -1,10 +1,8 @@
 import React, { useContext } from "react";
 import { useSelector } from "@xstate/react";
-import { PortalContext } from "../lib/PortalProvider";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SUNNYSIDE } from "assets/sunnyside";
 import worldIcon from "assets/icons/world.png";
-import { goHome } from "../lib/portalUtil";
 import { HudContainer } from "components/ui/HudContainer";
 import { Balances } from "components/Balances";
 import Decimal from "decimal.js-light";
@@ -12,6 +10,8 @@ import { Label } from "components/ui/Label";
 import { t } from "i18next";
 import { isTouchDevice } from "features/world/lib/device";
 import { PortalMachineState } from "../lib/chickenRescueMachine";
+import { PortalContext } from "../lib/PortalProvider";
+import { goHome } from "features/portal/lib/portalUtil";
 
 const _score = (state: PortalMachineState) => state.context.score;
 const _state = (state: PortalMachineState) => state.context.state;

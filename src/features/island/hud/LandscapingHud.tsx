@@ -6,7 +6,6 @@ import Decimal from "decimal.js-light";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 
 import { SUNNYSIDE } from "assets/sunnyside";
-import bush from "assets/icons/decoration.png";
 import chest from "assets/icons/chest.png";
 
 import { isMobile } from "mobile-device-detect";
@@ -67,19 +66,19 @@ const LandscapingHudComponent: React.FC<{
   const balance = useSelector(
     gameService,
     (state) => state.context.state.balance,
-    compareBalance
+    compareBalance,
   );
 
   const coins = useSelector(
     gameService,
     (state) => state.context.state.coins,
-    compareCoins
+    compareCoins,
   );
 
   const blockBucks = useSelector(
     gameService,
     (state) => state.context.state.inventory["Block Buck"] ?? new Decimal(0),
-    compareBlockBucks
+    compareBlockBucks,
   );
 
   const selectedItem = useSelector(child, selectMovingItem);
@@ -91,7 +90,7 @@ const LandscapingHudComponent: React.FC<{
     ? hasRemoveRestriction(
         selectedItem.name,
         selectedItem.id,
-        gameService.state.context.state
+        gameService.state.context.state,
       )
     : [false, "No restriction"];
 
@@ -147,7 +146,7 @@ const LandscapingHudComponent: React.FC<{
                 style={{
                   width: `${PIXEL_SCALE * 22}px`,
                   height: `${PIXEL_SCALE * 22}px`,
-                  marginBottom: `${PIXEL_SCALE * 4}px`,
+                  marginBottom: `${PIXEL_SCALE * 5}px`,
                 }}
               >
                 <img
@@ -161,9 +160,9 @@ const LandscapingHudComponent: React.FC<{
                   src={SUNNYSIDE.icons.cancel}
                   className="absolute"
                   style={{
-                    top: `${PIXEL_SCALE * 5}px`,
-                    left: `${PIXEL_SCALE * 5}px`,
-                    width: `${PIXEL_SCALE * 12}px`,
+                    top: `${PIXEL_SCALE * 5.5}px`,
+                    left: `${PIXEL_SCALE * 5.5}px`,
+                    width: `${PIXEL_SCALE * 11}px`,
                   }}
                 />
               </div>
@@ -177,7 +176,7 @@ const LandscapingHudComponent: React.FC<{
                   style={{
                     width: `${PIXEL_SCALE * 22}px`,
                     height: `${PIXEL_SCALE * 22}px`,
-                    marginBottom: `${PIXEL_SCALE * 4}px`,
+                    marginBottom: `${PIXEL_SCALE * 5}px`,
                   }}
                 >
                   <img
@@ -188,7 +187,7 @@ const LandscapingHudComponent: React.FC<{
                     }}
                   />
                   <img
-                    src={bush}
+                    src={SUNNYSIDE.icons.decorationbush}
                     className="absolute"
                     style={{
                       top: `${PIXEL_SCALE * 5}px`,
@@ -346,11 +345,16 @@ const Chest: React.FC<{
         />
         <Label
           type="default"
-          className="px-0.5 text-xxs absolute -top-2 -right-2"
+          className="text-xxs absolute -top-1.5 -right-0.5"
+          style={{
+            paddingLeft: "2.5px",
+            paddingRight: "1.5px",
+            height: "24px",
+          }}
         >
           {getKeys(chestItems).reduce(
             (acc, key) => acc + (chestItems[key]?.toNumber() ?? 0),
-            0
+            0,
           )}
         </Label>
       </div>

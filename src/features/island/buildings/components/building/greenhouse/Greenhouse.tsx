@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
 
-import greenhouse from "assets/buildings/greenhouse.webp";
-
+import { SUNNYSIDE } from "assets/sunnyside";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { BuildingProps } from "../Building";
 import { Context } from "features/game/GameProvider";
@@ -18,27 +17,30 @@ import { ITEM_DETAILS } from "features/game/types/images";
 const selectReadyPlants = (state: MachineState) => {
   const pots = state.context.state.greenhouse.pots;
 
-  return getKeys(pots).reduce((plants, id) => {
-    const pot = pots[id];
+  return getKeys(pots).reduce(
+    (plants, id) => {
+      const pot = pots[id];
 
-    if (!pot.plant) {
-      return plants;
-    }
+      if (!pot.plant) {
+        return plants;
+      }
 
-    const isReady =
-      Date.now() >
-      getReadyAt({
-        game: state.context.state,
-        plant: pot.plant.name,
-        createdAt: pot.plant.plantedAt,
-      });
+      const isReady =
+        Date.now() >
+        getReadyAt({
+          game: state.context.state,
+          plant: pot.plant.name,
+          createdAt: pot.plant.plantedAt,
+        });
 
-    if (!isReady) {
-      return plants;
-    }
+      if (!isReady) {
+        return plants;
+      }
 
-    return [...plants, pot.plant.name];
-  }, [] as (GreenHouseCropName | GreenHouseFruitName)[]);
+      return [...plants, pot.plant.name];
+    },
+    [] as (GreenHouseCropName | GreenHouseFruitName)[],
+  );
 };
 
 export const Greenhouse: React.FC<BuildingProps> = ({ isBuilt, onRemove }) => {
@@ -66,7 +68,7 @@ export const Greenhouse: React.FC<BuildingProps> = ({ isBuilt, onRemove }) => {
     <div className="absolute h-full w-full">
       <BuildingImageWrapper name="Greenhouse" onClick={handleClick}>
         <img
-          src={greenhouse}
+          src={SUNNYSIDE.building.greenhouse}
           className="absolute pointer-events-none"
           style={{
             width: `${PIXEL_SCALE * 78}px`,

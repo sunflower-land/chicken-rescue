@@ -10,16 +10,14 @@ import { Context as GameContext } from "features/game/GameProvider";
 
 import { SUNNYSIDE } from "assets/sunnyside";
 import { Label } from "components/ui/Label";
-import { shortAddress } from "lib/utils/shortAddress";
 import { translate } from "lib/i18n/translate";
 
-import walletIcon from "assets/icons/wallet.png";
 import { removeJWT } from "features/auth/actions/social";
 import { WalletContext } from "features/wallet/WalletProvider";
 import { CloseButtonPanel } from "features/game/components/CloseablePanel";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
-import { BlockchainSettingsModal } from "./blockchain-settings/BlockchainSettings";
+import { BlockchainSettings } from "./blockchain-settings/BlockchainSettings";
 import { usePWAInstall } from "features/pwa/PWAInstallProvider";
 import { fixInstallPromptTextStyles } from "features/pwa/lib/fixInstallPromptStyles";
 import { useIsPWA } from "lib/utils/hooks/useIsPWA";
@@ -43,6 +41,11 @@ import { Discord } from "./general-settings/DiscordModal";
 import { DepositWrapper } from "features/goblins/bank/components/Deposit";
 import { useSound } from "lib/utils/hooks/useSound";
 import { AppearanceSettings } from "./general-settings/AppearanceSettings";
+import { FontSettings } from "./general-settings/FontSettings";
+import { ConfirmationModal } from "components/ui/ConfirmationModal";
+import ticket from "assets/icons/ticket.png";
+import { DEV_HoarderCheck } from "./amoy-actions/DEV_HoardingCheck";
+import { WalletAddressLabel } from "components/ui/WalletAddressLabel";
 
 export interface ContentComponentProps {
   onSubMenuClick: (id: SettingMenuId) => void;
@@ -97,7 +100,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({
     <>
       {/* Root menu */}
       <>
-        <div className="flex flex-wrap items-center justify-start mx-2">
+        <div className="flex flex-wrap items-center justify-between mx-2">
           <Label
             type="default"
             icon={SUNNYSIDE.icons.search}
@@ -105,7 +108,7 @@ const GameOptions: React.FC<ContentComponentProps> = ({
             onClick={() => {
               copypaste.play();
               clipboard.copy(
-                gameService.state?.context?.farmId.toString() as string
+                gameService.state?.context?.farmId.toString() as string,
               );
             }}
           >
@@ -116,12 +119,12 @@ const GameOptions: React.FC<ContentComponentProps> = ({
           {gameService.state?.context?.nftId !== undefined && (
             <Label
               type="default"
-              icon={SUNNYSIDE.icons.search}
+              icon={ticket}
               className="mb-1 mr-4"
               onClick={() => {
                 copypaste.play();
                 clipboard.copy(
-                  gameService.state?.context?.nftId?.toString() || ""
+                  gameService.state?.context?.nftId?.toString() || "",
                 );
               }}
             >
@@ -131,20 +134,12 @@ const GameOptions: React.FC<ContentComponentProps> = ({
         </div>
         <div className="flex flex-wrap items-center justify-between mx-2">
           {gameService.state?.context?.linkedWallet && (
-            <Label
-              type="formula"
-              className="mb-1 mr-4"
-              icon={walletIcon}
-              onClick={() => {
-                copypaste.play();
-                clipboard.copy(
-                  gameService.state?.context?.linkedWallet as string
-                );
-              }}
-            >
-              {t("linked.wallet")} {"-"}{" "}
-              {shortAddress(gameService.state.context.linkedWallet)}
-            </Label>
+            <WalletAddressLabel
+              walletAddress={
+                (gameService.state?.context?.linkedWallet as string) || "XXXX"
+              }
+              showLabelTitle={true}
+            />
           )}
         </div>
       </>
@@ -153,19 +148,6 @@ const GameOptions: React.FC<ContentComponentProps> = ({
           <span>{t("install.app")}</span>
         </Button>
       )}
-      {/* To revamp and add back later*/}
-      {/* <li className="p-1">
-                  <Button disabled={true} onClick={handleHowToPlay}>
-                    <div className="flex items-center justify-center">
-                      <span>{t("gameOptions.howToPlay")}</span>
-                      <img
-                        src={SUNNYSIDE.icons.expression_confused}
-                        className="w-3 ml-2"
-                        alt="question-mark"
-                      />
-                    </div>
-                  </Button>
-                  </li> */}
       <Button className="p-1 mb-1" onClick={refreshSession}>
         {t("gameOptions.blockchainSettings.refreshChain")}
       </Button>
@@ -196,24 +178,14 @@ const GameOptions: React.FC<ContentComponentProps> = ({
           {CONFIG.RELEASE_VERSION?.split("-")[0]}
         </a>
       </p>
-      <Modal
+      <ConfirmationModal
         show={isConfirmLogoutModalOpen}
         onHide={() => showConfirmLogoutModal(false)}
-      >
-        <CloseButtonPanel className="sm:w-4/5 m-auto">
-          <div className="flex flex-col p-2">
-            <span className="text-sm text-center">
-              {t("gameOptions.confirmLogout")}
-            </span>
-          </div>
-          <div className="flex justify-content-around mt-2 space-x-1">
-            <Button onClick={onLogout}>{t("gameOptions.logout")}</Button>
-            <Button onClick={() => showConfirmLogoutModal(false)}>
-              {t("cancel")}
-            </Button>
-          </div>
-        </CloseButtonPanel>
-      </Modal>
+        messages={[t("gameOptions.confirmLogout")]}
+        onCancel={() => showConfirmLogoutModal(false)}
+        onConfirm={onLogout}
+        confirmButtonLabel={t("gameOptions.logout")}
+      />
     </>
   );
 };
@@ -265,7 +237,6 @@ export type SettingMenuId =
   // Blockchain Settings
   | "deposit"
   | "swapSFL"
-  | "storeChain"
   | "dequip"
   | "transfer"
 
@@ -273,7 +244,12 @@ export type SettingMenuId =
   | "discord"
   | "changeLanguage"
   | "share"
-  | "appearance";
+  | "appearance"
+  | "font"
+
+  // Amoy Testnet Actions
+  | "mainnetHoardingCheck"
+  | "amoyHoardingCheck";
 
 interface SettingMenu {
   title: string;
@@ -301,7 +277,7 @@ export const settingMenus: Record<SettingMenuId, SettingMenu> = {
   blockchain: {
     title: translate("gameOptions.blockchainSettings"),
     parent: "main",
-    content: BlockchainSettingsModal,
+    content: BlockchainSettings,
   },
   general: {
     title: translate("gameOptions.generalSettings"),
@@ -319,11 +295,6 @@ export const settingMenus: Record<SettingMenuId, SettingMenu> = {
     title: translate("deposit"),
     parent: "blockchain",
     content: DepositWrapper,
-  },
-  storeChain: {
-    title: translate("transaction.storeProgress"),
-    parent: "blockchain",
-    content: () => <></>, // To add later
   },
   dequip: {
     title: translate("dequipper.dequip"),
@@ -361,5 +332,22 @@ export const settingMenus: Record<SettingMenuId, SettingMenu> = {
     title: translate("gameOptions.generalSettings.appearance"),
     parent: "general",
     content: AppearanceSettings,
+  },
+  font: {
+    title: translate("gameOptions.generalSettings.font"),
+    parent: "appearance",
+    content: FontSettings,
+  },
+
+  // Amoy Testnet Actions
+  mainnetHoardingCheck: {
+    title: "Hoarding Check (Mainnet)",
+    parent: "amoy",
+    content: (props) => <DEV_HoarderCheck {...props} network="mainnet" />,
+  },
+  amoyHoardingCheck: {
+    title: "Hoarding Check (Amoy)",
+    parent: "amoy",
+    content: (props) => <DEV_HoarderCheck {...props} network="amoy" />,
   },
 };

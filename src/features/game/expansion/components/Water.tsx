@@ -2,10 +2,6 @@ import React, { useContext } from "react";
 
 import { GRID_WIDTH_PX, PIXEL_SCALE } from "features/game/lib/constants";
 
-import goblinSwimming from "assets/npcs/goblin_swimming.gif";
-import cossies from "assets/decorations/cossies.png";
-import mushroomIsland from "assets/land/mushroom_island.png";
-
 import { MapPlacement } from "./MapPlacement";
 import { Snorkler } from "./water/Snorkler";
 import { SharkBumpkin } from "./water/SharkBumpkin";
@@ -20,6 +16,8 @@ import { GameState } from "features/game/types/game";
 import { Context } from "features/game/GameProvider";
 
 import { CONFIG } from "lib/config";
+import { LaTomatina } from "./LaTomatina";
+import { Richie } from "./Richie";
 
 interface Props {
   townCenterBuilt: boolean;
@@ -51,7 +49,7 @@ export const WaterComponent: React.FC<Props> = ({
       {/* Goblin swimming */}
       <MapPlacement x={-6 - offset} y={-1} width={6}>
         <img
-          src={goblinSwimming}
+          src={SUNNYSIDE.npcs.goblin_swimming}
           style={{
             width: `${PIXEL_SCALE * 96}px`,
           }}
@@ -76,7 +74,7 @@ export const WaterComponent: React.FC<Props> = ({
           }}
         />
         <img
-          src={cossies}
+          src={SUNNYSIDE.decorations.cossies}
           className="absolute pointer-events-none"
           style={{
             width: `${GRID_WIDTH_PX}px`,
@@ -89,7 +87,7 @@ export const WaterComponent: React.FC<Props> = ({
 
       <MapPlacement x={-20} y={6} width={4}>
         <img
-          src={mushroomIsland}
+          src={SUNNYSIDE.land.mushroomIsland}
           className="absolute"
           style={{
             width: `${PIXEL_SCALE * 54}px`,
@@ -104,6 +102,12 @@ export const WaterComponent: React.FC<Props> = ({
       <TravelTeaser />
 
       <IslandUpgrader gameState={gameState} offset={offset} />
+
+      <Richie />
+
+      <MapPlacement x={-5 - offset} y={2} width={4}>
+        <LaTomatina event={gameState.specialEvents.current["La Tomatina"]} />
+      </MapPlacement>
     </div>
   );
 };

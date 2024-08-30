@@ -29,7 +29,7 @@ export type BoundingBox = Position;
  */
 export function isOverlapping(
   boundingBox1: BoundingBox,
-  boundingBox2: BoundingBox
+  boundingBox2: BoundingBox,
 ) {
   const xmin1 = boundingBox1.x;
   const xmin2 = boundingBox2.x;
@@ -76,7 +76,7 @@ function detectWaterCollision(expansions: number, boundingBox: BoundingBox) {
    */
   const isOverlappingExpansion = (boundingBox: BoundingBox) => {
     return expansionBoundingBoxes.some((expansionBoundingBox) =>
-      isOverlapping(boundingBox, expansionBoundingBox)
+      isOverlapping(boundingBox, expansionBoundingBox),
     );
   };
   const smallerBoxes = splitBoundingBox(boundingBox);
@@ -94,7 +94,7 @@ const PLACEABLE_DIMENSIONS = {
 function detectPlaceableCollision(
   state: GameState,
   boundingBox: BoundingBox,
-  name: InventoryItemName
+  name: InventoryItemName,
 ) {
   const {
     collectibles,
@@ -123,7 +123,7 @@ function detectPlaceableCollision(
   }
 
   const collidingItems = getKeys(placed).filter(
-    (name) => !NON_COLLIDING_OBJECTS.includes(name)
+    (name) => !NON_COLLIDING_OBJECTS.includes(name),
   );
 
   const placeableBounds = collidingItems.flatMap((name) => {
@@ -161,7 +161,7 @@ function detectPlaceableCollision(
 
   const budsBoundingBox = Object.values(buds ?? {})
     .filter(
-      (bud) => !!bud.coordinates && (!bud.location || bud.location === "farm")
+      (bud) => !!bud.coordinates && (!bud.location || bud.location === "farm"),
     )
     .map((item) => ({
       x: item.coordinates!.x,
@@ -177,7 +177,7 @@ function detectPlaceableCollision(
   ];
 
   return boundingBoxes.some((resourceBoundingBox) =>
-    isOverlapping(boundingBox, resourceBoundingBox)
+    isOverlapping(boundingBox, resourceBoundingBox),
   );
 }
 
@@ -212,6 +212,10 @@ const NON_COLLIDING_OBJECTS: InventoryItemName[] = [
   "Green Field Rug",
   "Fancy Rug",
   "Gaucho Rug",
+  "Sunflorian Faction Rug",
+  "Bumpkin Faction Rug",
+  "Goblin Faction Rug",
+  "Nightshade Faction Rug",
 ];
 function detectHomeCollision({
   state,
@@ -243,7 +247,7 @@ function detectHomeCollision({
   const placed = home.collectibles;
 
   const collidingItems = getKeys(placed).filter(
-    (name) => !NON_COLLIDING_OBJECTS.includes(name)
+    (name) => !NON_COLLIDING_OBJECTS.includes(name),
   );
 
   const placeableBounds = collidingItems.flatMap((name) => {
@@ -270,7 +274,7 @@ function detectHomeCollision({
   const boundingBoxes = [...placeableBounds, ...budsBoundingBox];
 
   return boundingBoxes.some((resourceBoundingBox) =>
-    isOverlapping(position, resourceBoundingBox)
+    isOverlapping(position, resourceBoundingBox),
   );
 }
 
@@ -290,7 +294,7 @@ function detectChickenCollision(state: GameState, boundingBox: BoundingBox) {
   });
 
   return boundingBoxes.some((resourceBoundingBox) =>
-    isOverlapping(boundingBox, resourceBoundingBox)
+    isOverlapping(boundingBox, resourceBoundingBox),
   );
 }
 
@@ -311,7 +315,7 @@ function detectMushroomCollision(state: GameState, boundingBox: BoundingBox) {
   });
 
   return boundingBoxes.some((resourceBoundingBox) =>
-    isOverlapping(boundingBox, resourceBoundingBox)
+    isOverlapping(boundingBox, resourceBoundingBox),
   );
 }
 
@@ -334,7 +338,7 @@ enum Direction {
  */
 function detectLandCornerCollision(
   expansions: number,
-  boundingBox: BoundingBox
+  boundingBox: BoundingBox,
 ) {
   // Mid point coordinates for all land expansions
   const originCoordinatesForExpansions: Coordinates[] = new Array(expansions)
@@ -352,7 +356,7 @@ function detectLandCornerCollision(
     offset: {
       x: -1 | 0 | 1;
       y: -1 | 0 | 1;
-    }
+    },
   ) => {
     return originCoordinatesForExpansions.some((neighbour) => {
       return (
@@ -364,7 +368,7 @@ function detectLandCornerCollision(
 
   const hasNeighbouringExpansion = (
     origin: Coordinates,
-    direction: Direction
+    direction: Direction,
   ) => {
     switch (direction) {
       case Direction.Left:
@@ -475,13 +479,14 @@ export type AOEItemName =
 export function isWithinAOE(
   AOEItemName: AOEItemName,
   AOEItem: Position,
-  effectItem: Position
+  effectItem: Position,
+  skills: GameState["bumpkin"]["skills"],
 ): boolean {
   const { x, y, height, width } = AOEItem;
 
   const isWithinRectangle = (
     topLeft: Position,
-    bottomRight: Position
+    bottomRight: Position,
   ): boolean => {
     return (
       effectItem.x >= topLeft.x &&
@@ -494,9 +499,26 @@ export function isWithinAOE(
   const isWithinDistance = (
     dx: number,
     dy: number,
-    distance: number
+    distance: number,
   ): boolean => {
     return Math.abs(dx) <= distance && Math.abs(dy) <= distance;
+  };
+
+  const hasChonkyScarecrow = skills["Chonky Scarecrow"];
+  const hasHorrorMike = skills["Horror Mike"];
+  const hasLauriesGains = skills["Laurie's Gains"];
+
+  const boostedDistance = () => {
+    switch (AOEItemName) {
+      case "Basic Scarecrow":
+        return hasChonkyScarecrow ? 2 : 0;
+      case "Scary Mike":
+        return hasHorrorMike ? 2 : 0;
+      case "Laurie the Chuckle Crow":
+        return hasLauriesGains ? 2 : 0;
+      default:
+        return 0;
+    }
   };
 
   switch (AOEItemName) {
@@ -504,8 +526,13 @@ export function isWithinAOE(
     case "Scary Mike":
     case "Laurie the Chuckle Crow": {
       return isWithinRectangle(
-        { x: x - 1, y: y - height, height, width },
-        { x: x + 1, y: y - height - 2, height, width }
+        { x: x - 1 - boostedDistance(), y: y - height, height, width },
+        {
+          x: x + 1 + boostedDistance(),
+          y: y - height - 2 - boostedDistance() * 2,
+          height,
+          width,
+        },
       );
     }
 
@@ -530,7 +557,7 @@ export function isWithinAOE(
     case "Queen Cornelia": {
       return isWithinRectangle(
         { x: x - 1, y: y + 1, height, width },
-        { x: x + width, y: y - height, height, width }
+        { x: x + width, y: y - height, height, width },
       );
     }
 
@@ -546,7 +573,8 @@ export function isWithinAOE(
 export function isAOEImpacted(
   collectibles: Collectibles,
   resourcePosition: Position,
-  AoEAffectedNames: AOEItemName[]
+  AoEAffectedNames: AOEItemName[],
+  bumpkin: GameState["bumpkin"],
 ) {
   return AoEAffectedNames.some((name) => {
     if (collectibles[name as CollectibleName]?.[0]) {
@@ -564,7 +592,7 @@ export function isAOEImpacted(
         width: dimensions.width,
       };
 
-      if (isWithinAOE(name, itemPosition, resourcePosition)) {
+      if (isWithinAOE(name, itemPosition, resourcePosition, bumpkin.skills)) {
         return true;
       }
     }
@@ -587,7 +615,7 @@ export function pickEmptyPosition({
         position,
         location: "farm",
         name: "Basic Bear", // Just assume the item is 1x1
-      }) === false
+      }) === false,
   );
 
   return availablePositions[0];

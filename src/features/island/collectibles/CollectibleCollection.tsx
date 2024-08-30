@@ -1,7 +1,7 @@
 import React from "react";
 
 import { CollectibleProps } from "./Collectible";
-import { CollectibleName } from "features/game/types/craftables";
+import { CollectibleName, getKeys } from "features/game/types/craftables";
 import { MysteriousHead } from "./components/MysteriousHead";
 import { WarSkulls } from "./components/WarSkulls";
 import { WarTombstone } from "./components/WarTombstone";
@@ -259,7 +259,6 @@ import { FancyRug } from "./components/FancyRug";
 import { Clock } from "./components/Clock";
 import { Vinny } from "./components/Vinny";
 import { KnightChicken } from "./components/KnightChicken";
-import { BattleFish } from "./components/BattleFish";
 import { GauchoRug } from "./components/GauchoRug";
 import { BattlecryDrum } from "./components/BattleCryDrum";
 import { BullseyeBoard } from "./components/BullseyeBoard";
@@ -280,11 +279,83 @@ import { DesertGnome } from "./components/DesertGnome";
 
 // TODO: Remove partial once all placeable treasures have been added (waiting on artwork)
 import { RicePanda } from "./components/RicePanda";
+import { BenevolenceFlag } from "./components/BenevolenceFlag";
+import { DevotionFlag } from "./components/DevotionFlag";
+import { GenerosityFlag } from "./components/GenerosityFlag";
+import { SplendorFlag } from "./components/SplendorFlag";
+import { PaintCan } from "./components/PaintCan";
+import { JellyLamp } from "./components/JellyLamp";
+import { SunflorianThrone } from "./components/SunflorianThrone";
+import { NightshadeThrone } from "./components/NightshadeThrone";
+import { GoblinThrone } from "./components/GoblinThrone";
+import { BumpkinThrone } from "./components/BumpkinThrone";
+import { GoldenSunflorianEgg } from "./components/GoldenSunflorianEgg";
+import { GoblinMischiefEgg } from "./GoblinMischiefEgg";
+import { BumpkinCharmEgg } from "./BumpkinCharmEgg";
+import { NightshadeVeilEgg } from "./NightshadeVeilEgg";
+import { EmeraldGoblinGoblet } from "./components/EmeralGoblinGoblet";
+import { OpalSunflorianGoblet } from "./OpalSunflorianGoblet";
+import { SapphireBumpkinGoblet } from "./SapphireBumpkinGoblet";
+import { AmethystNightshadeGoblet } from "./components/AmethystNightshadeGoblet";
+import { GoldenFactionGoblet } from "./components/GoldenFactionGoblet";
+import { RubyFactionGoblet } from "./components/RubyFactionGoblet";
+import { SunflorianBunting } from "./components/SunflorianBunting";
+import { NightshadeBunting } from "./components/NightshadeBunting";
+import { GoblinBunting } from "./components/GoblilnBunting";
+import { BumpkinBunting } from "./components/BumpkinBunting";
+import { SunflorianCandles } from "./components/SunflorianCandles";
+import { NightshadeCandles } from "./components/NightshadeCandles";
+import { GoblinCandles } from "./components/GoblinCandles";
+import { BumpkinCandles } from "./components/BumpkinCandles";
+import { SunflorianRightWallSconce } from "./components/SunflorianRightWallSconce";
+import { SunflorianLeftWallSconce } from "./components/SunflorianLeftWallSconce";
+import { NightshadeLeftWallSconce } from "./components/NightshadeLeftWallSconce";
+import { GoblinLeftWallSconce } from "./components/GoblinLeftWallSconce";
+import { BumpkinLeftWallSconce } from "./components/BumpkinLeftWallSconce";
+import { NightshadeRightWallSconce } from "./components/NightshadeRightWallSconce";
+import { GoblinRightWallSconce } from "./components/GoblinRightWallSconce";
+import { Hourglass } from "./components/Hourglass";
+import { NightshadeFactionRug } from "./components/NightshadeFactionRug";
+import { SunflorianFactionRug } from "./components/SunflorianFactionRug";
+import { GoblinFactionRug } from "./components/GoblinFactionRug";
+import { BumpkinFactionRug } from "./components/BumpkinFactionRug";
+import { BumpkinRightWallSconce } from "./components/BumpkinRightWallSconce";
+import { TemplateCollectible } from "./TemplateCollectible";
+import {
+  DECORATION_TEMPLATES,
+  TemplateDecorationName,
+} from "features/game/types/decorations";
+import { PharaohsTreasureBanner } from "./components/PharaohsTreasureBanner";
+import { DesertRose } from "./components/DesertRose";
+import { Template } from "./components/template/Template";
+import { PharaohChicken } from "./components/PharaohChicken";
+import { ImageStyle } from "./components/template/ImageStyle";
+import { LemonShark } from "./components/LemonShark";
+import { BattleFish } from "./components/BattleFish";
+import { TomatoBombard } from "./components/TomatoBombard";
 
 export const COLLECTIBLE_COMPONENTS: Record<
   CollectibleName | "Bud",
   React.FC<CollectibleProps>
 > = {
+  ...getKeys(DECORATION_TEMPLATES).reduce(
+    (previous, name) => ({
+      ...previous,
+      [name]: () => (
+        <TemplateCollectible
+          name={name}
+          dimensions={DECORATION_TEMPLATES[name].dimensions}
+        />
+      ),
+    }),
+    {} as Record<TemplateDecorationName, React.FC<CollectibleProps>>,
+  ),
+  "Jelly Lamp": JellyLamp,
+  "Paint Can": PaintCan,
+  "Benevolence Flag": BenevolenceFlag,
+  "Devotion Flag": DevotionFlag,
+  "Generosity Flag": GenerosityFlag,
+  "Splendor Flag": SplendorFlag,
   "Gaucho Rug": GauchoRug,
 
   "Hungry Hare": HungryHare,
@@ -471,6 +542,7 @@ export const COLLECTIBLE_COMPONENTS: Record<
   "Spring Blossom Banner": SpringBlossomBanner,
   "Clash of Factions Banner": ClashOfFactionsBanner,
   "Lifetime Farmer Banner": LifetimeFarmerBanner,
+  "Pharaoh's Treasure Banner": PharaohsTreasureBanner,
 
   "Bonnie's Tombstone": BonniesTombstone,
   "Chestnut Fungi Stool": ChestnutFungiStool,
@@ -528,9 +600,11 @@ export const COLLECTIBLE_COMPONENTS: Record<
   "Radiant Ray": RadiantRay,
   "Phantom Barracuda": PhantomBarracuda,
   "Gilded Swordfish": GildedSwordfish,
-  "Kraken Tentacle": KrakenTentacle,
   "Crimson Carp": CrimsonCarp,
   "Battle Fish": BattleFish,
+  "Lemon Shark": LemonShark,
+
+  "Kraken Tentacle": KrakenTentacle,
 
   // Catch the Kraken
   "Lifeguard Ring": LifeguardRing,
@@ -551,6 +625,7 @@ export const COLLECTIBLE_COMPONENTS: Record<
   Nana: Nana,
   "Crim Peckster": CrimPeckster,
   "Knight Chicken": KnightChicken,
+  "Pharaoh Chicken": PharaohChicken,
 
   "Bumpkin Nutcracker": Nutcracker,
   "Festive Tree": FestiveTree,
@@ -605,6 +680,357 @@ export const COLLECTIBLE_COMPONENTS: Record<
   "Twister Rug": TwisterRug,
   Cluckapult: Cluckapult,
   "Rice Panda": RicePanda,
+  "Sunflorian Throne": SunflorianThrone,
+  "Nightshade Throne": NightshadeThrone,
+  "Goblin Throne": GoblinThrone,
+  "Bumpkin Throne": BumpkinThrone,
+  "Golden Sunflorian Egg": GoldenSunflorianEgg,
+  "Goblin Mischief Egg": GoblinMischiefEgg,
+  "Bumpkin Charm Egg": BumpkinCharmEgg,
+  "Nightshade Veil Egg": NightshadeVeilEgg,
+  "Emerald Goblin Goblet": EmeraldGoblinGoblet,
+  "Opal Sunflorian Goblet": OpalSunflorianGoblet,
+  "Sapphire Bumpkin Goblet": SapphireBumpkinGoblet,
+  "Amethyst Nightshade Goblet": AmethystNightshadeGoblet,
+  "Golden Faction Goblet": GoldenFactionGoblet,
+  "Ruby Faction Goblet": RubyFactionGoblet,
+  "Sunflorian Bunting": SunflorianBunting,
+  "Nightshade Bunting": NightshadeBunting,
+  "Goblin Bunting": GoblinBunting,
+  "Bumpkin Bunting": BumpkinBunting,
+  "Sunflorian Candles": SunflorianCandles,
+  "Nightshade Candles": NightshadeCandles,
+  "Goblin Candles": GoblinCandles,
+  "Bumpkin Candles": BumpkinCandles,
+  "Sunflorian Left Wall Sconce": SunflorianLeftWallSconce,
+  "Nightshade Left Wall Sconce": NightshadeLeftWallSconce,
+  "Goblin Left Wall Sconce": GoblinLeftWallSconce,
+  "Bumpkin Left Wall Sconce": BumpkinLeftWallSconce,
+  "Sunflorian Right Wall Sconce": SunflorianRightWallSconce,
+  "Nightshade Right Wall Sconce": NightshadeRightWallSconce,
+  "Goblin Right Wall Sconce": GoblinRightWallSconce,
+  "Bumpkin Right Wall Sconce": BumpkinRightWallSconce,
+  "Gourmet Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Gourmet Hourglass" {...props} />
+  ),
+  "Harvest Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Harvest Hourglass" {...props} />
+  ),
+  "Timber Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Timber Hourglass" {...props} />
+  ),
+  "Orchard Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Orchard Hourglass" {...props} />
+  ),
+  "Blossom Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Blossom Hourglass" {...props} />
+  ),
+  "Fisher's Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Fisher's Hourglass" {...props} />
+  ),
+  "Ore Hourglass": (props: CollectibleProps) => (
+    <Hourglass hourglass="Ore Hourglass" {...props} />
+  ),
+  "Sunflorian Faction Rug": SunflorianFactionRug,
+  "Nightshade Faction Rug": NightshadeFactionRug,
+  "Goblin Faction Rug": GoblinFactionRug,
+  "Bumpkin Faction Rug": BumpkinFactionRug,
+  "Desert Rose": DesertRose,
+  "Adrift Ark": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 29}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 2}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 29}px`,
+      }}
+      image={ITEM_DETAILS["Adrift Ark"].image}
+      alt="Adrift Ark"
+    />
+  ),
+  Castellan: (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 28}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 2}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 28}px`,
+      }}
+      image={ITEM_DETAILS.Castellan.image}
+      alt="Castellan"
+    />
+  ),
+  "Sunlit Citadel": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 28}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 2}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 28}px`,
+      }}
+      image={ITEM_DETAILS["Sunlit Citadel"].image}
+      alt="Sunlit Citadel"
+    />
+  ),
+  "Pharaoh Gnome": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 11}px`,
+        bottom: `${PIXEL_SCALE * 3}px`,
+        left: `${PIXEL_SCALE * 2.5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 11}px`,
+      }}
+      image={ITEM_DETAILS["Pharaoh Gnome"].image}
+      alt="Pharaoh Gnome"
+    />
+  ),
+  "Lemon Tea Bath": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 38}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 38}px`,
+      }}
+      image={ITEM_DETAILS["Lemon Tea Bath"].image}
+      alt="Lemon Tea Bath"
+    />
+  ),
+  "Tomato Clown": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 19}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 19}px`,
+      }}
+      image={ITEM_DETAILS["Tomato Clown"].image}
+      alt="Tomato Clown"
+    />
+  ),
+  Pyramid: (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 30}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 1}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 30}px`,
+      }}
+      image={ITEM_DETAILS.Pyramid.image}
+      alt="Pyramid"
+    />
+  ),
+  Sarcophagus: (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 18}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 18}px`,
+      }}
+      image={ITEM_DETAILS["Sarcophagus"].image}
+      alt="Sarcophagus"
+    />
+  ),
+  "Hapy Jar": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0.5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+      }}
+      image={ITEM_DETAILS["Hapy Jar"].image}
+      alt="Hapy Jar"
+    />
+  ),
+  "Imsety Jar": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0.5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+      }}
+      image={ITEM_DETAILS["Imsety Jar"].image}
+      alt="Imsety Jar"
+    />
+  ),
+  "Duamutef Jar": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 14}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 1}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 14}px`,
+      }}
+      image={ITEM_DETAILS["Duamutef Jar"].image}
+      alt="Duamutef Jar"
+    />
+  ),
+  "Qebehsenuef Jar": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0.5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+      }}
+      image={ITEM_DETAILS["Qebehsenuef Jar"].image}
+      alt="Qebehsenuef Jar"
+    />
+  ),
+  "Snake in Jar": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 18}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * -1}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 18}px`,
+      }}
+      image={ITEM_DETAILS["Snake in Jar"].image}
+      alt="Snake in Jar"
+    />
+  ),
+  "Anubis Jackal": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 28}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 2.25}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 28}px`,
+      }}
+      image={ITEM_DETAILS["Anubis Jackal"].image}
+      alt="Anubis Jackal"
+    />
+  ),
+  Oasis: (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 48}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 48}px`,
+      }}
+      image={ITEM_DETAILS.Oasis.image}
+      alt="Oasis"
+    />
+  ),
+  Cannonball: (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * 0.5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 15}px`,
+      }}
+      image={ITEM_DETAILS.Cannonball.image}
+      alt="Baobab Tree"
+    />
+  ),
+  "Baobab Tree": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 51}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * -1.5}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 51}px`,
+      }}
+      image={ITEM_DETAILS["Baobab Tree"].image}
+      alt="Baobab Tree"
+    />
+  ),
+  "Tomato Bombard": TomatoBombard,
+  Camel: (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 33}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * -1}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 33}px`,
+      }}
+      image={ITEM_DETAILS["Camel"].image}
+      alt="Camel"
+    />
+  ),
+
+  // To Update
+  Sundial: Template,
+  "Sand Golem": Template,
+  "Cactus King": Template,
+  "Lemon Frog": Template,
+  "Scarab Beetle": Template,
+  "Clay Tablet": Template,
+  "Reveling Lemon": Template,
+  "Paper Reed": (props: CollectibleProps) => (
+    <ImageStyle
+      {...props}
+      divStyle={{
+        width: `${PIXEL_SCALE * 22}px`,
+        bottom: `${PIXEL_SCALE * 0}px`,
+        left: `${PIXEL_SCALE * -3}px`,
+      }}
+      imgStyle={{
+        width: `${PIXEL_SCALE * 22}px`,
+      }}
+      image={ITEM_DETAILS["Paper Reed"].image}
+      alt="Paper Reed"
+    />
+  ),
 };
 // Need readonly versions for some troublesome components while in design mode
 
@@ -628,92 +1054,116 @@ export const READONLY_COLLECTIBLES: Record<
     />
   ),
 
-  "Basic Scarecrow": () => (
-    <div
-      className="absolute bottom-0"
-      style={{ width: `${PIXEL_SCALE * 22}px`, right: `${PIXEL_SCALE * -3}px` }}
-    >
-      <img src={ITEM_DETAILS["Basic Scarecrow"].image} className="w-full " />
-      <div
-        className="absolute bottom-0 bg-blue-300 bg-opacity-50 animate-pulse z-50 pointer-events-none"
-        style={{
-          width: `${PIXEL_SCALE * 16 * 3}px`,
-          height: `${PIXEL_SCALE * 16 * 3}px`,
-          left: `${PIXEL_SCALE * -13}px`,
-          top: `${PIXEL_SCALE * 31}px`,
-        }}
-      >
-        <img
-          src={lightning}
-          className="absolute bottom-0 opacity-50 animate-pulsate"
-          style={{
-            width: `${PIXEL_SCALE * 10}px`,
-            left: `${PIXEL_SCALE * 19}px`,
-            top: `${PIXEL_SCALE * 17}px`,
-          }}
-        />
-      </div>
-    </div>
-  ),
+  "Basic Scarecrow": (props: CollectibleProps) => {
+    const hasChonkyScarecrow = props.game.bumpkin.skills["Chonky Scarecrow"];
+    const chonkyOffset = hasChonkyScarecrow ? 4 : 0;
 
-  "Scary Mike": () => (
-    <div
-      className="absolute bottom-0"
-      style={{ width: `${PIXEL_SCALE * 22}px`, right: `${PIXEL_SCALE * -3}px` }}
-    >
-      <img src={ITEM_DETAILS["Scary Mike"].image} className="w-full" />
+    return (
       <div
-        className="absolute bottom-0 bg-blue-300 bg-opacity-50 animate-pulse z-50 pointer-events-none"
+        className="absolute bottom-0"
         style={{
-          width: `${PIXEL_SCALE * 16 * 3}px`,
-          height: `${PIXEL_SCALE * 16 * 3}px`,
-          left: `${PIXEL_SCALE * -13}px`,
-          top: `${PIXEL_SCALE * 29}px`,
+          width: `${PIXEL_SCALE * 22}px`,
+          right: `${PIXEL_SCALE * -3}px`,
         }}
       >
-        <img
-          src={lightning}
-          className="absolute bottom-0 opacity-50 animate-pulsate"
+        <img src={ITEM_DETAILS["Basic Scarecrow"].image} className="w-full " />
+        <div
+          className="absolute bottom-0 bg-blue-300 bg-opacity-50 animate-pulse z-50 pointer-events-none"
           style={{
-            width: `${PIXEL_SCALE * 10}px`,
-            left: `${PIXEL_SCALE * 19}px`,
-            top: `${PIXEL_SCALE * 17}px`,
+            width: `${PIXEL_SCALE * 16 * (3 + chonkyOffset)}px`,
+            height: `${PIXEL_SCALE * 16 * (3 + chonkyOffset)}px`,
+            left: `${PIXEL_SCALE * -13 - (chonkyOffset / 2) * PIXEL_SCALE * 16}px`,
+            top: `${PIXEL_SCALE * 31}px`,
           }}
-        />
+        >
+          <img
+            src={lightning}
+            className="absolute bottom-0 opacity-50 animate-pulsate"
+            style={{
+              width: `${PIXEL_SCALE * 10}px`,
+              left: `${PIXEL_SCALE * 19 + (chonkyOffset / 2) * PIXEL_SCALE * 16}px`,
+              top: `${PIXEL_SCALE * 17 + (chonkyOffset / 2) * PIXEL_SCALE * 16}px`,
+            }}
+          />
+        </div>
       </div>
-    </div>
-  ),
+    );
+  },
 
-  "Laurie the Chuckle Crow": () => (
-    <div
-      className="absolute bottom-0"
-      style={{ width: `${PIXEL_SCALE * 25}px`, right: `${PIXEL_SCALE * -5}px` }}
-    >
-      <img
-        src={ITEM_DETAILS["Laurie the Chuckle Crow"].image}
-        className="w-full"
-      />
+  "Scary Mike": (props: CollectibleProps) => {
+    const hasHorrorMike = props.game.bumpkin.skills["Horror Mike"];
+    const offset = hasHorrorMike ? 4 : 0;
+
+    return (
       <div
-        className="absolute bottom-0 bg-blue-300 bg-opacity-50 animate-pulse z-50 pointer-events-none"
+        className="absolute bottom-0"
         style={{
-          width: `${PIXEL_SCALE * 16 * 3}px`,
-          height: `${PIXEL_SCALE * 16 * 3}px`,
-          left: `${PIXEL_SCALE * -12}px`,
-          top: `${PIXEL_SCALE * 27}px`,
+          width: `${PIXEL_SCALE * 22}px`,
+          right: `${PIXEL_SCALE * -3}px`,
+        }}
+      >
+        <img src={ITEM_DETAILS["Scary Mike"].image} className="w-full" />
+        <div
+          className="absolute bottom-0 bg-blue-300 bg-opacity-50 animate-pulse z-50 pointer-events-none"
+          style={{
+            width: `${PIXEL_SCALE * 16 * (3 + offset)}px`,
+            height: `${PIXEL_SCALE * 16 * (3 + offset)}px`,
+            left: `${PIXEL_SCALE * -13 - (offset / 2) * PIXEL_SCALE * 16}px`,
+            top: `${PIXEL_SCALE * 29}px`,
+          }}
+        >
+          <img
+            src={lightning}
+            className="absolute bottom-0 opacity-50 animate-pulsate"
+            style={{
+              width: `${PIXEL_SCALE * 10}px`,
+              left: `${PIXEL_SCALE * 19 + (offset / 2) * PIXEL_SCALE * 16}px`,
+              top: `${PIXEL_SCALE * 17 + (offset / 2) * PIXEL_SCALE * 16}px`,
+            }}
+          />
+        </div>
+      </div>
+    );
+  },
+
+  "Laurie the Chuckle Crow": (props: CollectibleProps) => {
+    const hasLauriesGains = props.game.bumpkin.skills["Laurie's Gains"];
+    const offset = hasLauriesGains ? 4 : 0;
+
+    return (
+      <div
+        className="absolute bottom-0"
+        style={{
+          width: `${PIXEL_SCALE * 25}px`,
+          right: `${PIXEL_SCALE * -5}px`,
         }}
       >
         <img
-          src={lightning}
-          className="absolute bottom-0 opacity-50 animate-pulsate"
-          style={{
-            width: `${PIXEL_SCALE * 10}px`,
-            left: `${PIXEL_SCALE * 19}px`,
-            top: `${PIXEL_SCALE * 17}px`,
-          }}
+          src={ITEM_DETAILS["Laurie the Chuckle Crow"].image}
+          className="w-full"
         />
+        <div
+          className="absolute bottom-0 bg-blue-300 bg-opacity-50 animate-pulse z-50 pointer-events-none"
+          style={{
+            width: `${PIXEL_SCALE * 16 * (3 + offset)}px`,
+            height: `${PIXEL_SCALE * 16 * (3 + offset)}px`,
+            left: `${PIXEL_SCALE * -13 - (offset / 2) * PIXEL_SCALE * 16}px`,
+            top: `${PIXEL_SCALE * 27}px`,
+          }}
+        >
+          <img
+            src={lightning}
+            className="absolute bottom-0 opacity-50 animate-pulsate"
+            style={{
+              width: `${PIXEL_SCALE * 10}px`,
+              left: `${PIXEL_SCALE * 19 + (offset / 2) * PIXEL_SCALE * 16}px`,
+              top: `${PIXEL_SCALE * 17 + (offset / 2) * PIXEL_SCALE * 16}px`,
+            }}
+          />
+        </div>
       </div>
-    </div>
-  ),
+    );
+  },
   "Queen Cornelia": () => (
     <div
       id="cornelia"

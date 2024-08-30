@@ -2,6 +2,8 @@ import { GameAnalytics } from "gameanalytics";
 import { CONFIG } from "./config";
 import { Currency, InventoryItemName } from "features/game/types/game";
 import { BumpkinItem } from "features/game/types/bumpkin";
+import { DigAnalytics } from "features/world/scenes/BeachScene";
+import { ExperimentName } from "./flags";
 
 // Their type definition has some issues, extract to here
 enum EGAResourceFlowType {
@@ -20,7 +22,13 @@ enum EGAResourceFlowType {
 class GameAnalyticTracker {
   private executed: Record<string, boolean> = {};
 
-  public async initialise(id: number) {
+  public async initialise({
+    id,
+    experiments,
+  }: {
+    id: number;
+    experiments: ExperimentName[];
+  }) {
     try {
       if (!id) {
         throw new Error("Missing User ID for analytics");
@@ -31,6 +39,16 @@ class GameAnalyticTracker {
       GameAnalytics.configureBuild(CONFIG.RELEASE_VERSION);
 
       GameAnalytics.configureUserId(`account${id}`);
+
+      const validExperiments: ExperimentName[] = ["ONBOARDING_CHALLENGES"];
+      GameAnalytics.configureAvailableCustomDimensions01([
+        "NONE",
+        ...validExperiments,
+      ]);
+
+      if (experiments.length > 0) {
+        GameAnalytics.setCustomDimension01(experiments[0]);
+      }
 
       GameAnalytics.configureAvailableResourceCurrencies([
         "SFL",
@@ -54,7 +72,7 @@ class GameAnalyticTracker {
 
       GameAnalytics.initialize(
         CONFIG.GAME_ANALYTICS_APP_ID,
-        CONFIG.GAME_ANALYTICS_PUB_KEY
+        CONFIG.GAME_ANALYTICS_PUB_KEY,
       );
 
       GameAnalytics.startSession();
@@ -95,7 +113,7 @@ class GameAnalyticTracker {
       item.replace(/\s/g, ""), // Camel Case naming
       amount,
       type.replace(/\s/g, ""), // Camel Case naming,
-      from.replace(/\s/g, "") // Camel Case naming
+      from.replace(/\s/g, ""), // Camel Case naming
     );
   }
 
@@ -109,7 +127,7 @@ class GameAnalyticTracker {
     currency: Currency;
     amount: number;
     type: "Consumable" | "Fee" | "Wearable" | "Collectible" | "Web3";
-    item: InventoryItemName | BumpkinItem | "Stock" | "Trade";
+    item: InventoryItemName | BumpkinItem | "Stock" | "Trade" | "DesertDigs";
   }) {
     const { currency, amount, type, item } = event;
 
@@ -118,7 +136,7 @@ class GameAnalyticTracker {
       currency.replace(/\s/g, ""), // Camel Case naming
       amount,
       type.replace(/\s/g, ""), // Camel Case naming,
-      item.replace(/\s/g, "") // Camel Case naming
+      item.replace(/\s/g, ""), // Camel Case naming
     );
   }
 
@@ -139,10 +157,21 @@ class GameAnalyticTracker {
     const { event } = milestone;
 
     GameAnalytics.addDesignEvent(
-      event.replace(/\s/g, "") // Camel Case naming
+      event.replace(/\s/g, ""), // Camel Case naming
     );
 
     this.executed[key] = true;
+  }
+
+  public trackBeachDiggingAttempt(analytics: DigAnalytics) {
+    const { outputCoins, percentageFound } = analytics;
+
+    GameAnalytics.addDesignEvent(
+      "Beach:Digging:PercentageFound",
+      percentageFound,
+    );
+
+    GameAnalytics.addDesignEvent("Beach:Digging:OutputCoins", outputCoins);
   }
 }
 

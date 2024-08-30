@@ -1,17 +1,31 @@
 import PubSub from "pubsub-js";
 
 import { SUNNYSIDE } from "assets/sunnyside";
+import { FishingConditions } from "features/game/types/fishing";
 
 export class FishermanContainer extends Phaser.GameObjects.Container {
   public sprite: Phaser.GameObjects.Sprite | undefined;
   public alert: Phaser.GameObjects.Sprite | undefined;
+  public weather: FishingConditions;
+  public weatherIndicator: Phaser.GameObjects.Sprite | undefined;
 
   private fishingState: "idle" | "casting" | "waiting" | "reeling" | "caught" =
     "idle";
 
-  constructor({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
+  constructor({
+    scene,
+    x,
+    y,
+    weather,
+  }: {
+    scene: Phaser.Scene;
+    x: number;
+    y: number;
+    weather: FishingConditions;
+  }) {
     super(scene, x, y);
     this.scene = scene;
+    this.weather = weather;
     scene.physics.add.existing(this);
 
     this.setSize(58, 50);
@@ -22,10 +36,10 @@ export class FishermanContainer extends Phaser.GameObjects.Container {
       {
         frameWidth: 58,
         frameHeight: 50,
-      }
+      },
     );
 
-    spriteLoader.addListener(Phaser.Loader.Events.COMPLETE, () => {
+    spriteLoader.once(Phaser.Loader.Events.COMPLETE, () => {
       if (this.sprite) return;
 
       const idle = scene.add.sprite(0, 0, "fisherman").setOrigin(0.5);
@@ -98,6 +112,8 @@ export class FishermanContainer extends Phaser.GameObjects.Container {
       this.sprite?.play("idle_animation", true);
     });
 
+    this.addWeatherIndicator();
+
     this.setInteractive({ cursor: "pointer" }).on(
       "pointerdown",
       (p: Phaser.Input.Pointer) => {
@@ -113,9 +129,10 @@ export class FishermanContainer extends Phaser.GameObjects.Container {
             this.fishingState = "caught";
 
             this.removeAlert();
+            this.addWeatherIndicator();
           }
         }
-      }
+      },
     );
 
     PubSub.subscribe("BEACH_FISHERMAN_CAST", (msg, data) => {
@@ -130,10 +147,8 @@ export class FishermanContainer extends Phaser.GameObjects.Container {
         this.fishingState = "reeling";
         this.sprite.play("reeling_animation", true);
 
-        if (!this.alert) {
-          this.alert = this.scene.add.sprite(-11, -23, "alert").setSize(4, 10);
-          this.add(this.alert);
-        }
+        this.addAlert();
+        this.removeWeatherIndicator();
       }
     });
 
@@ -148,8 +163,36 @@ export class FishermanContainer extends Phaser.GameObjects.Container {
     this.scene.add.existing(this);
   }
 
-  private removeAlert() {
-    this.alert?.destroy();
+  private addWeatherIndicator = () => {
+    if (this.weatherIndicator) return;
+
+    if (this.weather === "Fish Frenzy") {
+      this.weatherIndicator = this.scene.add.sprite(-11, -25, "fish_frenzy");
+      this.add(this.weatherIndicator);
+    } else if (this.weather === "Full Moon") {
+      this.weatherIndicator = this.scene.add.sprite(-11, -25, "full_moon");
+      this.add(this.weatherIndicator);
+    }
+  };
+
+  private removeWeatherIndicator = () => {
+    if (this.weatherIndicator?.active) {
+      this.weatherIndicator?.destroy();
+    }
+    this.weatherIndicator = undefined;
+  };
+
+  private addAlert = () => {
+    if (this.alert) return;
+
+    this.alert = this.scene.add.sprite(-11, -23, "alert");
+    this.add(this.alert);
+  };
+
+  private removeAlert = () => {
+    if (this.alert?.active) {
+      this.alert?.destroy();
+    }
     this.alert = undefined;
-  }
+  };
 }

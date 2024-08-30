@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 
-import emptyBar from "assets/ui/progress/empty_bar.png";
+import { SUNNYSIDE } from "assets/sunnyside";
 import { secondsToString, TimeFormatLength } from "lib/utils/time";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { progressBarBorderStyle } from "features/game/lib/style";
 
-type progressType = "progress" | "health" | "error" | "buff" | "quantity";
+export type ProgressType =
+  | "progress"
+  | "health"
+  | "error"
+  | "buff"
+  | "quantity";
 
 interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
   percentage: number;
-  type: progressType;
+  type: ProgressType;
   seconds?: number;
   formatLength: TimeFormatLength;
 }
@@ -28,7 +33,7 @@ interface progressStyle {
   backgroundColor: string;
 }
 
-const PROGRESS_COLORS: Record<progressType, progressStyle> = {
+const PROGRESS_COLORS: Record<ProgressType, progressStyle> = {
   progress: {
     color: "#63c74d",
     backgroundColor: "#193c3e",
@@ -62,7 +67,7 @@ const PROGRESS_COLORS: Record<progressType, progressStyle> = {
  */
 export const ResizableBar: React.FC<{
   percentage: number;
-  type: progressType;
+  type: ProgressType;
   outerDimensions?: {
     width: number;
     height: number;
@@ -106,12 +111,12 @@ export const ResizableBar: React.FC<{
  * @param type The bar type (determines what color it has).
  * @returns The non-rresizable bar.
  */
-export const Bar: React.FC<{ percentage: number; type: progressType }> = ({
+export const Bar: React.FC<{ percentage: number; type: ProgressType }> = ({
   percentage,
   type,
 }) => {
   const progressWidth = Math.floor(
-    (DIMENSIONS.innerWidth * Math.min(percentage, 100)) / 100
+    (DIMENSIONS.innerWidth * Math.min(percentage, 100)) / 100,
   );
 
   return (
@@ -125,14 +130,14 @@ export const Bar: React.FC<{ percentage: number; type: progressType }> = ({
       {/* Progress bar frame */}
       <img
         className="absolute"
-        src={emptyBar}
+        src={SUNNYSIDE.ui.emptyBar}
         style={{
           width: `${PIXEL_SCALE * DIMENSIONS.width}px`,
         }}
       />
       <img
         className="absolute z-30 opacity-50"
-        src={emptyBar}
+        src={SUNNYSIDE.ui.emptyBar}
         style={{
           width: `${PIXEL_SCALE * DIMENSIONS.width}px`,
         }}
@@ -192,6 +197,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   seconds = 0,
   ...divProps
 }) => {
+  const currentLanguage = localStorage.getItem("language") || "en";
+
   return (
     <div className="absolute" {...divProps}>
       {seconds > 0 && (
@@ -203,14 +210,17 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
           }}
         >
           <span
-            className="font-pixel  !text-[22px] text-white text-center"
+            className={`text-white text-center ${
+              currentLanguage === "zh-CN" ? "font-Ark" : "font-pixel"
+            }`}
             style={{
               padding: "0px 1px",
               height: "9px",
               lineHeight: "7px",
-              top: "6px",
+              top: `${currentLanguage === "zh-CN" ? "4px" : "6px"}`,
               position: "relative",
               textShadow: "1px 1px black",
+              whiteSpace: "nowrap",
             }}
           >
             {secondsToString(seconds, {

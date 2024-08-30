@@ -1,7 +1,6 @@
 import jwt_decode from "jwt-decode";
 import { Token } from "features/auth/actions/login";
 import { MinigameName } from "features/game/types/minigames";
-import { CONFIG } from "lib/config";
 import { ERRORS } from "lib/errors";
 
 type Request = {
@@ -47,7 +46,7 @@ export async function portal(request: Request) {
       body: JSON.stringify({
         farmId: request.farmId,
       }),
-    }
+    },
   );
 
   if (response.status >= 400) {

@@ -4,7 +4,11 @@ import { Animal, Food, ToolName } from "./craftables";
 import { CropName, GreenHouseCropName } from "./crops";
 import { Bumpkin, LanternName } from "./game";
 import { BeanName, ExoticCropName } from "./beans";
-import { HeliosBlacksmithItem, PotionHouseItemName } from "./collectibles";
+import {
+  HeliosBlacksmithItem,
+  PotionHouseItemName,
+  TreasureCollectibleItem,
+} from "./collectibles";
 import { DecorationName } from "./decorations";
 import { FruitName, FruitSeedName, GreenHouseFruitName } from "./fruits";
 import { GarbageName } from "./garbage";
@@ -14,6 +18,7 @@ import { BeachBountyTreasure, TreasureName } from "./treasure";
 import { CompostName, ComposterName } from "./composters";
 import { PurchaseableBait } from "./fishing";
 import { FlowerName, FlowerSeedName } from "./flowers";
+import { FactionShopItemName } from "./factionShop";
 
 type BuyableName = SeedName | Animal | DecorationName | BeanName;
 type SellableName =
@@ -23,7 +28,8 @@ type SellableName =
   | BeachBountyTreasure
   | FruitName
   | GarbageName
-  | ExoticCropName;
+  | ExoticCropName
+  | FactionShopItemName;
 
 type Recipes = Food | CookableName;
 type Edibles = Food | ConsumableName;
@@ -46,6 +52,7 @@ export type CraftedEvent = `${
   | WorkbenchToolName
   | TreasureToolName
   | HeliosBlacksmithItem
+  | TreasureCollectibleItem
   | PotionHouseItemName
   | LanternName
   | PurchaseableBait} Crafted`;
@@ -102,14 +109,13 @@ export type BumpkinActivityName =
   | "Chore Skipped"
   | "Bud Placed"
   | ComposterCollectEvent
-  | "Kraken Tentacle Traded"
   | "Crop Fertilised"
   | "Rod Casted";
 
 export function trackActivity(
   activityName: BumpkinActivityName,
   bumpkinActivity: Bumpkin["activity"],
-  activityAmount = new Decimal(1)
+  activityAmount = new Decimal(1),
 ): Bumpkin["activity"] {
   const previous = bumpkinActivity || {};
   const oldAmount = previous[activityName] || 0;

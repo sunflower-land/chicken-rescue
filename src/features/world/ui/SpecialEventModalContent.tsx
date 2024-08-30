@@ -2,16 +2,14 @@ import { NPCName } from "lib/npcs";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Label } from "components/ui/Label";
 import { SUNNYSIDE } from "assets/sunnyside";
+import walletIcon from "assets/icons/wallet.png";
 import { Context } from "features/game/GameProvider";
 import { useActor } from "@xstate/react";
 import { Airdrop } from "features/game/types/game";
 import { Button } from "components/ui/Button";
-
-import giftIcon from "assets/icons/gift.png";
-import chestIcon from "assets/icons/chest.png";
-import walletIcon from "assets/icons/wallet.png";
-import sfl from "assets/icons/sfl.webp";
-import lock from "assets/skills/lock.png";
+import gift from "assets/icons/gift.png";
+import token from "assets/icons/sfl.webp";
+import chest from "assets/icons/chest.png";
 
 import Decimal from "decimal.js-light";
 import { OuterPanel } from "components/ui/Panel";
@@ -135,13 +133,13 @@ export const SpecialEventModalContent: React.FC<{
       (itemName) => {
         if (
           (inventory[itemName] ?? new Decimal(0)).lt(
-            task.requirements.items[itemName] ?? 0
+            task.requirements.items[itemName] ?? 0,
           )
         ) {
           return false;
         }
         return true;
-      }
+      },
     );
 
     if (!hasItemRequirement) return false;
@@ -155,20 +153,20 @@ export const SpecialEventModalContent: React.FC<{
     const previousTaskIndex = taskIndex - 1;
 
     const currentDay = Math.floor(
-      (Date.now() - event.startAt) / TWENTY_FOUR_HOURS
+      (Date.now() - event.startAt) / TWENTY_FOUR_HOURS,
     );
 
     const previousTask = event.tasks[previousTaskIndex];
 
     if (previousTask?.completedAt) {
       const previousDay = Math.floor(
-        (previousTask.completedAt - event.startAt) / TWENTY_FOUR_HOURS
+        (previousTask.completedAt - event.startAt) / TWENTY_FOUR_HOURS,
       );
       return new Date(event.startAt + (previousDay + 1) * 24 * 60 * 60 * 1000);
     }
 
     return new Date(
-      event.startAt + (currentDay + taskIndex) * 24 * 60 * 60 * 1000
+      event.startAt + (currentDay + taskIndex) * 24 * 60 * 60 * 1000,
     );
   };
 
@@ -176,7 +174,7 @@ export const SpecialEventModalContent: React.FC<{
     return (
       <>
         <div className="p-2">
-          <Label icon={giftIcon} type="warning" className="mb-2">
+          <Label icon={gift} type="warning" className="mb-2">
             {t("congrats")}
           </Label>
           <p className="text-sm mb-2">{t("special.event.claimForm")}</p>
@@ -275,7 +273,7 @@ export const SpecialEventModalContent: React.FC<{
             )}
 
             <Label type="info" className="mr-8" icon={SUNNYSIDE.icons.timer}>
-              {secondsToString(Math.floor((event.endAt - Date.now()) / 1000), {
+              {secondsToString((event.endAt - Date.now()) / 1000, {
                 length: "medium",
                 removeTrailingZeros: true,
               })}{" "}
@@ -297,7 +295,7 @@ export const SpecialEventModalContent: React.FC<{
                       "w-full cursor-pointer hover:bg-brown-200 !py-2 relative",
                       {
                         "!bg-brown-200": selectedIndex === index,
-                      }
+                      },
                     )}
                     style={{ paddingBottom: "20px" }}
                     onClick={() => {
@@ -306,7 +304,7 @@ export const SpecialEventModalContent: React.FC<{
                   >
                     {index >= 1 && !event?.tasks[index - 1].completedAt && (
                       <img
-                        src={lock}
+                        src={SUNNYSIDE.icons.lock}
                         className="absolute top-[-8px] right-[-12px] w-5"
                       />
                     )}
@@ -340,7 +338,7 @@ export const SpecialEventModalContent: React.FC<{
                     {!task.completedAt && !!task.reward.sfl && (
                       <Label
                         type="warning"
-                        icon={sfl}
+                        icon={token}
                         className="absolute -bottom-2 text-center mt-1 p-1 left-[-8px] z-10"
                         style={{ width: "calc(100% + 16px)" }}
                       >
@@ -351,7 +349,7 @@ export const SpecialEventModalContent: React.FC<{
                     {!task.completedAt && !task.reward.sfl && (
                       <Label
                         type="warning"
-                        icon={giftIcon}
+                        icon={gift}
                         className="absolute -bottom-2 text-center mt-1 p-1 left-[-8px] z-10"
                         style={{ width: "calc(100% + 16px)" }}
                       >
@@ -375,9 +373,9 @@ export const SpecialEventModalContent: React.FC<{
                 )}
                 {selectedIndex >= 1 &&
                   !!event?.tasks[selectedIndex - 1].completedAt && (
-                    <Label type="info" icon={lock}>
+                    <Label type="info" icon={SUNNYSIDE.icons.lock}>
                       {formatDateTime(
-                        getTaskStartDate(selectedIndex + 1).toISOString()
+                        getTaskStartDate(selectedIndex + 1).toISOString(),
                       )}
                     </Label>
                   )}
@@ -398,7 +396,7 @@ export const SpecialEventModalContent: React.FC<{
               })}
               <div className="flex justify-between space-x-3 mt-2">
                 <div className="flex items-center">
-                  <img src={chestIcon} className="w-5 mr-1" />
+                  <img src={chest} className="w-5 mr-1" />
                   <span className="text-xs">{t("reward")}</span>
                 </div>
                 {getKeys(selected.reward.items).map((itemName) => (

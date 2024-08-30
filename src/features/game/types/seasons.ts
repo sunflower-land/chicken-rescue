@@ -5,6 +5,8 @@ import witchesEveBanner from "assets/decorations/banners/witches_eve_banner.webp
 import catchTheKrakenBanner from "assets/decorations/banners/catch_the_kraken_banner.webp";
 import springBlossomBanner from "assets/decorations/banners/spring_banner.gif";
 import clashOfFactionsBanner from "assets/decorations/banners/clash_of_factions_banner.webp";
+import pharaohsTreasureBanner from "assets/decorations/banners/pharaohs_treasure_banner.webp";
+import { BeachBountySeasonalArtefact } from "./treasure";
 
 export type SeasonName =
   | "Solar Flare"
@@ -12,7 +14,8 @@ export type SeasonName =
   | "Witches' Eve"
   | "Catch the Kraken"
   | "Spring Blossom"
-  | "Clash of Factions";
+  | "Clash of Factions"
+  | "Pharaoh's Treasure";
 
 type SeasonDates = { startDate: Date; endDate: Date };
 
@@ -41,6 +44,10 @@ export const SEASONS: Record<SeasonName, SeasonDates> = {
     startDate: new Date("2024-05-01T00:00:00.000Z"),
     endDate: new Date("2024-08-01T00:00:00.000Z"),
   },
+  "Pharaoh's Treasure": {
+    startDate: new Date("2024-08-01T00:00:00.000Z"),
+    endDate: new Date("2024-11-01T00:00:00.000Z"),
+  },
 };
 
 export const SEASONAL_TICKETS_PER_GRUB_SHOP_ORDER = 10;
@@ -51,7 +58,8 @@ export type SeasonalTicket =
   | "Crow Feather"
   | "Mermaid Scale"
   | "Tulip Bulb"
-  | "Scroll";
+  | "Scroll"
+  | "Amber Fossil";
 
 export type SeasonalBanner =
   | "Solar Flare Banner"
@@ -59,7 +67,8 @@ export type SeasonalBanner =
   | "Witches' Eve Banner"
   | "Catch the Kraken Banner"
   | "Spring Blossom Banner"
-  | "Clash of Factions Banner";
+  | "Clash of Factions Banner"
+  | "Pharaoh's Treasure Banner";
 
 export const SEASONAL_BANNERS: Record<SeasonalBanner, SeasonName> = {
   "Solar Flare Banner": "Solar Flare",
@@ -68,6 +77,7 @@ export const SEASONAL_BANNERS: Record<SeasonalBanner, SeasonName> = {
   "Catch the Kraken Banner": "Catch the Kraken",
   "Spring Blossom Banner": "Spring Blossom",
   "Clash of Factions Banner": "Clash of Factions",
+  "Pharaoh's Treasure Banner": "Pharaoh's Treasure",
 };
 
 export const SEASON_TICKET_NAME: Record<SeasonName, SeasonalTicket> = {
@@ -77,6 +87,20 @@ export const SEASON_TICKET_NAME: Record<SeasonName, SeasonalTicket> = {
   "Catch the Kraken": "Mermaid Scale",
   "Spring Blossom": "Tulip Bulb",
   "Clash of Factions": "Scroll",
+  "Pharaoh's Treasure": "Amber Fossil",
+};
+
+export const SEASON_ARTEFACT_NAME: Record<
+  SeasonName,
+  BeachBountySeasonalArtefact
+> = {
+  "Solar Flare": "Scarab",
+  "Dawn Breaker": "Scarab",
+  "Witches' Eve": "Scarab",
+  "Catch the Kraken": "Scarab",
+  "Spring Blossom": "Scarab",
+  "Clash of Factions": "Scarab",
+  "Pharaoh's Treasure": "Scarab",
 };
 
 export function getCurrentSeason(now = new Date()): SeasonName {
@@ -85,7 +109,7 @@ export function getCurrentSeason(now = new Date()): SeasonName {
   const currentSeason = seasons.find((season) => {
     const { startDate, endDate } = SEASONS[season];
 
-    return now >= startDate && now <= endDate;
+    return now >= startDate && now < endDate;
   });
 
   if (!currentSeason) {
@@ -99,6 +123,12 @@ export function getSeasonalTicket(now = new Date()): SeasonalTicket {
   const currentSeason = getCurrentSeason(now);
 
   return SEASON_TICKET_NAME[currentSeason];
+}
+
+export function getSeasonalArtefact(now = new Date()) {
+  const currentSeason = getCurrentSeason(now);
+
+  return SEASON_ARTEFACT_NAME[currentSeason];
 }
 
 export function getSeasonalBanner(now = new Date()): SeasonalBanner {
@@ -137,6 +167,7 @@ export function getSeasonalBannerImage() {
     "Catch the Kraken Banner": catchTheKrakenBanner,
     "Spring Blossom Banner": springBlossomBanner,
     "Clash of Factions Banner": clashOfFactionsBanner,
+    "Pharaoh's Treasure Banner": pharaohsTreasureBanner,
   };
   return banners[getSeasonalBanner()];
 }
@@ -148,7 +179,7 @@ function getPreviousSeason(now = new Date()): SeasonName {
   // Find the season where the end date matches the start date of the current season
   const previousSeason = Object.entries(SEASONS).find(
     ([_, { endDate }]) =>
-      endDate.getTime() === startDateOfCurrentSeason.getTime()
+      endDate.getTime() === startDateOfCurrentSeason.getTime(),
   );
 
   if (!previousSeason) {

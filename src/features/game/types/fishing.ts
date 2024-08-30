@@ -50,9 +50,11 @@ export type MarineMarvelName =
   | "Radiant Ray"
   | "Phantom Barracuda"
   | "Gilded Swordfish"
-  | "Kraken Tentacle"
   | "Crimson Carp"
-  | "Battle Fish";
+  | "Battle Fish"
+  | "Lemon Shark";
+
+export type OldFishName = "Kraken Tentacle";
 
 export const PURCHASEABLE_BAIT: Record<PurchaseableBait, Tool> = {
   "Fishing Lure": {
@@ -99,8 +101,9 @@ export type Chum = Extract<
   | "Rich Chicken"
   | "Fat Chicken"
   | "Speed Chicken"
-  | "Sunfish"
   | "Horse Mackerel"
+  | "Sunfish"
+  | "Zebra Turkeyfish"
 >;
 
 export const CHUM_AMOUNTS: Record<Chum, number> = {
@@ -138,6 +141,7 @@ export const CHUM_AMOUNTS: Record<Chum, number> = {
   "Speed Chicken": 3,
   "Horse Mackerel": 1,
   Sunfish: 1,
+  "Zebra Turkeyfish": 1,
 };
 
 export const CHUM_DETAILS: Record<Chum, string> = {
@@ -175,6 +179,7 @@ export const CHUM_DETAILS: Record<Chum, string> = {
   "Speed Chicken": translate("chumDetails.speedChicken"),
   "Horse Mackerel": translate("chumDetails.horseMackerel"),
   Sunfish: translate("chumDetails.sunfish"),
+  "Zebra Turkeyfish": translate("chumDetails.zebraFish"),
 };
 
 export type FishingLocation = "beach" | "wharf";
@@ -183,6 +188,27 @@ type Fish = {
   baits: FishingBait[];
   type: FishType;
   locations: FishingLocation[];
+};
+
+export const SEASONAL_FISH: Record<
+  Extract<MarineMarvelName, "Crimson Carp" | "Lemon Shark" | "Battle Fish">,
+  Fish
+> = {
+  "Crimson Carp": {
+    baits: ["Grub", "Fishing Lure"],
+    type: "marine marvel",
+    locations: ["wharf"],
+  },
+  "Battle Fish": {
+    baits: ["Earthworm", "Grub", "Fishing Lure"],
+    type: "marine marvel",
+    locations: ["wharf", "beach"],
+  },
+  "Lemon Shark": {
+    baits: ["Grub", "Fishing Lure"],
+    type: "marine marvel",
+    locations: ["wharf", "beach"],
+  },
 };
 
 // TODO
@@ -363,21 +389,7 @@ export const FISH: Record<FishName | MarineMarvelName, Fish> = {
     type: "marine marvel",
     locations: ["wharf"],
   },
-  "Kraken Tentacle": {
-    baits: ["Earthworm", "Grub", "Red Wiggler", "Fishing Lure"],
-    type: "expert",
-    locations: ["wharf"],
-  },
-  "Crimson Carp": {
-    baits: ["Grub", "Fishing Lure"],
-    type: "marine marvel",
-    locations: ["wharf"],
-  },
-  "Battle Fish": {
-    baits: ["Earthworm", "Grub", "Fishing Lure"],
-    type: "marine marvel",
-    locations: ["wharf", "beach"],
-  },
+  ...SEASONAL_FISH,
 };
 
 export type Tide = "Dusktide" | "Dawnlight";
@@ -409,7 +421,6 @@ export const FISH_DIFFICULTY: Partial<
   "Barred Knifejaw": 3,
   "Whale Shark": 3,
   "Gilded Swordfish": 3,
-  "Kraken Tentacle": 3,
   "Saw Shark": 4,
   "White Shark": 4,
   "Radiant Ray": 4,

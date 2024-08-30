@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import tent from "assets/buildings/tent.png";
+import { SUNNYSIDE } from "assets/sunnyside";
 
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { BuildingProps } from "../Building";
@@ -22,7 +22,7 @@ const selectBuildings = (state: MachineState) => state.context.state.buildings;
 
 const compareBuildings = (
   prev: Partial<Record<BuildingName, PlacedItem[]>>,
-  next: Partial<Record<BuildingName, PlacedItem[]>>
+  next: Partial<Record<BuildingName, PlacedItem[]>>,
 ) => {
   return prev.Tent?.length === next.Tent?.length;
 };
@@ -39,7 +39,7 @@ export const Tent: React.FC<BuildingProps> = ({
   const [showModal, setShowModal] = useState(false);
 
   const buildingIndex = buildings["Tent"]?.findIndex(
-    (building) => building.id === buildingId
+    (building) => building.id === buildingId,
   );
 
   const [walletBumpkins, setWalletBumpkins] = useState<OnChainBumpkin[]>([]);
@@ -48,7 +48,7 @@ export const Tent: React.FC<BuildingProps> = ({
     const load = async () => {
       const walletBumpkins = await loadBumpkins(
         wallet.web3Provider,
-        wallet.myAccount as string
+        wallet.myAccount as string,
       );
 
       setWalletBumpkins(walletBumpkins);
@@ -80,7 +80,7 @@ export const Tent: React.FC<BuildingProps> = ({
         nonInteractible={!bumpkin}
       >
         <img
-          src={tent}
+          src={SUNNYSIDE.building.tent}
           className="absolute"
           style={{
             width: `${PIXEL_SCALE * 46}px`,

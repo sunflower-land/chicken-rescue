@@ -1,8 +1,8 @@
 import Decimal from "decimal.js-light";
-import { plantFlower } from "./plantFlower";
+import { getFlowerTime, plantFlower } from "./plantFlower";
 import { GameState } from "features/game/types/game";
 import { TEST_FARM } from "features/game/lib/constants";
-import { INITIAL_BUMPKIN } from "features/game/lib/bumpkinData";
+import { TEST_BUMPKIN } from "features/game/lib/bumpkinData";
 import {
   FLOWER_CROSS_BREED_AMOUNTS,
   FLOWER_SEEDS,
@@ -10,7 +10,7 @@ import {
 
 const GAME_STATE: GameState = {
   ...TEST_FARM,
-  bumpkin: INITIAL_BUMPKIN,
+  bumpkin: TEST_BUMPKIN,
   flowers: {
     discovered: {},
     flowerBeds: {
@@ -40,24 +40,6 @@ const GAME_STATE: GameState = {
 describe("plantFlower", () => {
   const dateNow = Date.now();
 
-  it("throws an error if the player doesn't have a bumpkin", () => {
-    expect(() =>
-      plantFlower({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-        },
-        createdAt: dateNow,
-        action: {
-          type: "flower.planted",
-          id: "0",
-          seed: "Sunpetal Seed",
-          crossbreed: "Sunflower",
-        },
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("does not plant in a non-existent flower bed", () => {
     expect(() =>
       plantFlower({
@@ -69,7 +51,7 @@ describe("plantFlower", () => {
           seed: "Sunpetal Seed",
           crossbreed: "Sunflower",
         },
-      })
+      }),
     ).toThrow("Flower bed does not exist");
   });
 
@@ -86,14 +68,14 @@ describe("plantFlower", () => {
           seed: "Sunpetal Seed",
           crossbreed: "Sunflower",
         },
-      })
+      }),
     ).toThrow("Flower is already planted");
   });
 
   it("does not plant an invalid seed", () => {
     expect(() =>
       plantFlower({
-        state: { ...GAME_STATE, bumpkin: INITIAL_BUMPKIN },
+        state: { ...GAME_STATE, bumpkin: TEST_BUMPKIN },
         createdAt: dateNow,
         action: {
           type: "flower.planted",
@@ -101,14 +83,14 @@ describe("plantFlower", () => {
           seed: "Sunflower Seed" as "Sunpetal Seed",
           crossbreed: "Sunflower",
         },
-      })
+      }),
     ).toThrow("Not a flower seed");
   });
 
   it("does not plant if user does not have seeds", () => {
     expect(() =>
       plantFlower({
-        state: { ...GAME_STATE, bumpkin: INITIAL_BUMPKIN },
+        state: { ...GAME_STATE, bumpkin: TEST_BUMPKIN },
         createdAt: dateNow,
         action: {
           type: "flower.planted",
@@ -116,7 +98,7 @@ describe("plantFlower", () => {
           seed: "Sunpetal Seed",
           crossbreed: "Sunflower",
         },
-      })
+      }),
     ).toThrow("Not enough seeds");
   });
 
@@ -125,7 +107,7 @@ describe("plantFlower", () => {
       plantFlower({
         state: {
           ...GAME_STATE,
-          bumpkin: INITIAL_BUMPKIN,
+          bumpkin: TEST_BUMPKIN,
           inventory: { "Sunpetal Seed": new Decimal(1) },
         },
         createdAt: dateNow,
@@ -135,7 +117,7 @@ describe("plantFlower", () => {
           seed: "Sunpetal Seed",
           crossbreed: "Sunflower",
         },
-      })
+      }),
     ).toThrow("Not enough crossbreed");
   });
 
@@ -147,7 +129,7 @@ describe("plantFlower", () => {
     const state = plantFlower({
       state: {
         ...GAME_STATE,
-        bumpkin: INITIAL_BUMPKIN,
+        bumpkin: TEST_BUMPKIN,
         inventory: {
           "Sunpetal Seed": seedAmount,
           Sunflower: new Decimal(100),
@@ -169,7 +151,7 @@ describe("plantFlower", () => {
           plantedAt: expect.any(Number),
           amount: 1,
         }),
-      })
+      }),
     );
   });
 
@@ -178,7 +160,7 @@ describe("plantFlower", () => {
     const state = plantFlower({
       state: {
         ...GAME_STATE,
-        bumpkin: INITIAL_BUMPKIN,
+        bumpkin: TEST_BUMPKIN,
         inventory: {
           "Sunpetal Seed": new Decimal(1),
           Sunflower: new Decimal(100),
@@ -198,7 +180,7 @@ describe("plantFlower", () => {
   it("deducts the seed from the inventory", () => {
     const initialState = {
       ...GAME_STATE,
-      bumpkin: INITIAL_BUMPKIN,
+      bumpkin: TEST_BUMPKIN,
       inventory: {
         "Sunpetal Seed": new Decimal(1),
         Sunflower: new Decimal(100),
@@ -223,7 +205,7 @@ describe("plantFlower", () => {
   it("deducts the amount of cross breed required", () => {
     const initialState = {
       ...GAME_STATE,
-      bumpkin: INITIAL_BUMPKIN,
+      bumpkin: TEST_BUMPKIN,
       inventory: {
         "Sunpetal Seed": new Decimal(1),
         Sunflower: new Decimal(100),
@@ -245,7 +227,7 @@ describe("plantFlower", () => {
 
     const inventoryAfter = state.inventory["Sunflower"];
     expect(inventoryAfter).toEqual(
-      inventoryBefore?.sub(FLOWER_CROSS_BREED_AMOUNTS["Sunflower"])
+      inventoryBefore?.sub(FLOWER_CROSS_BREED_AMOUNTS["Sunflower"]),
     );
   });
   it("reduces flower harvest time in half if wearing Flower Crown ", () => {
@@ -257,8 +239,8 @@ describe("plantFlower", () => {
       state: {
         ...GAME_STATE,
         bumpkin: {
-          ...INITIAL_BUMPKIN,
-          equipped: { ...INITIAL_BUMPKIN.equipped, hat: "Flower Crown" },
+          ...TEST_BUMPKIN,
+          equipped: { ...TEST_BUMPKIN.equipped, hat: "Flower Crown" },
         },
         inventory: {
           "Sunpetal Seed": seedAmount,
@@ -276,7 +258,7 @@ describe("plantFlower", () => {
 
     expect(state.inventory["Sunpetal Seed"]).toEqual(seedAmount.minus(1));
     expect(state.flowers.flowerBeds[bedIndex].flower?.plantedAt).toEqual(
-      dateNow - (FLOWER_SEEDS()["Sunpetal Seed"].plantSeconds * 1000) / 2
+      dateNow - (FLOWER_SEEDS()["Sunpetal Seed"].plantSeconds * 1000) / 2,
     );
   });
 
@@ -314,7 +296,7 @@ describe("plantFlower", () => {
 
     expect(state.inventory["Sunpetal Seed"]).toEqual(seedAmount.minus(1));
     expect(state.flowers.flowerBeds[bedIndex].flower?.plantedAt).toEqual(
-      dateNow - FLOWER_SEEDS()["Sunpetal Seed"].plantSeconds * 1000 * 0.1
+      dateNow - FLOWER_SEEDS()["Sunpetal Seed"].plantSeconds * 1000 * 0.1,
     );
   });
 
@@ -327,8 +309,8 @@ describe("plantFlower", () => {
       state: {
         ...GAME_STATE,
         bumpkin: {
-          ...INITIAL_BUMPKIN,
-          equipped: { ...INITIAL_BUMPKIN.equipped, hat: "Flower Crown" },
+          ...TEST_BUMPKIN,
+          equipped: { ...TEST_BUMPKIN.equipped, hat: "Flower Crown" },
         },
         inventory: {
           "Sunpetal Seed": seedAmount,
@@ -356,7 +338,54 @@ describe("plantFlower", () => {
 
     expect(state.inventory["Sunpetal Seed"]).toEqual(seedAmount.minus(1));
     expect(state.flowers.flowerBeds[bedIndex].flower?.plantedAt).toEqual(
-      dateNow - FLOWER_SEEDS()["Sunpetal Seed"].plantSeconds * 1000 * 0.55
+      dateNow - FLOWER_SEEDS()["Sunpetal Seed"].plantSeconds * 1000 * 0.55,
     );
+  });
+});
+
+describe("getFlowerTime", () => {
+  it("applies a Blossom Hourglass boost of -25% flower growth time for 4 hours", () => {
+    const now = Date.now();
+    const seed = "Bloom Seed";
+    const growSeconds = FLOWER_SEEDS()[seed].plantSeconds;
+
+    const time = getFlowerTime(seed, {
+      ...GAME_STATE,
+      collectibles: {
+        "Blossom Hourglass": [
+          {
+            id: "1",
+            createdAt: now,
+            readyAt: now + 4 * 60 * 60 * 1000,
+            coordinates: { x: 0, y: 0 },
+          },
+        ],
+      },
+    });
+
+    expect(time).toEqual(growSeconds * 0.75);
+  });
+
+  it("does not apply a Blossom Hourglass boost if it has expired", () => {
+    const now = Date.now();
+    const fiveHoursAgo = now - 5 * 60 * 60 * 1000;
+    const seed = "Bloom Seed";
+    const growSeconds = FLOWER_SEEDS()[seed].plantSeconds;
+
+    const time = getFlowerTime(seed, {
+      ...GAME_STATE,
+      collectibles: {
+        "Blossom Hourglass": [
+          {
+            id: "1",
+            createdAt: fiveHoursAgo,
+            readyAt: fiveHoursAgo,
+            coordinates: { x: 0, y: 0 },
+          },
+        ],
+      },
+    });
+
+    expect(time).toEqual(growSeconds);
   });
 });

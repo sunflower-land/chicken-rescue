@@ -39,6 +39,8 @@ import {
 import { getBumpkinLevel } from "features/game/lib/level";
 import { isBuildingEnabled } from "features/game/expansion/lib/buildingRequirements";
 import { isWearableActive } from "features/game/lib/wearables";
+import { isGreenhouseCrop } from "./plantGreenhouse";
+import { FACTION_ITEMS } from "features/game/lib/factions";
 
 export type LandExpansionPlantAction = {
   type: "seed.planted";
@@ -66,7 +68,7 @@ const INITIAL_SUPPORTED_PLOTS = 17;
 const WELL_PLOT_SUPPORT = 8;
 
 export const getCompletedWellCount = (
-  buildings: Partial<Record<BuildingName, PlacedItem[]>>
+  buildings: Partial<Record<BuildingName, PlacedItem[]>>,
 ) => {
   return (
     buildings["Water Well"]?.filter((well) => well.readyAt < Date.now())
@@ -76,7 +78,7 @@ export const getCompletedWellCount = (
 
 export const getEnabledWellCount = (
   buildings: Partial<Record<BuildingName, PlacedItem[]>>,
-  bumpkin?: Bumpkin
+  bumpkin?: Bumpkin,
 ) => {
   let enabledWells =
     buildings["Water Well"]?.filter((well) => well.readyAt < Date.now())
@@ -159,6 +161,16 @@ export function getCropTime({
     seconds = seconds * 0.5;
   }
 
+  if (skills["Green Thumb 2"]) {
+    seconds = seconds * 0.95;
+  }
+
+  if (skills["Strong Roots"]) {
+    if (crop === "Radish" || crop === "Wheat" || crop === "Kale") {
+      seconds = seconds * 0.9;
+    }
+  }
+
   return seconds;
 }
 
@@ -180,7 +192,7 @@ export const getCropPlotTime = ({
   plot?: CropPlot;
   fertiliser?: CropCompostName;
 }) => {
-  let seconds = CROPS()[crop]?.harvestSeconds ?? 0;
+  let seconds = CROPS[crop]?.harvestSeconds ?? 0;
 
   if (game.bumpkin === undefined) return seconds;
 
@@ -218,6 +230,10 @@ export const getCropPlotTime = ({
     seconds = seconds * 0.75;
   }
 
+  if (isCollectibleActive({ name: "Harvest Hourglass", game })) {
+    seconds = seconds * 0.75;
+  }
+
   // Any boost added below this line will not be reflected in betty's shop
   if (!plot) return seconds;
 
@@ -245,7 +261,12 @@ export const getCropPlotTime = ({
 
     if (
       isCollectibleBuilt({ name: "Basic Scarecrow", game }) &&
-      isWithinAOE("Basic Scarecrow", scarecrowPosition, plotPosition)
+      isWithinAOE(
+        "Basic Scarecrow",
+        scarecrowPosition,
+        plotPosition,
+        game.bumpkin.skills,
+      )
     ) {
       seconds = seconds * 0.8;
     }
@@ -282,7 +303,7 @@ export function getPlantedAt({
 }: GetPlantedAtArgs): number {
   if (!crop) return 0;
 
-  const cropTime = CROPS()[crop].harvestSeconds;
+  const cropTime = CROPS[crop].harvestSeconds;
   const boostedTime = getCropPlotTime({
     crop,
     inventory,
@@ -298,7 +319,7 @@ export function getPlantedAt({
 }
 
 function isPlotCrop(plant: GreenHouseCropName | CropName): plant is CropName {
-  return (plant as CropName) in CROPS();
+  return (plant as CropName) in CROPS;
 }
 
 /**
@@ -387,6 +408,18 @@ export function getCropYieldAmount({
     amount += 3;
   }
 
+  //Faction Quiver
+  const factionName = game.faction?.name;
+  if (
+    factionName &&
+    isWearableActive({
+      game,
+      name: FACTION_ITEMS[factionName].wings,
+    })
+  ) {
+    amount += 0.25;
+  }
+
   amount += getBudYieldBoosts(buds ?? {}, crop);
 
   // Specific Crop Additive Boosts
@@ -440,7 +473,7 @@ export function getCropYieldAmount({
 
     if (
       isCollectibleBuilt({ name: "Scary Mike", game }) &&
-      isWithinAOE("Scary Mike", scarecrowPosition, plotPosition)
+      isWithinAOE("Scary Mike", scarecrowPosition, plotPosition, bumpkin.skills)
     ) {
       amount = amount + 0.2;
     }
@@ -461,7 +494,7 @@ export function getCropYieldAmount({
 
     if (
       isPlotCrop(crop) &&
-      isWithinAOE("Sir Goldensnout", position, plot as CropPlot)
+      isWithinAOE("Sir Goldensnout", position, plot as CropPlot, bumpkin.skills)
     ) {
       amount = amount + 0.5;
     }
@@ -494,7 +527,12 @@ export function getCropYieldAmount({
 
     if (
       isCollectibleBuilt({ name: "Laurie the Chuckle Crow", game }) &&
-      isWithinAOE("Laurie the Chuckle Crow", scarecrowPosition, plotPosition)
+      isWithinAOE(
+        "Laurie the Chuckle Crow",
+        scarecrowPosition,
+        plotPosition,
+        bumpkin.skills,
+      )
     ) {
       amount = amount + 0.2;
     }
@@ -521,7 +559,12 @@ export function getCropYieldAmount({
 
     if (
       isCollectibleBuilt({ name: "Queen Cornelia", game }) &&
-      isWithinAOE("Queen Cornelia", scarecrowPosition, plotPosition)
+      isWithinAOE(
+        "Queen Cornelia",
+        scarecrowPosition,
+        plotPosition,
+        bumpkin.skills,
+      )
     ) {
       amount = amount + 1;
     }
@@ -582,7 +625,50 @@ export function getCropYieldAmount({
     amount += 0.25;
   }
 
-  return Number(setPrecision(new Decimal(amount)));
+  if (
+    isGreenhouseCrop(crop) &&
+    isCollectibleBuilt({ name: "Pharaoh Gnome", game })
+  ) {
+    amount += 2;
+  }
+
+  if (skills["Young Farmer"] && isBasicCrop(crop)) {
+    amount += 0.1;
+  }
+
+  if (skills["Experienced Farmer"] && isMediumCrop(crop)) {
+    amount += 0.1;
+  }
+
+  if (skills["Old Farmer"] && isAdvancedCrop(crop)) {
+    amount += 0.1;
+  }
+
+  if (skills["Acre Farm"] && isAdvancedCrop(crop)) {
+    amount += 1;
+  }
+
+  if (skills["Acre Farm"] && isMediumCrop(crop)) {
+    amount -= 0.5;
+  }
+
+  if (skills["Acre Farm"] && isBasicCrop(crop)) {
+    amount -= 0.5;
+  }
+
+  if (skills["Hectare Farm"] && isAdvancedCrop(crop)) {
+    amount -= 0.5;
+  }
+
+  if (skills["Hectare Farm"] && isMediumCrop(crop)) {
+    amount += 1;
+  }
+
+  if (skills["Hectare Farm"] && isBasicCrop(crop)) {
+    amount += 1;
+  }
+
+  return Number(setPrecision(amount));
 }
 
 export function plant({

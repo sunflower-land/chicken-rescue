@@ -19,7 +19,7 @@ describe("plantGreenhouse", () => {
           seed: "Rice Seed",
         },
         state: farm,
-      })
+      }),
     ).toThrow("Greenhouse does not exist");
   });
 
@@ -44,7 +44,7 @@ describe("plantGreenhouse", () => {
             ],
           },
         },
-      })
+      }),
     ).toThrow("Missing Rice Seed");
   });
 
@@ -72,7 +72,7 @@ describe("plantGreenhouse", () => {
             ],
           },
         },
-      })
+      }),
     ).toThrow("Not enough Oil");
   });
 
@@ -104,7 +104,7 @@ describe("plantGreenhouse", () => {
             ],
           },
         },
-      })
+      }),
     ).toThrow("Not a valid pot");
   });
 
@@ -144,7 +144,7 @@ describe("plantGreenhouse", () => {
             ],
           },
         },
-      })
+      }),
     ).toThrow("Plant already exists");
   });
 
@@ -311,6 +311,428 @@ describe("plantGreenhouse", () => {
     });
   });
 
+  it("boosts +2 Greenhouse Crop yield when Pharaoh Gnome is placed", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Rice Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Rice Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        collectibles: {
+          "Pharaoh Gnome": [
+            {
+              id: "1",
+              createdAt: 0,
+              coordinates: {
+                x: 0,
+                y: 0,
+              },
+              readyAt: 0,
+            },
+          ],
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 3,
+        name: "Rice",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts +0.2 grape yield when Grape Pants is equipped", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Grape Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Grape Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            pants: "Grape Pants",
+          },
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1.2,
+        name: "Grape",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts +0.25 grape yield when Faction Shield is equipped", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Grape Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Grape Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            wings: "Goblin Quiver",
+          },
+        },
+        faction: {
+          name: "goblins",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1.25,
+        name: "Grape",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts of Faction Shield wont apply when pledged in different faction", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Grape Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Grape Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            wings: "Goblin Quiver",
+          },
+        },
+        faction: {
+          name: "nightshades",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1,
+        name: "Grape",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts of Faction Shield wont apply when not pledged in a faction", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Grape Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Grape Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            wings: "Goblin Quiver",
+          },
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1,
+        name: "Grape",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts +0.25 Olive yield when Faction Quiver is equipped", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Olive Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Olive Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            wings: "Goblin Quiver",
+          },
+        },
+        faction: {
+          name: "goblins",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1.25,
+        name: "Olive",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts in Olive of Faction Quiver wont apply when pledged in different faction", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Olive Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Olive Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            wings: "Goblin Quiver",
+          },
+        },
+        faction: {
+          name: "nightshades",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1,
+        name: "Olive",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("boosts in Olive of Faction Quiver wont apply when not pledged in a faction", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Olive Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Olive Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            wings: "Goblin Quiver",
+          },
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1,
+        name: "Olive",
+        plantedAt: now,
+      },
+    });
+  });
+
   it("gives a 50% time boost when Turbo Sprout is placed", () => {
     const now = Date.now();
     const state = plantGreenhouse({
@@ -355,6 +777,58 @@ describe("plantGreenhouse", () => {
         amount: 1,
         name: "Rice",
         plantedAt: now - boostedTime,
+      },
+    });
+  });
+
+  it("boosts +2 Greenhouse Fruit yield when Pharaoh Gnome is placed", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Grape Seed",
+      },
+      state: {
+        ...farm,
+        inventory: {
+          "Grape Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+        collectibles: {
+          "Pharaoh Gnome": [
+            {
+              id: "1",
+              createdAt: 0,
+              coordinates: { x: 0, y: 0 },
+              readyAt: 0,
+            },
+          ],
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 3,
+        name: "Grape",
+        plantedAt: now,
       },
     });
   });
@@ -447,6 +921,55 @@ describe("plantGreenhouse", () => {
     expect(state.greenhouse.pots[1]).toEqual({
       plant: {
         amount: 2,
+        name: "Grape",
+        plantedAt: now,
+      },
+    });
+  });
+
+  it("doesn't boost Grape by when Camel Onesie is equipped", () => {
+    const now = Date.now();
+    const state = plantGreenhouse({
+      action: {
+        type: "greenhouse.planted",
+        id: 1,
+        seed: "Grape Seed",
+      },
+      state: {
+        ...farm,
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            onesie: "Camel Onesie",
+            ...INITIAL_BUMPKIN.equipped,
+          },
+        },
+        inventory: {
+          "Grape Seed": new Decimal(1),
+        },
+        greenhouse: {
+          oil: 50,
+          pots: {
+            1: {},
+          },
+        },
+        buildings: {
+          Greenhouse: [
+            {
+              coordinates: { x: 0, y: 0 },
+              id: "1",
+              createdAt: 0,
+              readyAt: 0,
+            },
+          ],
+        },
+      },
+      createdAt: now,
+    });
+
+    expect(state.greenhouse.pots[1]).toEqual({
+      plant: {
+        amount: 1,
         name: "Grape",
         plantedAt: now,
       },

@@ -1,24 +1,31 @@
-import mapJSON from "assets/map/faction_house.json";
+import mapJSON from "assets/map/bumpkin_house.json";
 
 import { SceneId } from "../mmoMachine";
-import { BaseScene, NPCBumpkin } from "./BaseScene";
+import { NPCBumpkin } from "./BaseScene";
+import { FactionHouseScene } from "./FactionHouseScene";
 
 export const BUMPKIN_HOUSE_NPCS: NPCBumpkin[] = [
   {
-    x: 410,
-    y: 200,
+    x: 384,
+    y: 199,
     npc: "haymitch",
     direction: "left",
   },
   {
-    x: 57,
-    y: 360,
+    x: 182,
+    y: 160,
     npc: "buttercup",
     direction: "right",
   },
+  {
+    x: 389,
+    y: 335,
+    npc: "chef maple",
+    direction: "left",
+  },
 ];
 
-export class BumpkinHouseScene extends BaseScene {
+export class BumpkinHouseScene extends FactionHouseScene {
   sceneId: SceneId = "bumpkin_house";
 
   constructor() {
@@ -31,6 +38,10 @@ export class BumpkinHouseScene extends BaseScene {
 
   preload() {
     super.preload();
+
+    this.load.image("pet_sleeping", "world/bumpkins_pet_sleeping.webp");
+    this.load.image("pet_happy", "world/bumpkins_pet_happy.webp");
+    this.load.image("pet_hungry", "world/bumpkins_pet_hungry.webp");
   }
 
   create() {
@@ -40,5 +51,9 @@ export class BumpkinHouseScene extends BaseScene {
     });
 
     this.initialiseNPCs(BUMPKIN_HOUSE_NPCS);
+
+    this.setupPrize({ x: 240, y: 368 });
+    this.setUpPet();
+    this.setupNotice({ x: 328, y: 288 });
   }
 }

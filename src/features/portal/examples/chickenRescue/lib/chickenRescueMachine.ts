@@ -1,12 +1,12 @@
 import { OFFLINE_FARM } from "features/game/lib/landData";
 import { GameState } from "features/game/types/game";
 import { assign, createMachine, Interpreter, State } from "xstate";
-import { getUrl, loadPortal } from "../actions/loadPortal";
 import { CONFIG } from "lib/config";
 import { decodeToken } from "features/auth/actions/login";
 import { purchaseMinigameItem } from "features/game/events/minigames/purchaseMinigameItem";
 import { playMinigame } from "features/game/events/minigames/playMinigame";
 import { startAttempt, submitScore } from "./portalUtil";
+import { getUrl, loadPortal } from "features/portal/actions/loadPortal";
 
 const getJWT = () => {
   const code = new URLSearchParams(window.location.search).get("jwt");
@@ -151,6 +151,7 @@ export const portalMachine = createMachine({
                 action: {
                   id: "chicken-rescue",
                   sfl: UNLIMITED_ATTEMPTS_SFL,
+                  items: {},
                   type: "minigame.itemPurchased",
                 },
               }),

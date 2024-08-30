@@ -14,20 +14,22 @@ import classNames from "classnames";
 import { TravelButton } from "./components/deliveries/TravelButton";
 import { CodexButton } from "./components/codex/CodexButton";
 import { AuctionCountdown } from "features/retreat/components/auctioneer/AuctionCountdown";
-import { getBumpkinLevel } from "features/game/lib/level";
 import { CollectibleLocation } from "features/game/types/collectibles";
 import { HudContainer } from "components/ui/HudContainer";
-import { HalveningCountdown } from "./HalveningCountdown";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import Decimal from "decimal.js-light";
 import { BuyCurrenciesModal } from "./components/BuyCurrenciesModal";
 import { MachineState } from "features/game/lib/gameMachine";
 import { useSound } from "lib/utils/hooks/useSound";
-import { EmblemAirdropCountdown } from "./EmblemAirdropCountdown";
+import { SpecialEventCountdown } from "./SpecialEventCountdown";
+import { SeasonBannerCountdown } from "./SeasonBannerCountdown";
+import marketplaceIcon from "assets/icons/shop_disc.png";
+import { hasFeatureAccess } from "lib/flags";
+import { useNavigate } from "react-router-dom";
 
 const _farmAddress = (state: MachineState) => state.context.farmAddress;
-const _xp = (state: MachineState) =>
-  state.context.state.bumpkin?.experience ?? 0;
+const _showMarketplace = (state: MachineState) =>
+  hasFeatureAccess(state.context.state, "MARKETPLACE");
 
 /**
  * Heads up display - a concept used in games for the small overlaid display of information.
@@ -42,8 +44,9 @@ const HudComponent: React.FC<{
   const [gameState] = useActor(gameService);
 
   const farmAddress = useSelector(gameService, _farmAddress);
-  const xp = useSelector(gameService, _xp);
+  const hasMarketplaceAccess = useSelector(gameService, _showMarketplace);
 
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showBuyCurrencies, setShowBuyCurrencies] = useState(false);
 
@@ -52,8 +55,10 @@ const HudComponent: React.FC<{
 
   const autosaving = gameState.matches("autosaving");
 
+  const navigate = useNavigate();
+
   const handleDeposit = (
-    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">
+    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">,
   ) => {
     gameService.send("DEPOSIT", args);
   };
@@ -81,7 +86,7 @@ const HudComponent: React.FC<{
                 "absolute flex z-50 cursor-pointer hover:img-highlight",
                 {
                   "opacity-50 cursor-not-allowed": !isFarming,
-                }
+                },
               )}
               style={{
                 marginLeft: `${PIXEL_SCALE * 2}px`,
@@ -131,6 +136,7 @@ const HudComponent: React.FC<{
             onDepositClick={() => setShowDepositModal(true)}
             isSaving={autosaving}
             isFarming={isFarming}
+            hideActions={false}
           />
         </div>
 
@@ -164,8 +170,8 @@ const HudComponent: React.FC<{
           }}
         >
           <AuctionCountdown />
-          <HalveningCountdown />
-          <EmblemAirdropCountdown />
+          <SpecialEventCountdown />
+          <SeasonBannerCountdown />
         </div>
 
         <div
@@ -184,7 +190,6 @@ const HudComponent: React.FC<{
 
         <DepositModal
           farmAddress={farmAddress ?? ""}
-          canDeposit={getBumpkinLevel(xp) >= 3}
           handleClose={() => setShowDepositModal(false)}
           handleDeposit={handleDeposit}
           showDepositModal={showDepositModal}
@@ -193,6 +198,24 @@ const HudComponent: React.FC<{
           show={showBuyCurrencies}
           onClose={handleBuyCurrenciesModal}
         />
+
+        {hasMarketplaceAccess && (
+          <>
+            <img
+              src={marketplaceIcon}
+              className="cursor-pointer absolute"
+              onClick={() => {
+                navigate("/marketplace");
+              }}
+              style={{
+                width: `${PIXEL_SCALE * 22}px`,
+
+                left: `${PIXEL_SCALE * 3}px`,
+                bottom: `${PIXEL_SCALE * 55}px`,
+              }}
+            />
+          </>
+        )}
       </HudContainer>
     </>
   );

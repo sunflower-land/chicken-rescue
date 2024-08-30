@@ -18,13 +18,7 @@ import { Panel } from "components/ui/Panel";
 import { Success } from "../components/Success";
 import { Syncing } from "../components/Syncing";
 
-import logo from "assets/brand/logo_v2.png";
-import easterlogo from "assets/brand/easterlogo.png";
-import sparkle from "assets/fx/sparkle2.gif";
-import ocean from "assets/decorations/ocean.webp";
-
 import { Hoarding } from "../components/Hoarding";
-import { NoBumpkin } from "features/island/bumpkin/NoBumpkin";
 import { Swarming } from "../components/Swarming";
 import { Cooldown } from "../components/Cooldown";
 import { Route, Routes } from "react-router-dom";
@@ -33,7 +27,6 @@ import { Helios } from "features/helios/Helios";
 import { VisitingHud } from "features/island/hud/VisitingHud";
 import { VisitLandExpansionForm } from "./components/VisitLandExpansionForm";
 
-import land from "assets/land/islands/island.webp";
 import { IslandNotFound } from "./components/IslandNotFound";
 import { Rules } from "../components/Rules";
 import { Introduction } from "./components/Introduction";
@@ -53,7 +46,6 @@ import classNames from "classnames";
 import { Label } from "components/ui/Label";
 import { CONFIG } from "lib/config";
 import { Home } from "features/home/Home";
-import { Wallet } from "features/wallet/Wallet";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { Listed } from "../components/Listed";
 import { ListingDeleted } from "../components/listingDeleted";
@@ -69,7 +61,11 @@ import { PriceChange } from "../components/PriceChange";
 import { VIPOffer } from "../components/modal/components/VIPItems";
 import { GreenhouseInside } from "features/greenhouse/GreenhouseInside";
 import { useSound } from "lib/utils/hooks/useSound";
-import { FontReward } from "./components/FontReward";
+import { SomethingArrived } from "./components/SomethingArrived";
+import { TradeAlreadyFulfilled } from "../components/TradeAlreadyFulfilled";
+import { NPC_WEARABLES } from "lib/npcs";
+
+const land = SUNNYSIDE.land.island;
 
 export const AUTO_SAVE_INTERVAL = 1000 * 30; // autosave every 30 seconds
 const SHOW_MODAL: Record<StateValues, boolean> = {
@@ -79,12 +75,10 @@ const SHOW_MODAL: Record<StateValues, boolean> = {
   syncing: true,
   synced: true,
   error: true,
-  purchasing: true,
   buyingBlockBucks: true,
   refreshing: true,
   hoarding: true,
   landscaping: false,
-  noBumpkinFound: true,
   swarming: true,
   coolingDown: true,
   gameRules: true,
@@ -100,7 +94,6 @@ const SHOW_MODAL: Record<StateValues, boolean> = {
   depositing: true,
   introduction: false,
   specialOffer: true,
-  fontReward: false,
   transacting: true,
   minting: true,
   auctionResults: false,
@@ -114,6 +107,7 @@ const SHOW_MODAL: Record<StateValues, boolean> = {
   fulfillTradeListing: false,
   listed: true,
   sniped: true,
+  tradeAlreadyFulfilled: true,
   priceChanged: true,
   buds: false,
   mailbox: false,
@@ -124,6 +118,7 @@ const SHOW_MODAL: Record<StateValues, boolean> = {
   withdrawing: true,
   withdrawn: true,
   sellMarketResource: false,
+  somethingArrived: true,
 };
 
 // State change selectors
@@ -141,6 +136,8 @@ const isListingDeleted = (state: MachineState) =>
 const isFulfillingTradeListing = (state: MachineState) =>
   state.matches("fulfillTradeListing");
 const isSniped = (state: MachineState) => state.matches("sniped");
+const isTradeAlreadyFulfilled = (state: MachineState) =>
+  state.matches("tradeAlreadyFulfilled");
 const hasMarketPriceChanged = (state: MachineState) =>
   state.matches("priceChanged");
 const isRefreshing = (state: MachineState) => state.matches("refreshing");
@@ -153,8 +150,7 @@ const isVisiting = (state: MachineState) => state.matches("visiting");
 const isSwarming = (state: MachineState) => state.matches("swarming");
 const isPurchasing = (state: MachineState) =>
   state.matches("purchasing") || state.matches("buyingBlockBucks");
-const isNoBumpkinFound = (state: MachineState) =>
-  state.matches("noBumpkinFound");
+
 const isCoolingDown = (state: MachineState) => state.matches("coolingDown");
 const isGameRules = (state: MachineState) => state.matches("gameRules");
 const isDepositing = (state: MachineState) => state.matches("depositing");
@@ -179,12 +175,13 @@ const isPromoing = (state: MachineState) => state.matches("promo");
 const isBlacklisted = (state: MachineState) => state.matches("blacklisted");
 const hasAirdrop = (state: MachineState) => state.matches("airdrop");
 const hasSpecialOffer = (state: MachineState) => state.matches("specialOffer");
-const hasFontReward = (state: MachineState) => state.matches("fontReward");
 const isPlaying = (state: MachineState) => state.matches("playing");
+const somethingArrived = (state: MachineState) =>
+  state.matches("somethingArrived");
 const isProvingPersonhood = (state: MachineState) =>
   state.matches("provingPersonhood");
 
-const GameContent = () => {
+const GameContent: React.FC = () => {
   const { gameService } = useContext(Context);
 
   useSound("desert", true);
@@ -282,6 +279,10 @@ export const GameWrapper: React.FC = ({ children }) => {
   const deletingListing = useSelector(gameService, isDeletingListing);
   const listingDeleted = useSelector(gameService, isListingDeleted);
   const sniped = useSelector(gameService, isSniped);
+  const tradeAlreadyFulfilled = useSelector(
+    gameService,
+    isTradeAlreadyFulfilled,
+  );
   const marketPriceChanged = useSelector(gameService, hasMarketPriceChanged);
   const refreshing = useSelector(gameService, isRefreshing);
   const buyingSFL = useSelector(gameService, isBuyingSFL);
@@ -291,7 +292,6 @@ export const GameWrapper: React.FC = ({ children }) => {
   const purchasing = useSelector(gameService, isPurchasing);
   const hoarding = useSelector(gameService, isHoarding);
   const swarming = useSelector(gameService, isSwarming);
-  const noBumpkinFound = useSelector(gameService, isNoBumpkinFound);
   const coolingDown = useSelector(gameService, isCoolingDown);
   const gameRules = useSelector(gameService, isGameRules);
   const depositing = useSelector(gameService, isDepositing);
@@ -308,8 +308,8 @@ export const GameWrapper: React.FC = ({ children }) => {
   const blacklisted = useSelector(gameService, isBlacklisted);
   const airdrop = useSelector(gameService, hasAirdrop);
   const specialOffer = useSelector(gameService, hasSpecialOffer);
-  const fontReward = useSelector(gameService, hasFontReward);
   const playing = useSelector(gameService, isPlaying);
+  const hasSomethingArrived = useSelector(gameService, somethingArrived);
 
   const showPWAInstallPrompt = useSelector(authService, _showPWAInstallPrompt);
 
@@ -368,7 +368,7 @@ export const GameWrapper: React.FC = ({ children }) => {
           style={{
             zIndex: 49,
 
-            backgroundImage: `url(${ocean})`,
+            backgroundImage: `url(${SUNNYSIDE.decorations.ocean})`,
             backgroundSize: `${64 * PIXEL_SCALE}px`,
             imageRendering: "pixelated",
           }}
@@ -376,12 +376,12 @@ export const GameWrapper: React.FC = ({ children }) => {
           <Modal show backdrop={false}>
             <div
               className={classNames(
-                "relative flex items-center justify-center mb-4 w-full -mt-12 max-w-xl transition-opacity duration-500 opacity-100"
+                "relative flex items-center justify-center mb-4 w-full -mt-12 max-w-xl transition-opacity duration-500 opacity-100",
               )}
             >
               <div className="w-[90%] relative">
                 <img
-                  src={sparkle}
+                  src={SUNNYSIDE.fx.sparkle}
                   className="absolute animate-pulse"
                   style={{
                     width: `${PIXEL_SCALE * 8}px`,
@@ -391,9 +391,17 @@ export const GameWrapper: React.FC = ({ children }) => {
                 />
                 <>
                   {hasFeatureAccess(TEST_FARM, "EASTER") ? (
-                    <img id="logo" src={easterlogo} className="w-full" />
+                    <img
+                      id="logo"
+                      src={SUNNYSIDE.brand.easterlogo}
+                      className="w-full"
+                    />
                   ) : (
-                    <img id="logo" src={logo} className="w-full" />
+                    <img
+                      id="logo"
+                      src={SUNNYSIDE.brand.logo}
+                      className="w-full"
+                    />
                   )}
                   <div className="flex justify-center">
                     <Label type="default" className="font-secondary">
@@ -435,13 +443,26 @@ export const GameWrapper: React.FC = ({ children }) => {
 
   const stateValue = typeof state === "object" ? Object.keys(state)[0] : state;
 
+  const onHide = () => {
+    listed ||
+    listingDeleted ||
+    traded ||
+    sniped ||
+    marketPriceChanged ||
+    tradeAlreadyFulfilled
+      ? gameService.send("CONTINUE")
+      : undefined;
+  };
+
   return (
     <>
       <ToastProvider>
         <ToastPanel />
 
-        <Modal show={SHOW_MODAL[stateValue as StateValues]}>
-          <Panel>
+        <Modal show={SHOW_MODAL[stateValue as StateValues]} onHide={onHide}>
+          <Panel
+            bumpkinParts={error ? NPC_WEARABLES["worried pete"] : undefined}
+          >
             {loading && <Loading />}
             {refreshing && <Refreshing />}
             {buyingSFL && <AddingSFL />}
@@ -451,11 +472,7 @@ export const GameWrapper: React.FC = ({ children }) => {
             {purchasing && <Purchasing />}
             {hoarding && <Hoarding />}
             {swarming && <Swarming />}
-            {noBumpkinFound && (
-              <Wallet action="deposit">
-                <NoBumpkin />
-              </Wallet>
-            )}
+
             {coolingDown && <Cooldown />}
             {gameRules && <Rules />}
             {transacting && <Transacting />}
@@ -467,6 +484,7 @@ export const GameWrapper: React.FC = ({ children }) => {
             {deletingListing && <Loading text="Deleting listing" />}
             {listingDeleted && <ListingDeleted />}
             {sniped && <Sniped />}
+            {tradeAlreadyFulfilled && <TradeAlreadyFulfilled />}
             {marketPriceChanged && <PriceChange />}
             {minting && <Minting />}
             {promo && <Promo />}
@@ -474,10 +492,9 @@ export const GameWrapper: React.FC = ({ children }) => {
             {specialOffer && <VIPOffer />}
             {withdrawing && <Withdrawing />}
             {withdrawn && <Withdrawn />}
+            {hasSomethingArrived && <SomethingArrived />}
           </Panel>
         </Modal>
-
-        <Modal show={!!fontReward}>{fontReward && <FontReward />}</Modal>
 
         {claimingAuction && <ClaimAuction />}
         {refundAuction && <RefundAuction />}

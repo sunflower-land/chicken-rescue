@@ -2,8 +2,8 @@ import { Button } from "components/ui/Button";
 import React, { useContext, useEffect } from "react";
 import confetti from "canvas-confetti";
 
-import token from "src/assets/icons/sfl.webp";
-import coins from "src/assets/icons/coins.webp";
+import token from "assets/icons/sfl.webp";
+import coins from "assets/icons/coins.webp";
 import powerup from "assets/icons/level_up.png";
 import factionPoint from "assets/icons/faction_point.webp";
 import { getKeys } from "features/game/types/craftables";
@@ -14,24 +14,26 @@ import { Airdrop as IAirdrop } from "features/game/types/game";
 import { Label } from "components/ui/Label";
 import { Box } from "components/ui/Box";
 import { CONSUMABLES, ConsumableName } from "features/game/types/consumables";
-import { setPrecision } from "lib/utils/formatNumber";
-import Decimal from "decimal.js-light";
+import { formatNumber } from "lib/utils/formatNumber";
 import { Context } from "features/game/GameProvider";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 import { COLLECTIBLE_BUFF_LABELS } from "features/game/types/collectibleItemBuffs";
 import { InlineDialogue } from "features/world/ui/TypingMessage";
 import { getImageUrl } from "lib/utils/getImageURLS";
+import { translateTerms } from "lib/i18n/translate";
 
 interface ClaimRewardProps {
   reward: IAirdrop;
   onClaim?: () => void;
   onClose?: () => void;
+  label?: string;
 }
 
 export const ClaimReward: React.FC<ClaimRewardProps> = ({
   reward: airdrop,
   onClaim,
   onClose,
+  label,
 }) => {
   const { t } = useAppTranslation();
   const itemNames = getKeys(airdrop.items);
@@ -50,7 +52,7 @@ export const ClaimReward: React.FC<ClaimRewardProps> = ({
           type="warning"
           icon={SUNNYSIDE.decorations.treasure_chest}
         >
-          {t("reward.discovered")}
+          {label ?? t("reward.discovered")}
         </Label>
         {airdrop.message && (
           <div className="mb-2 ml-1">
@@ -63,7 +65,7 @@ export const ClaimReward: React.FC<ClaimRewardProps> = ({
               <Box image={token} />
               <div>
                 <Label type="warning">
-                  {setPrecision(new Decimal(airdrop.sfl)).toString()} {"SFL"}
+                  {`${formatNumber(airdrop.sfl, { decimalPlaces: 4 })} SFL`}
                 </Label>
                 <p className="text-xs mt-0.5">{t("reward.spendWisely")}</p>
               </div>
@@ -74,8 +76,7 @@ export const ClaimReward: React.FC<ClaimRewardProps> = ({
               <Box image={factionPoint} />
               <div>
                 <Label type="warning">
-                  {setPrecision(new Decimal(airdrop.factionPoints)).toString()}{" "}
-                  {"Faction Points"}
+                  {`${formatNumber(airdrop.factionPoints)} Faction Points`}
                 </Label>
                 <p className="text-xs mt-0.5"> {t("reward.factionPoints")}</p>
               </div>
@@ -86,8 +87,7 @@ export const ClaimReward: React.FC<ClaimRewardProps> = ({
               <Box image={coins} />
               <div>
                 <Label type="warning">
-                  {setPrecision(new Decimal(airdrop.coins), 2).toString()}{" "}
-                  {airdrop.coins === 1 ? "Coin" : "Coins"}
+                  {`${formatNumber(airdrop.coins)} ${airdrop.coins === 1 ? "Coin" : "Coins"}`}
                 </Label>
                 <p className="text-xs">{t("reward.spendWisely")}</p>
               </div>
@@ -103,24 +103,18 @@ export const ClaimReward: React.FC<ClaimRewardProps> = ({
                   <div>
                     <div className="flex items-center">
                       <Label type="default" className="mr-2 ">
-                        {`${setPrecision(
-                          new Decimal(airdrop.items[name] ?? 1)
-                        ).toString()} x ${name}`}
+                        {`${formatNumber(airdrop.items[name] ?? 1)} x ${name}`}
                       </Label>
                       {name in CONSUMABLES && (
                         <Label
                           type="success"
                           icon={powerup}
                           className="mr-2 font-secondary"
-                        >{`+${setPrecision(
-                          new Decimal(
-                            CONSUMABLES[name as ConsumableName].experience
-                          )
-                        ).toString()}XP`}</Label>
+                        >{`+${formatNumber(CONSUMABLES[name as ConsumableName].experience)} XP`}</Label>
                       )}
                     </div>
                     <p className="text-xs mt-0.5">
-                      {ITEM_DETAILS[name].description}
+                      {translateTerms(ITEM_DETAILS[name].description)}
                     </p>
                     {buff && (
                       <Label
@@ -142,9 +136,7 @@ export const ClaimReward: React.FC<ClaimRewardProps> = ({
               <div className="flex items-center mb-2" key={name}>
                 <Box image={getImageUrl(ITEM_IDS[name])} />
                 <div>
-                  <Label type="default">{`${setPrecision(
-                    new Decimal(airdrop.wearables[name] ?? 1)
-                  ).toString()} x ${name}`}</Label>
+                  <Label type="default">{`${formatNumber(airdrop.wearables[name] ?? 1)} x ${name}`}</Label>
                   <p className="text-xs">{t("reward.wearable")}</p>
                 </div>
               </div>

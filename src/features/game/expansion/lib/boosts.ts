@@ -17,8 +17,12 @@ import { getBudExperienceBoosts } from "features/game/lib/getBudExperienceBoosts
 import { getBumpkinLevel } from "features/game/lib/level";
 import { isWearableActive } from "features/game/lib/wearables";
 import { SellableItem } from "features/game/events/landExpansion/sellCrop";
+import {
+  FACTION_ITEMS,
+  getFactionPetBoostMultiplier,
+} from "features/game/lib/factions";
 
-const crops = CROPS();
+const crops = CROPS;
 
 export function isCropShortage({ game }: { game: GameState }) {
   const bumpkinLevel = getBumpkinLevel(game.bumpkin?.experience ?? 0);
@@ -39,19 +43,27 @@ export function isCropShortage({ game }: { game: GameState }) {
   return true;
 }
 
+export const CROP_SHORTAGE_HOURS = 2;
+
 /**
  * How much SFL an item is worth
  */
 export const getSellPrice = ({
   item,
   game,
+  now = new Date(),
 }: {
   item: SellableItem;
   game: GameState;
+  now?: Date;
 }) => {
   let price = item.sellPrice;
 
-  const inventory = game.inventory;
+  const { inventory, bumpkin } = game;
+
+  if (!bumpkin) {
+    throw new Error("You do not have a Bumpkin");
+  }
 
   if (!price) return 0;
 
@@ -61,11 +73,28 @@ export const getSellPrice = ({
   }
 
   // Crop Shortage during initial gameplay
-  if (
-    ["Sunflower", "Potato", "Pumpkin"].includes(item.name) &&
-    isCropShortage({ game })
-  ) {
+  const isCropShortage =
+    game.createdAt + CROP_SHORTAGE_HOURS * 60 * 60 * 1000 > now.getTime();
+
+  if (item.name in CROPS && isCropShortage) {
     price = price * 2;
+  }
+
+  // Special Events
+  const specialEventMultiplier = Object.values(game.specialEvents.current)
+    .filter((event) => !!event?.isEligible)
+    .filter((event) => (event?.endAt ?? Infinity) > now.getTime())
+    .filter((event) => (event?.startAt ?? 0) <= now.getTime())
+    .find((event) => event?.bonus?.[item.name]?.saleMultiplier)?.bonus?.[
+    item.name
+  ]?.saleMultiplier;
+
+  if (specialEventMultiplier) {
+    price = price * specialEventMultiplier;
+  }
+
+  if (bumpkin.skills["Coin Swindler"] && item.name in CROPS) {
+    price = price * 1.1;
   }
 
   return price;
@@ -92,7 +121,7 @@ export const hasSellBoost = (inventory: Inventory) => {
 export const getCookingTime = (
   seconds: number,
   bumpkin: Bumpkin | undefined,
-  game: GameState
+  game: GameState,
 ): number => {
   let reducedSecs = new Decimal(seconds);
 
@@ -106,7 +135,23 @@ export const getCookingTime = (
     reducedSecs = reducedSecs.mul(0.5);
   }
 
+  //Faction Medallion -25% reduction
+  const factionName = game.faction?.name;
+  if (
+    factionName &&
+    isWearableActive({
+      game,
+      name: FACTION_ITEMS[factionName].necklace,
+    })
+  ) {
+    reducedSecs = reducedSecs.mul(0.75);
+  }
+
   if (isCollectibleActive({ name: "Time Warp Totem", game })) {
+    reducedSecs = reducedSecs.mul(0.5);
+  }
+
+  if (isCollectibleActive({ name: "Gourmet Hourglass", game })) {
     reducedSecs = reducedSecs.mul(0.5);
   }
 
@@ -130,7 +175,7 @@ export const getFoodExpBoost = (
   bumpkin: Bumpkin,
   game: GameState,
   buds: NonNullable<GameState["buds"]>,
-  createdAt: number = Date.now()
+  createdAt: number = Date.now(),
 ): number => {
   let boostedExp = new Decimal(food.experience);
   const { skills } = bumpkin;
@@ -201,6 +246,7 @@ export const getFoodExpBoost = (
   }
 
   boostedExp = boostedExp.mul(getBudExperienceBoosts(buds, food));
+  boostedExp = boostedExp.mul(getFactionPetBoostMultiplier(game));
 
   return boostedExp.toDecimalPlaces(4).toNumber();
 };

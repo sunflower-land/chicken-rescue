@@ -51,7 +51,7 @@ describe("mineIron", () => {
           type: "ironRock.mined",
           index: "0",
         },
-      })
+      }),
     ).toThrow("No pickaxes left");
   });
 
@@ -70,7 +70,7 @@ describe("mineIron", () => {
           type: "ironRock.mined",
           index: "3",
         },
-      })
+      }),
     ).toThrow("No iron");
   });
 
@@ -97,7 +97,7 @@ describe("mineIron", () => {
         state: game,
         action: payload.action,
         createdAt: Date.now(),
-      })
+      }),
     ).toThrow("Iron is still recovering");
   });
 
@@ -179,25 +179,6 @@ describe("mineIron", () => {
 
     expect(game.inventory["Stone Pickaxe"]).toEqual(new Decimal(0));
     expect(game.inventory.Iron?.toNumber()).toBe(4);
-  });
-
-  it("throws an error if the player doesn't have a bumpkin", () => {
-    expect(() =>
-      mineIron({
-        state: {
-          ...GAME_STATE,
-          inventory: {
-            "Stone Pickaxe": new Decimal(3),
-          },
-          bumpkin: undefined,
-        },
-        createdAt: Date.now(),
-        action: {
-          type: "ironRock.mined",
-          index: "0",
-        } as LandExpansionIronMineAction,
-      })
-    ).toThrow("You do not have a Bumpkin");
   });
 
   describe("BumpkinActivity", () => {
@@ -290,6 +271,52 @@ describe("mineIron", () => {
       });
 
       expect(time).toEqual(now - (IRON_RECOVERY_TIME * 1000) / 2);
+    });
+
+    it("applies a Ore Hourglass boost of -50% recovery time for 3 hours", () => {
+      const now = Date.now();
+      const time = getMinedAt({
+        game: {
+          ...TEST_FARM,
+          collectibles: {
+            "Ore Hourglass": [
+              {
+                id: "123",
+                createdAt: now,
+                coordinates: { x: 1, y: 1 },
+                readyAt: now,
+              },
+            ],
+          },
+        },
+        createdAt: now,
+      });
+
+      expect(time).toEqual(now - (IRON_RECOVERY_TIME * 1000) / 2);
+    });
+
+    it("does not apply an Ore Hourglass boost if expired", () => {
+      const now = Date.now();
+      const fourHoursAgo = now - 4 * 60 * 60 * 1000;
+
+      const time = getMinedAt({
+        game: {
+          ...TEST_FARM,
+          collectibles: {
+            "Ore Hourglass": [
+              {
+                id: "123",
+                createdAt: fourHoursAgo,
+                coordinates: { x: 1, y: 1 },
+                readyAt: fourHoursAgo,
+              },
+            ],
+          },
+        },
+        createdAt: now,
+      });
+
+      expect(time).toEqual(now);
     });
   });
 });

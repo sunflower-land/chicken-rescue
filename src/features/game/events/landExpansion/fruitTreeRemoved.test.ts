@@ -47,22 +47,6 @@ const GAME_STATE: GameState = {
 };
 
 describe("fruitTreeRemoved", () => {
-  it("throws an error if the player doesn't have a bumpkin", () => {
-    expect(() =>
-      removeFruitTree({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-        },
-        action: {
-          type: "fruitTree.removed",
-          index: "0",
-          selectedItem: "Axe",
-        },
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("does not remove on non-existent fruit patch", () => {
     expect(() =>
       removeFruitTree({
@@ -72,7 +56,7 @@ describe("fruitTreeRemoved", () => {
           index: "-1",
           selectedItem: "Axe",
         },
-      })
+      }),
     ).toThrow("Fruit patch does not exist");
   });
 
@@ -85,7 +69,7 @@ describe("fruitTreeRemoved", () => {
           index: "1",
           selectedItem: "Axe",
         },
-      })
+      }),
     ).toThrow("Nothing was planted");
   });
 
@@ -115,7 +99,7 @@ describe("fruitTreeRemoved", () => {
           index: "0",
           selectedItem: "Axe",
         },
-      })
+      }),
     ).toThrow("Fruit is still available");
   });
 
@@ -147,7 +131,7 @@ describe("fruitTreeRemoved", () => {
           selectedItem: "Sunflower Statue",
           index: "0",
         },
-      })
+      }),
     ).toThrow("No axe");
   });
 
@@ -161,7 +145,7 @@ describe("fruitTreeRemoved", () => {
           selectedItem: "Axe",
           index: "0",
         },
-      })
+      }),
     ).toThrow("No axes left");
   });
 
@@ -254,7 +238,7 @@ describe("fruitTreeRemoved", () => {
           selectedItem: "Axe",
           index: "2",
         },
-      })
+      }),
     ).toThrow("No axes left");
   });
 });

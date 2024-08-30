@@ -44,25 +44,6 @@ describe("mineCrimstone", () => {
     jest.useFakeTimers();
   });
 
-  it("throws an error if the player doesn't have a bumpkin", async () => {
-    expect(() =>
-      mineCrimstone({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-          inventory: {
-            "Gold Pickaxe": new Decimal(2),
-          },
-        },
-        action: {
-          type: "crimstoneRock.mined",
-          expansionIndex: 0,
-          index: 0,
-        } as MineCrimstoneAction,
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("throws an error if no gold pickaxes are left", () => {
     expect(() =>
       mineCrimstone({
@@ -76,7 +57,7 @@ describe("mineCrimstone", () => {
           type: "crimstoneRock.mined",
           index: 0,
         },
-      })
+      }),
     ).toThrow("No gold pickaxes left");
   });
 
@@ -93,7 +74,7 @@ describe("mineCrimstone", () => {
           type: "crimstoneRock.mined",
           index: 3,
         },
-      })
+      }),
     ).toThrow("Crimstone does not exist");
   });
 
@@ -118,7 +99,7 @@ describe("mineCrimstone", () => {
       mineCrimstone({
         state: game,
         action: payload.action,
-      })
+      }),
     ).toThrow("Rock is still recovering");
   });
 

@@ -21,7 +21,6 @@ import { isLocked as isIronLocked } from "features/game/events/landExpansion/mov
 import { isLocked as isGoldLocked } from "features/game/events/landExpansion/moveGold";
 import { InnerPanel } from "components/ui/Panel";
 import { SquareIcon } from "components/ui/SquareIcon";
-import lockIcon from "assets/skills/lock.png";
 import { Crimstone } from "features/game/expansion/components/resources/crimstone/Crimstone";
 import { Beehive } from "features/game/expansion/components/resources/beehive/Beehive";
 import { FlowerBed } from "../flowers/FlowerBed";
@@ -50,7 +49,7 @@ export interface ResourceProps {
 
 // Used for placing
 export const READONLY_RESOURCE_COMPONENTS: (
-  island: IslandType
+  island: IslandType,
 ) => Record<ResourceName, React.FC<ResourceProps>> = (island) => ({
   "Crop Plot": () => (
     <div
@@ -217,6 +216,7 @@ const _crops = (state: MachineState) => state.context.state.crops;
 const _stones = (state: MachineState) => state.context.state.stones;
 const _iron = (state: MachineState) => state.context.state.iron;
 const _gold = (state: MachineState) => state.context.state.gold;
+const _bumpkin = (state: MachineState) => state.context.state.bumpkin;
 
 const LockedResource: React.FC<ResourceProps> = (props) => {
   const [showPopover, setShowPopover] = useState(false);
@@ -239,7 +239,7 @@ const LockedResource: React.FC<ResourceProps> = (props) => {
         >
           <InnerPanel className="absolute whitespace-nowrap w-fit z-50">
             <div className="flex items-center space-x-2 mx-1 p-1">
-              <SquareIcon icon={lockIcon} width={5} />
+              <SquareIcon icon={SUNNYSIDE.icons.lock} width={5} />
               <span className="text-xxs mb-0.5">{t("aoe.locked")}</span>
             </div>
           </InnerPanel>
@@ -270,6 +270,7 @@ const LandscapingResource: React.FC<ResourceProps> = (props) => {
   const stones = useSelector(gameService, _stones);
   const iron = useSelector(gameService, _iron);
   const gold = useSelector(gameService, _gold);
+  const bumpkin = useSelector(gameService, _bumpkin);
 
   const isResourceLocked = (): boolean => {
     const isPlot = props.name === "Crop Plot";
@@ -279,22 +280,22 @@ const LandscapingResource: React.FC<ResourceProps> = (props) => {
 
     if (isPlot) {
       const plot = crops[props.id];
-      return isPlotLocked(plot, collectibles, Date.now());
+      return isPlotLocked(plot, collectibles, Date.now(), bumpkin);
     }
 
     if (isStone) {
       const stoneRock = stones[props.id];
-      return isStoneLocked(stoneRock, collectibles, Date.now());
+      return isStoneLocked(stoneRock, collectibles, Date.now(), bumpkin);
     }
 
     if (isIron) {
       const ironRock = iron[props.id];
-      return isIronLocked(ironRock, collectibles, Date.now());
+      return isIronLocked(ironRock, collectibles, Date.now(), bumpkin);
     }
 
     if (isGold) {
       const goldRock = gold[props.id];
-      return isGoldLocked(goldRock, collectibles, Date.now());
+      return isGoldLocked(goldRock, collectibles, Date.now(), bumpkin);
     }
 
     return false;

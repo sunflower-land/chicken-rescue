@@ -4,6 +4,10 @@ import React from "react";
 import { RequirementLabel } from "../RequirementsLabel";
 import { SquareIcon } from "../SquareIcon";
 import Decimal from "decimal.js-light";
+import { translateTerms } from "lib/i18n/translate";
+import { SUNNYSIDE } from "assets/sunnyside";
+import { formatDateRange } from "lib/utils/time";
+import { Label } from "../Label";
 
 /**
  * The props for the details for items.
@@ -11,6 +15,8 @@ import Decimal from "decimal.js-light";
  */
 interface ItemDetailsProps {
   item: InventoryItemName;
+  from?: Date;
+  to?: Date;
 }
 
 /**
@@ -47,7 +53,7 @@ export const ShopSellDetails: React.FC<Props> = ({
     const item = ITEM_DETAILS[details.item];
     const icon = item.image;
     const title = details.item;
-    const description = item.description;
+    const description = translateTerms(item.description);
 
     return (
       <>
@@ -59,7 +65,7 @@ export const ShopSellDetails: React.FC<Props> = ({
           )}
           <span className="sm:text-center">{title}</span>
         </div>
-        <span className="text-xs sm:mt-1 whitespace-pre-line sm:text-center">
+        <span className="text-xs mb-2 sm:mt-1 whitespace-pre-line sm:text-center">
           {description}
         </span>
       </>
@@ -70,7 +76,7 @@ export const ShopSellDetails: React.FC<Props> = ({
     if (!properties) return <></>;
 
     return (
-      <div className="border-t border-white w-full my-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap sm:flex-col sm:items-center sm:flex-nowrap">
+      <div className="border-t border-white w-full mb-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap sm:flex-col sm:items-center sm:flex-nowrap">
         {/* Price display */}
         {properties.coins !== undefined && (
           <RequirementLabel
@@ -88,6 +94,15 @@ export const ShopSellDetails: React.FC<Props> = ({
   return (
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col h-full px-1 py-0">
+        {details.from && (
+          <Label
+            icon={SUNNYSIDE.icons.stopwatch}
+            type="warning"
+            className="my-1 mx-auto whitespace-nowrap"
+          >
+            {formatDateRange(details.from, details.to as Date)}
+          </Label>
+        )}
         {getItemDetail()}
         {getProperties()}
       </div>

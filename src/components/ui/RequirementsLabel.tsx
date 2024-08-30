@@ -1,6 +1,6 @@
 import Decimal from "decimal.js-light";
 import { InventoryItemName } from "features/game/types/game";
-import React from "react";
+import React, { useContext } from "react";
 import { LABEL_STYLES, Label } from "./Label";
 import { SquareIcon } from "./SquareIcon";
 import { ITEM_DETAILS } from "features/game/types/images";
@@ -10,8 +10,12 @@ import coins from "assets/icons/coins.webp";
 import { secondsToString } from "lib/utils/time";
 import classNames from "classnames";
 import { SUNNYSIDE } from "assets/sunnyside";
-import { setPrecision } from "lib/utils/formatNumber";
+import { formatNumber } from "lib/utils/formatNumber";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+import { BumpkinItem } from "features/game/types/bumpkin";
+import { isWearableActive } from "features/game/lib/wearables";
+import { useActor } from "@xstate/react";
+import { Context } from "features/game/GameProvider";
 
 /**
  * The props for SFL requirement label. Use this when the item costs SFL.
@@ -25,7 +29,6 @@ interface SFLProps {
   requirement: Decimal;
   showLabel?: boolean;
 }
-
 /**
  * The props for sell for SFL requirement label. Use this when selling the item gives players SFL.
  * @param type The type is sell for SFL.
@@ -71,6 +74,14 @@ interface ItemProps {
   item: InventoryItemName;
   balance: Decimal;
   requirement: Decimal;
+  showLabel?: boolean;
+}
+
+interface WearableProps {
+  type: "wearable";
+  item: BumpkinItem;
+  balance: number;
+  requirement: BumpkinItem;
   showLabel?: boolean;
 }
 
@@ -125,6 +136,7 @@ interface HarvestsProps {
 interface defaultProps {
   className?: string;
   textColor?: string;
+  hideIcon?: boolean;
 }
 
 type Props = (
@@ -133,6 +145,7 @@ type Props = (
   | SFLProps
   | SellSFLProps
   | ItemProps
+  | WearableProps
   | TimeProps
   | XPProps
   | LevelProps
@@ -147,6 +160,13 @@ type Props = (
  */
 export const RequirementLabel: React.FC<Props> = (props) => {
   const { t } = useAppTranslation();
+  const { gameService } = useContext(Context);
+
+  const [
+    {
+      context: { state },
+    },
+  ] = useActor(gameService);
 
   const getIcon = () => {
     switch (props.type) {
@@ -172,16 +192,19 @@ export const RequirementLabel: React.FC<Props> = (props) => {
     switch (props.type) {
       case "coins":
       case "sellForCoins":
-        return `${setPrecision(new Decimal(props.requirement))}`;
+        return `${formatNumber(props.requirement)}`;
       case "sfl":
         return `${props.requirement.toNumber()}`;
       case "sellForSfl": {
         return `${props.requirement.toNumber()}`;
       }
       case "item": {
-        const roundedDownInventory = setPrecision(props.balance, 1);
-        const roundedDownRequirement = setPrecision(props.requirement, 1);
+        const roundedDownInventory = formatNumber(props.balance);
+        const roundedDownRequirement = formatNumber(props.requirement);
         return `${roundedDownInventory}/${roundedDownRequirement}`;
+      }
+      case "wearable": {
+        return `${props.requirement}`;
       }
       case "time": {
         return secondsToString(props.waitSeconds, {
@@ -190,8 +213,7 @@ export const RequirementLabel: React.FC<Props> = (props) => {
         });
       }
       case "xp": {
-        const roundedDownXp = setPrecision(props.xp, 1);
-        return `${roundedDownXp}XP`;
+        return `${formatNumber(props.xp)}XP`;
       }
       case "level": {
         return `${t("level.number", { level: props.requirement })}`;
@@ -213,6 +235,8 @@ export const RequirementLabel: React.FC<Props> = (props) => {
         return props.balance.greaterThanOrEqualTo(props.requirement);
       case "item":
         return props.balance.greaterThanOrEqualTo(props.requirement);
+      case "wearable":
+        return props.balance > 0;
       case "level":
         return props.currentLevel >= props.requirement;
       case "sellForSfl":
@@ -225,14 +249,36 @@ export const RequirementLabel: React.FC<Props> = (props) => {
   };
   const requirementMet = isRequirementMet();
 
+  const labelType = () => {
+    if (props.type === "wearable") {
+      if (
+        requirementMet &&
+        !isWearableActive({ game: state, name: props.requirement })
+      ) {
+        return "success";
+      }
+      return "danger";
+    }
+
+    return requirementMet ? "transparent" : "danger";
+  };
+
   return (
-    <div className={classNames(props.className, "flex justify-between")}>
+    <div
+      className={classNames(
+        props.className,
+        "flex justify-between min-h-[26px]",
+      )}
+    >
       <div className="flex items-center">
-        <SquareIcon icon={getIcon()} width={7} />
+        {!props.hideIcon && <SquareIcon icon={getIcon()} width={7} />}
         {props.type === "sfl" && props.showLabel && (
           <span className="text-xs ml-1 ">{"SFL"}</span>
         )}
         {props.type === "item" && props.showLabel && (
+          <span className="text-xs ml-1 ">{props.item}</span>
+        )}
+        {props.type === "wearable" && props.showLabel && (
           <span className="text-xs ml-1 ">{props.item}</span>
         )}
         {props.type === "coins" && props.showLabel && (
@@ -244,11 +290,17 @@ export const RequirementLabel: React.FC<Props> = (props) => {
         className={classNames("whitespace-nowrap font-secondary relative", {
           "ml-1": !requirementMet,
         })}
-        type={requirementMet ? "transparent" : "danger"}
+        type={labelType()}
+        secondaryIcon={
+          props.type === "wearable"
+            ? requirementMet &&
+              !isWearableActive({ game: state, name: props.requirement })
+              ? SUNNYSIDE.icons.confirm
+              : SUNNYSIDE.icons.cancel
+            : undefined
+        }
         style={{
-          color:
-            props.textColor ??
-            LABEL_STYLES[requirementMet ? "transparent" : "danger"].textColour,
+          color: props.textColor ?? LABEL_STYLES[labelType()].textColour,
         }}
       >
         {getText()}

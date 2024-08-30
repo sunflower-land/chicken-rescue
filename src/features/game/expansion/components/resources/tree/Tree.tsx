@@ -31,7 +31,7 @@ const tool = "Axe";
 
 const HasTool = (
   inventory: Partial<Record<InventoryItemName, Decimal>>,
-  gameState: GameState
+  gameState: GameState,
 ) => {
   const axesNeeded = getRequiredAxeAmount(inventory, gameState);
 
@@ -61,7 +61,7 @@ interface Props {
 }
 
 export const Tree: React.FC<Props> = ({ id }) => {
-  const { gameService, shortcutItem } = useContext(Context);
+  const { gameService, shortcutItem, showAnimations } = useContext(Context);
 
   const [touchCount, setTouchCount] = useState(0);
   const [reward, setReward] = useState<Reward>();
@@ -92,7 +92,7 @@ export const Tree: React.FC<Props> = ({ id }) => {
   const resource = useSelector(
     gameService,
     (state) => state.context.state.trees[id],
-    compareResource
+    compareResource,
   );
   const game = useSelector(gameService, selectGame, compareGame);
   const inventory = useSelector(
@@ -100,7 +100,7 @@ export const Tree: React.FC<Props> = ({ id }) => {
     selectInventory,
     (prev, next) =>
       HasTool(prev, game) === HasTool(next, game) &&
-      (prev.Logger ?? new Decimal(0)).equals(next.Logger ?? new Decimal(0))
+      (prev.Logger ?? new Decimal(0)).equals(next.Logger ?? new Decimal(0)),
   );
 
   const treesChopped = useSelector(gameService, selectTreesChopped);
@@ -148,13 +148,18 @@ export const Tree: React.FC<Props> = ({ id }) => {
     });
 
     if (!newState.matches("hoarding")) {
-      setCollecting(true);
-      setCollectedAmount(resource.wood.amount);
+      if (showAnimations) {
+        setCollecting(true);
+        setCollectedAmount(resource.wood.amount);
+      }
+
       treeFallAudio.play();
 
-      await new Promise((res) => setTimeout(res, 3000));
-      setCollecting(false);
-      setCollectedAmount(undefined);
+      if (showAnimations) {
+        await new Promise((res) => setTimeout(res, 3000));
+        setCollecting(false);
+        setCollectedAmount(undefined);
+      }
     }
 
     if (newState.context.state.bumpkin?.activity?.["Tree Chopped"] === 1) {

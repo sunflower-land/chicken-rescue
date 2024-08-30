@@ -5,7 +5,6 @@ import { Modal } from "components/ui/Modal";
 import { Panel } from "components/ui/Panel";
 import { Button } from "components/ui/Button";
 
-import { PortalContext, PortalProvider } from "./lib/PortalProvider";
 import { Ocean } from "features/world/ui/Ocean";
 import { Label } from "components/ui/Label";
 import { SUNNYSIDE } from "assets/sunnyside";
@@ -21,15 +20,16 @@ import {
 import { ChickenRescueGame } from "./ChickenRescueGame";
 import { ITEM_DETAILS } from "features/game/types/images";
 
-import lock from "assets/skills/lock.png";
+import lock from "assets/icons/lock.png";
 import sfl from "assets/icons/sfl.webp";
-import { complete, goHome, purchase } from "./lib/portalUtil";
 import {
   PortalMachineState,
   UNLIMITED_ATTEMPTS_SFL,
 } from "./lib/chickenRescueMachine";
 import { Loading } from "features/auth/components";
 import { CONFIG } from "lib/config";
+import { claimPrize, goHome, purchase } from "features/portal/lib/portalUtil";
+import { PortalContext, PortalProvider } from "./lib/PortalProvider";
 
 export const ChickenRescueApp: React.FC = () => {
   return (
@@ -185,7 +185,9 @@ export const ChickenRescue: React.FC = () => {
               </Button>
               <Button
                 disabled={gameState.balance.lt(UNLIMITED_ATTEMPTS_SFL)}
-                onClick={() => purchase({ sfl: UNLIMITED_ATTEMPTS_SFL })}
+                onClick={() =>
+                  purchase({ sfl: UNLIMITED_ATTEMPTS_SFL, items: {} })
+                }
               >
                 {t("minigame.unlockAttempts")}
               </Button>
@@ -223,7 +225,7 @@ export const ChickenRescue: React.FC = () => {
                   <span className="text-sm">{`Score: ${portalState.context.score}`}</span>
                   <span className="text-xs">{`Highscore: ${Math.max(
                     portalState.context.score,
-                    minigame?.highscore ?? 0
+                    minigame?.highscore ?? 0,
                   )}`}</span>
                 </div>
                 <MinigamePrizeUI history={dailyAttempt} prize={prize} />
@@ -269,7 +271,7 @@ export const ChickenRescue: React.FC = () => {
                   <span className="text-sm">{`Score: ${portalState.context.score}`}</span>
                   <span className="text-xs">{`Highscore: ${Math.max(
                     portalState.context.score,
-                    minigame?.highscore ?? 0
+                    minigame?.highscore ?? 0,
                   )}`}</span>
                 </div>
                 <MinigamePrizeUI history={dailyAttempt} prize={prize} />
@@ -277,7 +279,7 @@ export const ChickenRescue: React.FC = () => {
               <Button
                 className="mt-1 whitespace-nowrap capitalize"
                 onClick={() => {
-                  complete();
+                  claimPrize();
                 }}
               >
                 {t("claim")}
@@ -303,7 +305,7 @@ export const ChickenRescue: React.FC = () => {
               <span className="text-sm">{`Score: ${portalState.context.score}`}</span>
               <span className="text-xs">{`Highscore: ${Math.max(
                 portalState.context.score,
-                minigame?.highscore ?? 0
+                minigame?.highscore ?? 0,
               )}`}</span>
             </div>
             <div className="flex mt-1">
@@ -334,7 +336,7 @@ export const ChickenRescue: React.FC = () => {
               <span className="text-sm">{`Score: ${portalState.context.score}`}</span>
               <span className="text-xs">{`Highscore: ${Math.max(
                 portalState.context.score,
-                minigame?.highscore ?? 0
+                minigame?.highscore ?? 0,
               )}`}</span>
             </div>
             <MinigamePrizeUI history={dailyAttempt} prize={prize} />

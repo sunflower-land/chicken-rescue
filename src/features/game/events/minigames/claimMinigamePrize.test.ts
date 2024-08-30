@@ -1,6 +1,5 @@
 import { TEST_FARM } from "features/game/lib/constants";
 import { claimMinigamePrize } from "./claimMinigamePrize";
-import { FACTION_POINT_CUTOFF } from "../landExpansion/donateToFaction";
 import Decimal from "decimal.js-light";
 
 describe("minigame.prizeClaimed", () => {
@@ -21,7 +20,7 @@ describe("minigame.prizeClaimed", () => {
           id: "not-a-game" as any,
           type: "minigame.prizeClaimed",
         },
-      })
+      }),
     ).toThrow("not-a-game is not a valid minigame");
   });
 
@@ -33,7 +32,7 @@ describe("minigame.prizeClaimed", () => {
           id: "chicken-rescue",
           type: "minigame.prizeClaimed",
         },
-      })
+      }),
     ).toThrow("No prize found for chicken-rescue");
   });
 
@@ -49,7 +48,6 @@ describe("minigame.prizeClaimed", () => {
                 coins: 100,
                 startAt: Date.now() + 100,
                 endAt: Date.now() + 1000,
-                factionPoints: 10,
                 score: 10,
                 items: {},
                 wearables: {},
@@ -61,7 +59,7 @@ describe("minigame.prizeClaimed", () => {
           id: "chicken-rescue",
           type: "minigame.prizeClaimed",
         },
-      })
+      }),
     ).toThrow("Prize is no longer available");
   });
 
@@ -77,7 +75,7 @@ describe("minigame.prizeClaimed", () => {
                 coins: 100,
                 startAt: Date.now() - 100,
                 endAt: Date.now() + 1000,
-                factionPoints: 10,
+
                 score: 10,
                 items: {},
                 wearables: {},
@@ -89,7 +87,7 @@ describe("minigame.prizeClaimed", () => {
           id: "chicken-rescue",
           type: "minigame.prizeClaimed",
         },
-      })
+      }),
     ).toThrow("No history found for chicken-rescue");
   });
 
@@ -116,10 +114,9 @@ describe("minigame.prizeClaimed", () => {
                 coins: 100,
                 startAt: date.getTime() - 100,
                 endAt: date.getTime() + 1000,
-                factionPoints: 10,
-                score: 20,
                 items: {},
                 wearables: {},
+                score: 20,
               },
             },
           },
@@ -129,7 +126,7 @@ describe("minigame.prizeClaimed", () => {
           type: "minigame.prizeClaimed",
         },
         createdAt: date.getTime(),
-      })
+      }),
     ).toThrow("Score 10 is less than 20");
   });
 
@@ -157,10 +154,9 @@ describe("minigame.prizeClaimed", () => {
                 coins: 100,
                 startAt: date.getTime() - 100,
                 endAt: date.getTime() + 1000,
-                factionPoints: 10,
-                score: 20,
                 items: {},
                 wearables: {},
+                score: 20,
               },
             },
           },
@@ -170,74 +166,11 @@ describe("minigame.prizeClaimed", () => {
           type: "minigame.prizeClaimed",
         },
         createdAt: date.getTime(),
-      })
+      }),
     ).toThrow("Already claimed chicken-rescue prize");
   });
 
-  it("claims a faction points prize", () => {
-    const date = new Date("2024-05-05T00:00:00");
-    const state = claimMinigamePrize({
-      state: {
-        ...TEST_FARM,
-        faction: {
-          name: "bumpkins",
-          pledgedAt: 10002000,
-          points: 0,
-          donated: {
-            daily: {
-              resources: {},
-              sfl: {
-                amount: 0,
-                day: 0,
-              },
-            },
-            totalItems: {},
-          },
-        },
-        minigames: {
-          games: {
-            "chicken-rescue": {
-              highscore: 30,
-
-              history: {
-                [date.toISOString().substring(0, 10)]: {
-                  attempts: 2,
-                  highscore: 30,
-                },
-              },
-            },
-          },
-          prizes: {
-            "chicken-rescue": {
-              coins: 100,
-              startAt: date.getTime() - 100,
-              endAt: date.getTime() + 1000,
-              factionPoints: 10,
-              score: 20,
-              items: {},
-              wearables: {},
-            },
-          },
-        },
-      },
-      action: {
-        id: "chicken-rescue",
-        type: "minigame.prizeClaimed",
-      },
-      createdAt: date.getTime(),
-    });
-
-    expect(state.coins).toEqual(100);
-    expect(state.faction?.points).toEqual(10);
-
-    expect(
-      state.minigames.games["chicken-rescue"]?.history[
-        date.toISOString().substring(0, 10)
-      ].prizeClaimedAt
-    ).toEqual(date.getTime());
-  });
-
-  it("claims a marks prize", () => {
+  it("claims an item prize", () => {
     const date = new Date("2024-05-05T00:00:00");
     const state = claimMinigamePrize({
       state: {
@@ -249,16 +182,7 @@ describe("minigame.prizeClaimed", () => {
           name: "bumpkins",
           pledgedAt: 10002000,
           points: 0,
-          donated: {
-            daily: {
-              resources: {},
-              sfl: {
-                amount: 0,
-                day: 0,
-              },
-            },
-            totalItems: {},
-          },
+          history: {},
         },
         minigames: {
           games: {
@@ -277,10 +201,11 @@ describe("minigame.prizeClaimed", () => {
               coins: 100,
               startAt: date.getTime() - 100,
               endAt: date.getTime() + 1000,
-              marks: 10,
-              score: 20,
-              items: {},
+              items: {
+                Mark: 20,
+              },
               wearables: {},
+              score: 20,
             },
           },
         },
@@ -293,68 +218,171 @@ describe("minigame.prizeClaimed", () => {
     });
 
     expect(state.coins).toEqual(100);
-    expect(state.inventory["Mark"]?.toNumber()).toEqual(20);
+    expect(state.inventory["Mark"]?.toNumber()).toEqual(30);
 
     expect(
       state.minigames.games["chicken-rescue"]?.history?.[
         date.toISOString().substring(0, 10)
-      ].prizeClaimedAt
+      ].prizeClaimedAt,
     ).toEqual(date.getTime());
   });
 
-  it("throws if claiming faction points after cutoff", () => {
-    const date = new Date(FACTION_POINT_CUTOFF.getTime() + 1);
+  it("claims a coin prize", () => {
+    const date = new Date("2024-05-05T00:00:00");
+    const state = claimMinigamePrize({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          Mark: new Decimal(10),
+        },
+        minigames: {
+          games: {
+            "chicken-rescue": {
+              highscore: 30,
+              history: {
+                [date.toISOString().substring(0, 10)]: {
+                  attempts: 2,
+                  highscore: 30,
+                },
+              },
+            },
+          },
+          prizes: {
+            "chicken-rescue": {
+              coins: 100,
+              startAt: date.getTime() - 100,
+              endAt: date.getTime() + 1000,
+              items: {},
+              wearables: {},
+              score: 20,
+            },
+          },
+        },
+      },
+      action: {
+        id: "chicken-rescue",
+        type: "minigame.prizeClaimed",
+      },
+      createdAt: date.getTime(),
+    });
 
-    expect(() =>
-      claimMinigamePrize({
-        state: {
-          ...TEST_FARM,
-          faction: {
-            name: "bumpkins",
-            pledgedAt: 10002000,
-            points: 0,
-            donated: {
-              daily: {
-                resources: {},
-                sfl: {
-                  amount: 0,
-                  day: 0,
+    expect(state.coins).toEqual(100);
+
+    expect(
+      state.minigames.games["chicken-rescue"]?.history?.[
+        date.toISOString().substring(0, 10)
+      ].prizeClaimedAt,
+    ).toEqual(date.getTime());
+  });
+
+  it("claims a wearable prize", () => {
+    const date = new Date("2024-05-05T00:00:00");
+    const state = claimMinigamePrize({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          Mark: new Decimal(10),
+        },
+        wardrobe: {
+          "Red Farmer Shirt": 2,
+          "Blue Farmer Shirt": 1,
+        },
+        minigames: {
+          games: {
+            "chicken-rescue": {
+              highscore: 30,
+              history: {
+                [date.toISOString().substring(0, 10)]: {
+                  attempts: 2,
+                  highscore: 30,
                 },
-              },
-              totalItems: {},
-            },
-          },
-          minigames: {
-            games: {
-              "chicken-rescue": {
-                highscore: 30,
-                history: {
-                  [date.toISOString().substring(0, 10)]: {
-                    attempts: 2,
-                    highscore: 30,
-                  },
-                },
-              },
-            },
-            prizes: {
-              "chicken-rescue": {
-                coins: 100,
-                startAt: date.getTime() - 100,
-                endAt: date.getTime() + 1000,
-                factionPoints: 10,
-                score: 20,
-                items: {},
-                wearables: {},
               },
             },
           },
+          prizes: {
+            "chicken-rescue": {
+              coins: 0,
+              startAt: date.getTime() - 100,
+              endAt: date.getTime() + 1000,
+              items: {},
+              wearables: {
+                "Red Farmer Shirt": 1,
+              },
+              score: 20,
+            },
+          },
         },
-        action: {
-          id: "chicken-rescue",
-          type: "minigame.prizeClaimed",
+      },
+      action: {
+        id: "chicken-rescue",
+        type: "minigame.prizeClaimed",
+      },
+      createdAt: date.getTime(),
+    });
+
+    expect(state.wardrobe).toEqual({
+      "Red Farmer Shirt": 3,
+      "Blue Farmer Shirt": 1,
+    });
+
+    expect(
+      state.minigames.games["chicken-rescue"]?.history?.[
+        date.toISOString().substring(0, 10)
+      ].prizeClaimedAt,
+    ).toEqual(date.getTime());
+  });
+
+  it("increases weekly kingdom score", () => {
+    const date = new Date("2024-07-05T00:00:00");
+
+    const state = claimMinigamePrize({
+      state: {
+        ...TEST_FARM,
+        inventory: {
+          Mark: new Decimal(10),
         },
-        createdAt: date.getTime(),
-      })
-    ).toThrow("Cannot claim faction points after cutoff");
+        faction: {
+          name: "bumpkins",
+          pledgedAt: 10002000,
+          points: 0,
+          history: {},
+        },
+        minigames: {
+          games: {
+            "chicken-rescue": {
+              highscore: 30,
+              history: {
+                [date.toISOString().substring(0, 10)]: {
+                  attempts: 2,
+                  highscore: 30,
+                },
+              },
+            },
+          },
+          prizes: {
+            "chicken-rescue": {
+              coins: 100,
+              startAt: date.getTime() - 100,
+              endAt: date.getTime() + 1000,
+              items: {
+                Mark: 20,
+              },
+              wearables: {},
+              score: 20,
+            },
+          },
+        },
+      },
+      action: {
+        id: "chicken-rescue",
+        type: "minigame.prizeClaimed",
+      },
+      createdAt: date.getTime(),
+    });
+
+    expect(state.faction?.history["2024-07-01"]).toEqual({
+      score: 20,
+      petXP: 0,
+    });
   });
 });

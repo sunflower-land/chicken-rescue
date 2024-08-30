@@ -50,7 +50,7 @@ describe("chop", () => {
           item: "Axe",
           index: "0",
         },
-      })
+      }),
     ).toThrow(CHOP_ERRORS.NO_AXES);
   });
 
@@ -76,7 +76,7 @@ describe("chop", () => {
       chop({
         state: game,
         action: payload.action,
-      })
+      }),
     ).toThrow(CHOP_ERRORS.STILL_GROWING);
   });
 
@@ -291,25 +291,6 @@ describe("chop", () => {
     expect(tree.wood.amount).toBeGreaterThan(0);
   });
 
-  it("throws an error if the player doesn't have a bumpkin", async () => {
-    expect(() =>
-      chop({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-          inventory: {
-            Axe: new Decimal(1),
-          },
-        },
-        action: {
-          type: "timber.chopped",
-          item: "Axe",
-          index: "0",
-        } as LandExpansionChopAction,
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   describe("BumpkinActivity", () => {
     it("increments Trees Chopped activity by 1 when 1 tree is chopped", () => {
       const createdAt = Date.now();
@@ -467,5 +448,57 @@ describe("getChoppedAt", () => {
     const buff = TREE_RECOVERY_TIME - TREE_RECOVERY_TIME * 0.5 * 0.5 * 0.8;
 
     expect(time).toEqual(now - buff * 1000);
+  });
+
+  it("applies a Timber Hourglass boost of -25% recovery time for 4 hours", () => {
+    const now = Date.now();
+
+    const createdAt = getChoppedAt({
+      game: {
+        ...TEST_FARM,
+        collectibles: {
+          "Timber Hourglass": [
+            {
+              id: "123",
+              createdAt: now - 100,
+              coordinates: { x: 1, y: 1 },
+              readyAt: now - 100,
+            },
+          ],
+        },
+      },
+      skills: {},
+      createdAt: now,
+    });
+
+    const boostedRecoveryTime =
+      (TREE_RECOVERY_TIME - TREE_RECOVERY_TIME * 0.75) * 1000;
+
+    expect(createdAt).toEqual(now - boostedRecoveryTime);
+  });
+
+  it("does not apply a Timber Hourglass boost if it has expired", () => {
+    const now = Date.now();
+    const fiveHoursAgo = now - 5 * 60 * 60 * 1000;
+
+    const createdAt = getChoppedAt({
+      game: {
+        ...TEST_FARM,
+        collectibles: {
+          "Timber Hourglass": [
+            {
+              id: "123",
+              createdAt: fiveHoursAgo,
+              coordinates: { x: 1, y: 1 },
+              readyAt: fiveHoursAgo,
+            },
+          ],
+        },
+      },
+      skills: {},
+      createdAt: now,
+    });
+
+    expect(createdAt).toEqual(now);
   });
 });

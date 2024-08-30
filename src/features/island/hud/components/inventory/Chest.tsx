@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Box } from "components/ui/Box";
 import { ITEM_DETAILS } from "features/game/types/images";
 import {
@@ -10,26 +10,14 @@ import { CollectibleName, getKeys } from "features/game/types/craftables";
 import { getChestBuds, getChestItems } from "./utils/inventory";
 import Decimal from "decimal.js-light";
 import { Button } from "components/ui/Button";
-import chest from "assets/npcs/synced.gif";
+
 import lightning from "assets/icons/lightning.png";
 
 import { SplitScreenView } from "components/ui/SplitScreenView";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { InventoryItemDetails } from "components/ui/layouts/InventoryItemDetails";
 
-import marketIcon from "assets/buildings/market_icon.png";
-import firePitIcon from "assets/buildings/fire_pit_icon.png";
-import workbenchIcon from "assets/buildings/workbench_icon.png";
-import kitchenIcon from "assets/buildings/kitchen_icon.png";
-import henHouseIcon from "assets/buildings/hen_house_icon.png";
-import bakeryIcon from "assets/buildings/bakery_icon.png";
-import deliIcon from "assets/buildings/deli_icon.png";
-import smoothieIcon from "assets/buildings/smoothie_shack_icon.png";
-import toolshedIcon from "assets/buildings/toolshed_icon.png";
-import warehouseIcon from "assets/buildings/warehouse_icon.png";
-import greenhouseIcon from "assets/icons/greenhouse.webp";
-
-import { BudName, isBudName } from "features/game/types/buds";
+import { Bud, BudName, isBudName } from "features/game/types/buds";
 import { CONFIG } from "lib/config";
 import { BudDetails } from "components/ui/layouts/BudDetails";
 import classNames from "classnames";
@@ -43,26 +31,156 @@ import { TREE_VARIANTS } from "features/island/resources/Resource";
 import { DIRT_PATH_VARIANTS } from "features/island/lib/alternateArt";
 import { BANNERS } from "features/game/types/banners";
 import { InnerPanel } from "components/ui/Panel";
+import { ConfirmationModal } from "components/ui/ConfirmationModal";
+import { HourglassType } from "features/island/collectibles/components/Hourglass";
+import { EXPIRY_COOLDOWNS } from "features/game/lib/collectibleBuilt";
+import { LandscapeTerms } from "lib/i18n/dictionaries/types";
 
 const imageDomain = CONFIG.NETWORK === "mainnet" ? "buds" : "testnet-buds";
 
 export const ITEM_ICONS: (
-  island: IslandType
+  island: IslandType,
 ) => Partial<Record<InventoryItemName, string>> = (island) => ({
-  Market: marketIcon,
-  "Fire Pit": firePitIcon,
-  Workbench: workbenchIcon,
-  Kitchen: kitchenIcon,
-  "Hen House": henHouseIcon,
-  Bakery: bakeryIcon,
-  Deli: deliIcon,
-  "Smoothie Shack": smoothieIcon,
-  Toolshed: toolshedIcon,
-  Warehouse: warehouseIcon,
+  Market: SUNNYSIDE.icons.marketIcon,
+  "Fire Pit": SUNNYSIDE.icons.firePitIcon,
+  Workbench: SUNNYSIDE.icons.workbenchIcon,
+  Kitchen: SUNNYSIDE.icons.kitchenIcon,
+  "Hen House": SUNNYSIDE.icons.henHouseIcon,
+  Bakery: SUNNYSIDE.icons.bakeryIcon,
+  Deli: SUNNYSIDE.icons.deliIcon,
+  "Smoothie Shack": SUNNYSIDE.icons.smoothieIcon,
+  Toolshed: SUNNYSIDE.icons.toolshedIcon,
+  Warehouse: SUNNYSIDE.icons.warehouseIcon,
   Tree: TREE_VARIANTS[island],
   "Dirt Path": DIRT_PATH_VARIANTS[island],
-  Greenhouse: greenhouseIcon,
+  Greenhouse: SUNNYSIDE.icons.greenhouseIcon,
 });
+
+interface PanelContentProps {
+  selectedChestItem: InventoryItemName | `Bud-${number}`;
+  closeModal: () => void;
+  state: GameState;
+  buds: Record<number, Bud>;
+  onPlace?: (name: InventoryItemName) => void;
+  onPlaceBud?: (bud: BudName) => void;
+  isSaving?: boolean;
+}
+
+export type TimeBasedConsumables = HourglassType | "Time Warp Totem";
+
+const PanelContent: React.FC<PanelContentProps> = ({
+  isSaving,
+  onPlace,
+  onPlaceBud,
+  selectedChestItem,
+  closeModal,
+  state,
+  buds,
+}) => {
+  const { t } = useAppTranslation();
+
+  const [confirmationModal, showConfirmationModal] = useState(false);
+
+  const handlePlace = () => {
+    if (
+      selectedChestItem in RESOURCES ||
+      selectedChestItem in EXPIRY_COOLDOWNS
+    ) {
+      showConfirmationModal(true);
+    } else {
+      isBudName(selectedChestItem)
+        ? onPlaceBud && onPlaceBud(selectedChestItem)
+        : onPlace && onPlace(selectedChestItem);
+      closeModal();
+    }
+  };
+
+  const getResourceNodeCondition = (hourglass: TimeBasedConsumables) => {
+    const hourglassCondition: Record<TimeBasedConsumables, LandscapeTerms> = {
+      "Blossom Hourglass": "landscape.hourglass.resourceNodeCondition.blossom",
+      "Gourmet Hourglass": "landscape.hourglass.resourceNodeCondition.gourmet",
+      "Harvest Hourglass": "landscape.hourglass.resourceNodeCondition.harvest",
+      "Orchard Hourglass": "landscape.hourglass.resourceNodeCondition.orchard",
+      "Ore Hourglass": "landscape.hourglass.resourceNodeCondition.ore",
+      "Timber Hourglass": "landscape.hourglass.resourceNodeCondition.timber",
+      "Time Warp Totem": "landscape.timeWarpTotem.resourceNodeCondition",
+      "Fisher's Hourglass": "landscape.hourglass.resourceNodeCondition.fishers",
+    };
+
+    return t(hourglassCondition[hourglass], {
+      selectedChestItem,
+    });
+  };
+
+  if (isBudName(selectedChestItem)) {
+    const budId = Number(selectedChestItem.split("-")[1]);
+    const bud = buds[budId];
+
+    return (
+      <BudDetails
+        bud={bud}
+        budId={budId}
+        actionView={
+          onPlace && (
+            <Button onClick={handlePlace} disabled={isSaving}>
+              {isSaving ? t("saving") : t("place.map")}
+            </Button>
+          )
+        }
+      />
+    );
+  }
+
+  return (
+    <>
+      <InventoryItemDetails
+        game={state}
+        details={{
+          item: selectedChestItem,
+        }}
+        properties={{
+          showOpenSeaLink: true,
+        }}
+        actionView={
+          onPlace && (
+            <Button onClick={handlePlace} disabled={isSaving}>
+              {isSaving ? t("saving") : t("place.map")}
+            </Button>
+          )
+        }
+      />
+      <ConfirmationModal
+        show={confirmationModal}
+        onHide={() => showConfirmationModal(false)}
+        messages={
+          selectedChestItem in RESOURCES
+            ? [
+                t("landscape.confirmation.resourceNodes.one"),
+                t("landscape.confirmation.resourceNodes.two"),
+              ]
+            : [
+                getResourceNodeCondition(
+                  selectedChestItem as TimeBasedConsumables,
+                ),
+                t("landscape.confirmation.hourglass.one", {
+                  selectedChestItem,
+                }),
+                t("landscape.confirmation.hourglass.two", {
+                  selectedChestItem,
+                }),
+              ]
+        }
+        onCancel={() => showConfirmationModal(false)}
+        onConfirm={() => {
+          onPlace && onPlace(selectedChestItem);
+          closeModal();
+          showConfirmationModal(false);
+        }}
+        confirmButtonLabel={t("place")}
+      />
+    </>
+  );
+};
 
 interface Props {
   state: GameState;
@@ -92,9 +210,12 @@ export const Chest: React.FC<Props> = ({
   const { t } = useAppTranslation();
   const collectibles = getKeys(chestMap)
     .sort((a, b) => a.localeCompare(b))
-    .reduce((acc, item) => {
-      return { ...acc, [item]: chestMap[item] };
-    }, {} as Record<CollectibleName, Decimal>);
+    .reduce(
+      (acc, item) => {
+        return { ...acc, [item]: chestMap[item] };
+      },
+      {} as Record<CollectibleName, Decimal>,
+    );
 
   const getSelectedChestItems = (): InventoryItemName | BudName => {
     if (isBudName(selected)) {
@@ -113,16 +234,6 @@ export const Chest: React.FC<Props> = ({
 
   const selectedChestItem = getSelectedChestItems();
 
-  const handlePlace = () => {
-    if (isBudName(selectedChestItem)) {
-      onPlaceBud && onPlaceBud(selectedChestItem);
-    } else {
-      onPlace && onPlace(selectedChestItem);
-    }
-
-    closeModal();
-  };
-
   const handleItemClick = (item: InventoryItemName | BudName) => {
     onSelect(item);
   };
@@ -134,7 +245,7 @@ export const Chest: React.FC<Props> = ({
     return (
       <InnerPanel className="flex flex-col justify-evenly items-center px-2 !py-[50px]">
         <img
-          src={chest}
+          src={SUNNYSIDE.npcs.synced}
           alt="Empty Chest"
           style={{
             width: `${PIXEL_SCALE * 17}px`,
@@ -158,47 +269,6 @@ export const Chest: React.FC<Props> = ({
     );
   }
 
-  const PanelContent: React.FC = () => {
-    const { t } = useAppTranslation();
-    if (isBudName(selectedChestItem)) {
-      const budId = Number(selectedChestItem.split("-")[1]);
-      const bud = buds[budId];
-
-      return (
-        <BudDetails
-          bud={bud}
-          budId={budId}
-          actionView={
-            onPlace && (
-              <Button onClick={handlePlace} disabled={isSaving}>
-                {isSaving ? t("saving") : t("place.map")}
-              </Button>
-            )
-          }
-        />
-      );
-    }
-
-    return (
-      <InventoryItemDetails
-        game={state}
-        details={{
-          item: selectedChestItem,
-        }}
-        properties={{
-          showOpenSeaLink: true,
-        }}
-        actionView={
-          onPlace && (
-            <Button onClick={handlePlace} disabled={isSaving}>
-              {isSaving ? t("saving") : t("place.map")}
-            </Button>
-          )
-        }
-      />
-    );
-  };
-
   // Sort collectibles by type
   const resources = getKeys(collectibles).filter((name) => name in RESOURCES);
   const buildings = getKeys(collectibles).filter((name) => name in BUILDINGS);
@@ -211,7 +281,7 @@ export const Chest: React.FC<Props> = ({
       !resources.includes(name) &&
       !buildings.includes(name) &&
       !boosts.includes(name) &&
-      !banners.includes(name)
+      !banners.includes(name),
   );
 
   return (
@@ -220,7 +290,17 @@ export const Chest: React.FC<Props> = ({
       tallMobileContent={true}
       wideModal={true}
       showPanel={!!selectedChestItem}
-      panel={<PanelContent />}
+      panel={
+        <PanelContent
+          state={state}
+          selectedChestItem={selectedChestItem}
+          closeModal={closeModal}
+          onPlace={onPlace}
+          onPlaceBud={onPlaceBud}
+          isSaving={isSaving}
+          buds={buds}
+        />
+      }
       content={
         <>
           {!!Object.values(buds).length && (
@@ -248,7 +328,7 @@ export const Chest: React.FC<Props> = ({
                           "top-1": type === "Retreat",
 
                           "left-1": type === "Plaza",
-                        }
+                        },
                       )}
                     />
                   );
@@ -282,7 +362,7 @@ export const Chest: React.FC<Props> = ({
                 className="my-1"
                 icon={SUNNYSIDE.resource.tree}
               >
-                {t("resources")}
+                {t("resource.nodes")}
               </Label>
               <div className="flex mb-2 flex-wrap -ml-1.5">
                 {resources.map((item) => (

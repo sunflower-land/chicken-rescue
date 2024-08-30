@@ -28,11 +28,11 @@ export type Resource =
   | GreenHouseFruitName;
 
 export const isPlotCrop = (resource: Resource): resource is CropName => {
-  return resource in CROPS();
+  return resource in CROPS;
 };
 
 export const isCrop = (resource: Resource): resource is CropName => {
-  return resource in CROPS() || resource in GREENHOUSE_CROPS();
+  return resource in CROPS || resource in GREENHOUSE_CROPS;
 };
 
 const isMineral = (resource: Resource): boolean => {
@@ -162,7 +162,7 @@ const getBudBoost = (bud: Bud, resource: Resource): number => {
 
 export const getBudYieldBoosts = (
   buds: NonNullable<GameState["buds"]>,
-  resource: Resource
+  resource: Resource,
 ): number => {
   const boosts = Object.values(buds)
     // Bud must be placed to give a boost

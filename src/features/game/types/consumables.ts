@@ -5,6 +5,7 @@ import { Cake } from "./craftables";
 import { Inventory } from "./game";
 import { FishName } from "./fishing";
 import { translate } from "lib/i18n/translate";
+import { FactionShopFoodName } from "./factionShop";
 
 type FirePitCookableName =
   | "Rapid Roast"
@@ -96,7 +97,11 @@ export type CookableName =
   | DeliCookableName
   | JuiceName;
 
-export type ConsumableName = CookableName | "Pirate Cake" | FishName;
+export type ConsumableName =
+  | CookableName
+  | "Pirate Cake"
+  | FishName
+  | FactionShopFoodName;
 
 export type Cookable = {
   experience: number;
@@ -105,14 +110,12 @@ export type Cookable = {
   ingredients: Inventory;
   cookingSeconds: number;
   building: BuildingName;
-  // SFL sell rate
-  marketRate: number;
   disabled?: boolean;
 };
 
 export type Consumable = Omit<
   Cookable,
-  "name" | "ingredients" | "cookingSeconds" | "building" | "marketRate"
+  "name" | "ingredients" | "cookingSeconds" | "building"
 > & { name: ConsumableName };
 
 export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
@@ -125,7 +128,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
     ingredients: {
       Potato: new Decimal(8),
     },
-    marketRate: 10,
   },
   "Pumpkin Soup": {
     name: "Pumpkin Soup",
@@ -136,18 +138,16 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
     ingredients: {
       Pumpkin: new Decimal(10),
     },
-    marketRate: 16,
   },
   "Reindeer Carrot": {
     name: "Reindeer Carrot",
     description: translate("description.reindeer.carrot"),
     building: "Fire Pit",
-    experience: 10,
+    experience: 36,
     cookingSeconds: 60 * 5,
     ingredients: {
       Carrot: new Decimal(5),
     },
-    marketRate: 0,
   },
   "Mushroom Soup": {
     name: "Mushroom Soup",
@@ -158,7 +158,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
     ingredients: {
       "Wild Mushroom": new Decimal(5),
     },
-    marketRate: 240,
   },
   Popcorn: {
     name: "Popcorn",
@@ -170,7 +169,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Sunflower: new Decimal(100),
       Corn: new Decimal(5),
     },
-    marketRate: 120,
   },
   "Bumpkin Broth": {
     name: "Bumpkin Broth",
@@ -182,7 +180,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Carrot: new Decimal(10),
       Cabbage: new Decimal(5),
     },
-    marketRate: 64,
   },
   "Cabbers n Mash": {
     name: "Cabbers n Mash",
@@ -194,7 +191,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       "Mashed Potato": new Decimal(10),
       Cabbage: new Decimal(20),
     },
-    marketRate: 160,
   },
   "Boiled Eggs": {
     name: "Boiled Eggs",
@@ -205,7 +201,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
     ingredients: {
       Egg: new Decimal(5),
     },
-    marketRate: 160,
   },
   "Kale Stew": {
     name: "Kale Stew",
@@ -216,7 +211,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
     ingredients: {
       Kale: new Decimal(10),
     },
-    marketRate: 400,
   },
   "Kale Omelette": {
     name: "Kale Omelette",
@@ -228,7 +222,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Egg: new Decimal(20),
       Kale: new Decimal(5),
     },
-    marketRate: 640,
   },
   Gumbo: {
     name: "Gumbo",
@@ -242,7 +235,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Carrot: new Decimal(20),
       "Red Snapper": new Decimal(3),
     },
-    marketRate: 0,
   },
   "Rapid Roast": {
     name: "Rapid Roast",
@@ -254,7 +246,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       "Magic Mushroom": new Decimal(1),
       Pumpkin: new Decimal(40),
     },
-    marketRate: 10, // TODO
   },
   "Fried Tofu": {
     name: "Fried Tofu",
@@ -266,7 +257,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Soybean: new Decimal(15),
       Sunflower: new Decimal(200),
     },
-    marketRate: 0,
   },
   "Rice Bun": {
     name: "Rice Bun",
@@ -278,7 +268,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Rice: new Decimal(2),
       Wheat: new Decimal(50),
     },
-    marketRate: 0,
   },
   Antipasto: {
     name: "Antipasto",
@@ -290,7 +279,6 @@ export const FIRE_PIT_COOKABLES: Record<FirePitCookableName, Cookable> = {
       Olive: new Decimal(2),
       Grape: new Decimal(2),
     },
-    marketRate: 0,
   },
 };
 
@@ -304,7 +292,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
     ingredients: {
       Sunflower: new Decimal(300),
     },
-    marketRate: 40,
   },
   "Mushroom Jacket Potatoes": {
     name: "Mushroom Jacket Potatoes",
@@ -316,7 +303,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       "Wild Mushroom": new Decimal(10),
       Potato: new Decimal(5),
     },
-    marketRate: 240,
   },
   "Fruit Salad": {
     name: "Fruit Salad",
@@ -329,7 +315,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Orange: new Decimal(1),
       Blueberry: new Decimal(1),
     },
-    marketRate: 200,
   },
   Pancakes: {
     name: "Pancakes",
@@ -342,7 +327,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Egg: new Decimal(5),
       Honey: new Decimal(6),
     },
-    marketRate: 10,
   },
   "Roast Veggies": {
     name: "Roast Veggies",
@@ -354,7 +338,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Cauliflower: new Decimal(15),
       Carrot: new Decimal(10),
     },
-    marketRate: 240,
   },
   "Cauliflower Burger": {
     name: "Cauliflower Burger",
@@ -366,7 +349,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Cauliflower: new Decimal(15),
       Wheat: new Decimal(5),
     },
-    marketRate: 304,
   },
   "Club Sandwich": {
     name: "Club Sandwich",
@@ -379,7 +361,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Carrot: new Decimal(25),
       Wheat: new Decimal(5),
     },
-    marketRate: 184,
   },
   "Bumpkin Salad": {
     name: "Bumpkin Salad",
@@ -391,7 +372,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Beetroot: new Decimal(20),
       Parsnip: new Decimal(10),
     },
-    marketRate: 400,
   },
   "Bumpkin ganoush": {
     name: "Bumpkin ganoush",
@@ -404,7 +384,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Potato: new Decimal(50),
       Parsnip: new Decimal(10),
     },
-    marketRate: 800,
   },
   "Goblin's Treat": {
     name: "Goblin's Treat",
@@ -417,7 +396,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Radish: new Decimal(20),
       Cabbage: new Decimal(10),
     },
-    marketRate: 800,
   },
   Chowder: {
     name: "Chowder",
@@ -431,7 +409,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Parsnip: new Decimal(5),
       Anchovy: new Decimal(3),
     },
-    marketRate: 0,
   },
   "Bumpkin Roast": {
     name: "Bumpkin Roast",
@@ -443,7 +420,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       "Mashed Potato": new Decimal(20),
       "Roast Veggies": new Decimal(5),
     },
-    marketRate: 1100,
   },
   "Goblin Brunch": {
     name: "Goblin Brunch",
@@ -455,7 +431,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       "Boiled Eggs": new Decimal(5),
       "Goblin's Treat": new Decimal(1),
     },
-    marketRate: 1100,
   },
   "Beetroot Blaze": {
     name: "Beetroot Blaze",
@@ -467,7 +442,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       "Magic Mushroom": new Decimal(2),
       Beetroot: new Decimal(50),
     },
-    marketRate: 10, // TODO
   },
   "Steamed Red Rice": {
     name: "Steamed Red Rice",
@@ -479,7 +453,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Rice: new Decimal(3),
       Beetroot: new Decimal(50),
     },
-    marketRate: 0,
   },
   "Tofu Scramble": {
     name: "Tofu Scramble",
@@ -492,7 +465,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Egg: new Decimal(10),
       Cauliflower: new Decimal(10),
     },
-    marketRate: 0,
   },
   "Fried Calamari": {
     name: "Fried Calamari",
@@ -505,7 +477,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Wheat: new Decimal(15),
       Squid: new Decimal(1),
     },
-    marketRate: 0,
   },
   "Fish Burger": {
     name: "Fish Burger",
@@ -518,7 +489,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Wheat: new Decimal(10),
       "Horse Mackerel": new Decimal(1),
     },
-    marketRate: 0,
   },
   "Fish Omelette": {
     name: "Fish Omelette",
@@ -531,7 +501,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Surgeonfish: new Decimal(1),
       Butterflyfish: new Decimal(2),
     },
-    marketRate: 0,
   },
   "Ocean's Olive": {
     name: "Ocean's Olive",
@@ -543,7 +512,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       "Olive Flounder": new Decimal(1),
       Olive: new Decimal(2),
     },
-    marketRate: 0,
   },
   "Seafood Basket": {
     name: "Seafood Basket",
@@ -556,7 +524,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Napoleanfish: new Decimal(2),
       Sunfish: new Decimal(2),
     },
-    marketRate: 0,
   },
   "Fish n Chips": {
     name: "Fish n Chips",
@@ -568,7 +535,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       "Fancy Fries": new Decimal(1),
       Halibut: new Decimal(1),
     },
-    marketRate: 0,
   },
   "Sushi Roll": {
     name: "Sushi Roll",
@@ -581,7 +547,6 @@ export const KITCHEN_COOKABLES: Record<KitchenCookableName, Cookable> = {
       Seaweed: new Decimal(1),
       Rice: new Decimal(2),
     },
-    marketRate: 0,
   },
 };
 
@@ -597,7 +562,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(10),
     },
-    marketRate: 550,
   },
   "Orange Cake": {
     name: "Orange Cake",
@@ -610,7 +574,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Egg: new Decimal(15),
       Wheat: new Decimal(10),
     },
-    marketRate: 600,
   },
   "Kale & Mushroom Pie": {
     name: "Kale & Mushroom Pie",
@@ -623,7 +586,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Kale: new Decimal(5),
       Wheat: new Decimal(5),
     },
-    marketRate: 550,
   },
   "Sunflower Cake": {
     name: "Sunflower Cake",
@@ -636,7 +598,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 440,
   },
   "Honey Cake": {
     name: "Honey Cake",
@@ -649,7 +610,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(10),
     },
-    marketRate: 550,
   },
   "Potato Cake": {
     name: "Potato Cake",
@@ -662,7 +622,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 560,
   },
   "Pumpkin Cake": {
     name: "Pumpkin Cake",
@@ -675,7 +634,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 520,
   },
   Cornbread: {
     name: "Cornbread",
@@ -688,7 +646,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(5),
       Egg: new Decimal(5),
     },
-    marketRate: 1200,
   },
   "Carrot Cake": {
     name: "Carrot Cake",
@@ -701,7 +658,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 600,
   },
   "Cabbage Cake": {
     name: "Cabbage Cake",
@@ -714,7 +670,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 720,
   },
   "Beetroot Cake": {
     name: "Beetroot Cake",
@@ -727,7 +682,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 960,
   },
   "Cauliflower Cake": {
     name: "Cauliflower Cake",
@@ -740,7 +694,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 960,
   },
   "Parsnip Cake": {
     name: "Parsnip Cake",
@@ -753,7 +706,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 960,
   },
   "Eggplant Cake": {
     name: "Eggplant Cake",
@@ -766,7 +718,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 1200,
   },
   "Radish Cake": {
     name: "Radish Cake",
@@ -779,7 +730,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(10),
       Egg: new Decimal(15),
     },
-    marketRate: 880,
   },
   "Wheat Cake": {
     name: "Wheat Cake",
@@ -791,7 +741,6 @@ export const BAKERY_COOKABLES: Record<BakeryCookableName, Cookable> = {
       Wheat: new Decimal(35),
       Egg: new Decimal(15),
     },
-    marketRate: 800,
   },
 };
 
@@ -805,7 +754,6 @@ export const DELI_COOKABLES: Record<DeliCookableName, Cookable> = {
     ingredients: {
       Blueberry: new Decimal(5),
     },
-    marketRate: 350,
   },
   "Fermented Carrots": {
     name: "Fermented Carrots",
@@ -816,7 +764,6 @@ export const DELI_COOKABLES: Record<DeliCookableName, Cookable> = {
     ingredients: {
       Carrot: new Decimal(20),
     },
-    marketRate: 112,
   },
   Sauerkraut: {
     name: "Sauerkraut",
@@ -827,7 +774,6 @@ export const DELI_COOKABLES: Record<DeliCookableName, Cookable> = {
     ingredients: {
       Cabbage: new Decimal(20),
     },
-    marketRate: 224,
   },
   "Fancy Fries": {
     name: "Fancy Fries",
@@ -839,7 +785,6 @@ export const DELI_COOKABLES: Record<DeliCookableName, Cookable> = {
       Sunflower: new Decimal(500),
       Potato: new Decimal(500),
     },
-    marketRate: 400,
   },
   "Fermented Fish": {
     name: "Fermented Fish",
@@ -850,7 +795,6 @@ export const DELI_COOKABLES: Record<DeliCookableName, Cookable> = {
     ingredients: {
       Tuna: new Decimal(6),
     },
-    marketRate: 0,
   },
   "Shroom Syrup": {
     name: "Shroom Syrup",
@@ -862,7 +806,6 @@ export const DELI_COOKABLES: Record<DeliCookableName, Cookable> = {
       "Magic Mushroom": new Decimal(3),
       Honey: new Decimal(20),
     },
-    marketRate: 10, // TODO
   },
 };
 
@@ -877,7 +820,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Blueberry: new Decimal(5),
       Cabbage: new Decimal(10),
     },
-    marketRate: 200,
   },
   "Orange Juice": {
     name: "Orange Juice",
@@ -888,7 +830,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
     ingredients: {
       Orange: new Decimal(5),
     },
-    marketRate: 256,
   },
   "Apple Juice": {
     name: "Apple Juice",
@@ -899,7 +840,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
     ingredients: {
       Apple: new Decimal(5),
     },
-    marketRate: 336,
   },
   "Power Smoothie": {
     name: "Power Smoothie",
@@ -911,7 +851,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Blueberry: new Decimal(10),
       Kale: new Decimal(5),
     },
-    marketRate: 496,
   },
   "Bumpkin Detox": {
     name: "Bumpkin Detox",
@@ -924,7 +863,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Orange: new Decimal(5),
       Carrot: new Decimal(10),
     },
-    marketRate: 640,
   },
   "Banana Blast": {
     name: "Banana Blast",
@@ -936,7 +874,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Banana: new Decimal(10),
       Egg: new Decimal(5),
     },
-    marketRate: 560,
   },
   "Grape Juice": {
     name: "Grape Juice",
@@ -948,7 +885,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Grape: new Decimal(5),
       Radish: new Decimal(20),
     },
-    marketRate: 0,
   },
   "The Lot": {
     name: "The Lot",
@@ -963,7 +899,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Apple: new Decimal(1),
       Banana: new Decimal(1),
     },
-    marketRate: 0,
   },
   "Carrot Juice": {
     name: "Carrot Juice",
@@ -974,7 +909,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
     ingredients: {
       Carrot: new Decimal(30),
     },
-    marketRate: 0,
   },
   "Quick Juice": {
     name: "Quick Juice",
@@ -986,7 +920,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Sunflower: new Decimal(50),
       Pumpkin: new Decimal(40),
     },
-    marketRate: 0,
   },
   "Slow Juice": {
     name: "Slow Juice",
@@ -998,7 +931,6 @@ export const JUICE_COOKABLES: Record<JuiceName, Cookable> = {
       Grape: new Decimal(10),
       Kale: new Decimal(100),
     },
-    marketRate: 0,
   },
 };
 
@@ -1200,10 +1132,29 @@ export const FISH: Record<FishName, Consumable> = {
   },
 };
 
+export const FACTION_FOOD: Record<FactionShopFoodName, Consumable> = {
+  Caponata: {
+    name: "Caponata",
+    description: "A traditional Brazilian snack",
+    experience: 6000,
+  },
+  "Glazed Carrots": {
+    name: "Glazed Carrots",
+    description: "A traditional Brazilian dish",
+    experience: 3000,
+  },
+  Paella: {
+    name: "Paella",
+    description: "A traditional Spanish dish",
+    experience: 10000,
+  },
+};
+
 export const CONSUMABLES: Record<ConsumableName, Consumable> = {
   ...COOKABLES,
   ...PIRATE_CAKE,
   ...FISH,
+  ...FACTION_FOOD,
 };
 
 export const FISH_CONSUMABLES: Record<FishName | FishCookableName, Consumable> =

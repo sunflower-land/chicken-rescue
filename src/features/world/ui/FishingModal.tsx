@@ -40,7 +40,7 @@ export const FishingModal: React.FC = () => {
 
     const reelSubscription = PubSub.subscribe("BEACH_FISHERMAN_REEL", () => {
       const fish = getKeys(
-        gameService.state.context.state.fishing.beach?.caught ?? {}
+        gameService.state.context.state.fishing.beach?.caught ?? {},
       ).find((fish) => fish in FISH);
 
       reelIn(fish as FishName);
@@ -56,12 +56,6 @@ export const FishingModal: React.FC = () => {
     gameService.onTransition((state) => {
       if (state.context.state.fishing.beach?.caught) {
         PubSub.publish("BEACH_FISHERMAN_CAUGHT");
-      }
-
-      if (state.context.state.catchTheKraken.hunger) {
-        PubSub.publish("KRAKEN_HUNGRY", {
-          hunger: state.context.state.catchTheKraken.hunger,
-        });
       }
     });
   }, []);
@@ -151,7 +145,7 @@ export const FishingModal: React.FC = () => {
             setTimeout(() => {
               gameState.context.state.fishing.beach = {
                 castedAt: 10000,
-                caught: { "Kraken Tentacle": 1 },
+                caught: { Anchovy: 1 },
               };
             }, 1000);
           }}

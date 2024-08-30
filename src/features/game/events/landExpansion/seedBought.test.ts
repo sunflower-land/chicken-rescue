@@ -1,4 +1,4 @@
-import "lib/__mocks__/configMock.ts";
+import "lib/__mocks__/configMock";
 import Decimal from "decimal.js-light";
 
 import { INITIAL_BUMPKIN, TEST_FARM } from "features/game/lib/constants";
@@ -21,7 +21,7 @@ describe("seedBought", () => {
           item: "Goblin Key" as CropSeedName,
           amount: 1,
         },
-      })
+      }),
     ).toThrow("This item is not a seed");
   });
 
@@ -40,7 +40,7 @@ describe("seedBought", () => {
           item: "Pumpkin Seed",
           amount: 1,
         },
-      })
+      }),
     ).toThrow("Inadequate level");
   });
 
@@ -56,7 +56,7 @@ describe("seedBought", () => {
           item: "Sunflower Seed",
           amount: 0.2,
         },
-      })
+      }),
     ).toThrow("Invalid amount");
   });
 
@@ -74,7 +74,7 @@ describe("seedBought", () => {
           item: "Sunflower Seed",
           amount: 1,
         },
-      })
+      }),
     ).toThrow("Not enough stock");
   });
 
@@ -90,7 +90,7 @@ describe("seedBought", () => {
           item: "Sunflower Seed",
           amount: 1,
         },
-      })
+      }),
     ).toThrow("Insufficient tokens");
   });
 
@@ -111,7 +111,7 @@ describe("seedBought", () => {
     });
 
     expect(state.balance).toEqual(balance);
-    expect(state.coins).toEqual(coins - CROP_SEEDS()["Sunflower Seed"].price);
+    expect(state.coins).toEqual(coins - CROP_SEEDS["Sunflower Seed"].price);
   });
 
   it("adds the newly bought seed to a players inventory", () => {
@@ -157,7 +157,7 @@ describe("seedBought", () => {
 
     const oldAmount = GAME_STATE.inventory[item] ?? new Decimal(0);
 
-    expect(state.coins).toEqual(coins - CROP_SEEDS()[item].price);
+    expect(state.coins).toEqual(coins - CROP_SEEDS[item].price);
     expect(state.inventory[item]).toEqual(oldAmount.add(amount));
   });
 
@@ -183,24 +183,8 @@ describe("seedBought", () => {
 
     const oldAmount = GAME_STATE.inventory[item] ?? new Decimal(0);
 
-    expect(state.coins).toEqual(coins - CROP_SEEDS()[item].price * amount);
+    expect(state.coins).toEqual(coins - CROP_SEEDS[item].price * amount);
     expect(state.inventory[item]).toEqual(oldAmount.add(amount));
-  });
-
-  it("throws an error if the player doesn't have a bumpkin", async () => {
-    expect(() =>
-      seedBought({
-        state: {
-          ...GAME_STATE,
-          bumpkin: undefined,
-        },
-        action: {
-          type: "seed.bought",
-          item: "Sunflower Seed",
-          amount: 1,
-        },
-      })
-    ).toThrow("Bumpkin not found");
   });
 
   it("increments the coin spent activity ", () => {
@@ -216,7 +200,7 @@ describe("seedBought", () => {
       },
     });
     expect(state.bumpkin?.activity?.["Coins Spent"]).toEqual(
-      CROP_SEEDS()["Sunflower Seed"].price
+      CROP_SEEDS["Sunflower Seed"].price,
     );
   });
 
@@ -387,30 +371,15 @@ describe("seedBought", () => {
     expect(state.inventory["Lily Seed"]).toEqual(new Decimal(1));
   });
 
-  it("requires spring island to buy a flower seed", () => {
+  it("requires Flower Bed to buy a flower seed", () => {
     expect(() =>
       seedBought({
         state: {
           ...GAME_STATE,
           bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
           coins: Infinity,
-        },
-        action: {
-          type: "seed.bought",
-          item: "Lily Seed",
-          amount: 1,
-        },
-      })
-    ).toThrow("You do not have the required island expansion");
-
-    expect(() =>
-      seedBought({
-        state: {
-          ...GAME_STATE,
-          bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
-          coins: Infinity,
-          island: {
-            type: "spring",
+          inventory: {
+            "Flower Bed": new Decimal(0),
           },
         },
         action: {
@@ -418,34 +387,37 @@ describe("seedBought", () => {
           item: "Lily Seed",
           amount: 1,
         },
-      })
-    ).not.toThrow();
-  });
+      }),
+    ).toThrow("You do not have the planting spot needed to plant this seed");
 
-  it("requires desert island to buy a greenhouse crop seed", () => {
     expect(() =>
       seedBought({
         state: {
           ...GAME_STATE,
           bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
           coins: Infinity,
+          inventory: {
+            "Flower Bed": new Decimal(1),
+          },
         },
         action: {
           type: "seed.bought",
-          item: "Rice Seed",
+          item: "Lily Seed",
           amount: 1,
         },
-      })
-    ).toThrow("You do not have the required island expansion");
+      }),
+    ).not.toThrow();
+  });
 
+  it("requires Greenhouse to buy a greenhouse crop seed", () => {
     expect(() =>
       seedBought({
         state: {
           ...GAME_STATE,
           bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
           coins: Infinity,
-          island: {
-            type: "desert",
+          inventory: {
+            Greenhouse: new Decimal(0),
           },
         },
         action: {
@@ -453,33 +425,54 @@ describe("seedBought", () => {
           item: "Rice Seed",
           amount: 1,
         },
-      })
-    ).not.toThrow();
-  });
+      }),
+    ).toThrow("You do not have the planting spot needed to plant this seed");
 
-  it("requires desert island to buy a greenhouse fruit seed", () => {
     expect(() =>
       seedBought({
         state: {
           ...GAME_STATE,
           bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
           coins: Infinity,
+          inventory: {
+            Greenhouse: new Decimal(1),
+          },
+        },
+        action: {
+          type: "seed.bought",
+          item: "Rice Seed",
+          amount: 1,
+        },
+      }),
+    ).not.toThrow();
+  });
+
+  it("requires Greenhouse to buy a greenhouse fruit seed", () => {
+    expect(() =>
+      seedBought({
+        state: {
+          ...GAME_STATE,
+          bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
+          coins: Infinity,
+          inventory: {
+            Greenhouse: new Decimal(0),
+          },
         },
         action: {
           type: "seed.bought",
           item: "Grape Seed",
           amount: 1,
         },
-      })
-    ).toThrow("You do not have the required island expansion");
+      }),
+    ).toThrow("You do not have the planting spot needed to plant this seed");
 
     expect(() =>
       seedBought({
         state: {
           ...GAME_STATE,
           bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
-          island: {
-            type: "desert",
+          inventory: {
+            Greenhouse: new Decimal(1),
           },
           coins: Infinity,
         },
@@ -488,7 +481,81 @@ describe("seedBought", () => {
           item: "Grape Seed",
           amount: 1,
         },
-      })
+      }),
+    ).not.toThrow();
+  });
+  it("requires Fruit Patch to buy a fruit seed", () => {
+    expect(() =>
+      seedBought({
+        state: {
+          ...GAME_STATE,
+          bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
+          coins: Infinity,
+          inventory: {
+            "Fruit Patch": new Decimal(0),
+          },
+        },
+        action: {
+          type: "seed.bought",
+          item: "Apple Seed",
+          amount: 1,
+        },
+      }),
+    ).toThrow("You do not have the planting spot needed to plant this seed");
+
+    expect(() =>
+      seedBought({
+        state: {
+          ...GAME_STATE,
+          bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
+          coins: Infinity,
+          inventory: {
+            "Fruit Patch": new Decimal(1),
+          },
+        },
+        action: {
+          type: "seed.bought",
+          item: "Apple Seed",
+          amount: 1,
+        },
+      }),
+    ).not.toThrow();
+  });
+  it("requires Fruit Patch to buy a fruit seed", () => {
+    expect(() =>
+      seedBought({
+        state: {
+          ...GAME_STATE,
+          bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
+          coins: Infinity,
+          inventory: {
+            "Fruit Patch": new Decimal(0),
+          },
+        },
+        action: {
+          type: "seed.bought",
+          item: "Apple Seed",
+          amount: 1,
+        },
+      }),
+    ).toThrow("You do not have the planting spot needed to plant this seed");
+
+    expect(() =>
+      seedBought({
+        state: {
+          ...GAME_STATE,
+          bumpkin: { ...INITIAL_BUMPKIN, experience: 100000000 },
+          coins: Infinity,
+          inventory: {
+            "Fruit Patch": new Decimal(1),
+          },
+        },
+        action: {
+          type: "seed.bought",
+          item: "Apple Seed",
+          amount: 1,
+        },
+      }),
     ).not.toThrow();
   });
 });

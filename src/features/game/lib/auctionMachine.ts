@@ -38,6 +38,7 @@ export type LeaderboardBid = {
   sfl: number;
   items: Partial<Record<InventoryItemName, number>>;
   farmId: number;
+  username?: string;
 };
 
 export type AuctionResults = {
@@ -52,6 +53,7 @@ export interface Context {
   farmId: number;
   token: string;
   deviceTrackerId: string;
+  username?: string;
   bid?: GameState["auctioneer"]["bid"];
   auctions: Auction[];
   auctionId: string;
@@ -146,6 +148,7 @@ export const createAuctioneerMachine = ({
               farmId: 44,
               experience: 10,
               items: { Gold: 50, "Block Buck": 30, Radish: 50 },
+              username: "Big Farmer",
               sfl: 1000,
               tickets: 5,
               rank: 1,
@@ -156,6 +159,7 @@ export const createAuctioneerMachine = ({
               items: { Gold: 5, "Block Buck": 3, Radish: 5 },
               sfl: 100,
               tickets: 5,
+              username: "Top Dog",
               rank: 2,
             },
             {
@@ -268,7 +272,7 @@ export const createAuctioneerMachine = ({
               cond: (context) =>
                 !!context.bid &&
                 !context.auctions.find(
-                  (auction) => auction.auctionId === context.bid?.auctionId
+                  (auction) => auction.auctionId === context.bid?.auctionId,
                 ),
             },
             {
@@ -291,7 +295,7 @@ export const createAuctioneerMachine = ({
               actions: () =>
                 localStorage.setItem(
                   "auctioneer_tutorial",
-                  Date.now().toString()
+                  Date.now().toString(),
                 ),
             },
           },
@@ -320,10 +324,6 @@ export const createAuctioneerMachine = ({
           invoke: {
             src: async (context, event) => {
               const { tickets, auctionId } = event as BidEvent;
-
-              const auction = context.auctions.find(
-                (a) => a.auctionId === auctionId
-              ) as Auction;
 
               const { game } = await bid({
                 farmId: Number(context.farmId),
@@ -360,7 +360,7 @@ export const createAuctioneerMachine = ({
         checkingResults: {
           entry: "setTransactionId",
           invoke: {
-            src: async (context, event) => {
+            src: async (context) => {
               const auctionResult = await getAuctionResults({
                 farmId: Number(context.farmId),
                 token: context.token as string,
@@ -453,5 +453,5 @@ export const createAuctioneerMachine = ({
           transactionId: () => randomID(),
         }),
       },
-    }
+    },
   );

@@ -26,6 +26,7 @@ import {
   Inventory,
   InventoryItemName,
   PlacedLamp,
+  Purchase,
 } from "../types/game";
 import { getPromoCode, loadSession } from "../actions/loadSession";
 import { EMPTY } from "./constants";
@@ -48,11 +49,10 @@ import { isSwarming } from "../events/detectBot";
 import { generateTestLand } from "../expansion/actions/generateLand";
 
 import { loadGameStateForVisit } from "../actions/loadGameStateForVisit";
-import { OFFLINE_FARM } from "./landData";
 import { randomID } from "lib/utils/random";
 
 import { buySFL } from "../actions/buySFL";
-import { CollectibleLocation, PurchasableItems } from "../types/collectibles";
+import { CollectibleLocation } from "../types/collectibles";
 import {
   getGameRulesLastRead,
   getIntroductionRead,
@@ -62,14 +62,12 @@ import { depositToFarm } from "lib/blockchain/Deposit";
 import Decimal from "decimal.js-light";
 import { setOnboardingComplete } from "features/auth/actions/onboardingComplete";
 import { Announcements } from "../types/announcements";
-import { purchaseItem, purchaseItemOnChain } from "../actions/purchaseItem";
 import {
   Currency,
   buyBlockBucks,
   buyBlockBucksMATIC,
 } from "../actions/buyBlockBucks";
 import { getSessionId } from "lib/blockchain/Session";
-import { depositBumpkin } from "../actions/deposit";
 import { mintAuctionItem } from "../actions/mintAuctionItem";
 import { BumpkinItem } from "../types/bumpkin";
 import { getAuctionResults } from "../actions/getAuctionResults";
@@ -95,13 +93,11 @@ import {
 } from "../actions/sellMarketResource";
 import { setCachedMarketPrices } from "features/world/ui/market/lib/marketCache";
 import { MinigameName } from "../types/minigames";
-import { getBumpkinLevel } from "./level";
+import { OFFLINE_FARM } from "./landData";
+import { Effect, postEffect } from "../actions/effect";
 
-const getPortal = () => {
-  const code = new URLSearchParams(window.location.search).get("portal");
-
-  return code;
-};
+// Run at startup in case removed from query params
+const portalName = new URLSearchParams(window.location.search).get("portal");
 
 const getRedirect = () => {
   const code = new URLSearchParams(window.location.search).get("redirect");
@@ -143,6 +139,7 @@ export interface Context {
   nftId?: number;
   paused?: boolean;
   verified?: boolean;
+  purchases: Purchase[];
 }
 
 export type Moderation = {
@@ -194,12 +191,6 @@ type WalletUpdatedEvent = {
   nftId: number;
 };
 
-type PurchaseEvent = {
-  type: "PURCHASE_ITEM";
-  name: PurchasableItems;
-  amount: number;
-};
-
 type BuyBlockBucksEvent = {
   type: "BUY_BLOCK_BUCKS";
   currency: Currency;
@@ -242,7 +233,6 @@ type DepositEvent = {
   itemAmounts: string[];
   wearableIds: number[];
   wearableAmounts: number[];
-  bumpkinTokenUri?: string;
   budIds: number[];
 };
 
@@ -256,6 +246,7 @@ type ListingEvent = {
   sellerId: number;
   items: Partial<Record<InventoryItemName, number>>;
   sfl: number;
+  signature?: string;
 };
 
 type DeleteTradeListingEvent = {
@@ -283,13 +274,17 @@ export type UpdateUsernameEvent = {
   username: string;
 };
 
+type PostEffectEvent = {
+  type: "POST_EFFECT";
+  effect: Effect;
+};
+
 export type BlockchainEvent =
   | {
       type: "SAVE";
     }
   | WalletUpdatedEvent
   | SyncEvent
-  | PurchaseEvent
   | CommunityEvent
   | ListingEvent
   | DeleteTradeListingEvent
@@ -348,6 +343,7 @@ export type BlockchainEvent =
   | DepositEvent
   | UpdateEvent
   | UpdateUsernameEvent
+  | PostEffectEvent
   | { type: "EXPAND" }
   | { type: "SAVE_SUCCESS" }
   | { type: "UPGRADE" }
@@ -400,7 +396,7 @@ const GAME_EVENT_HANDLERS: TransitionsConfig<Context, BlockchainEvent> =
         },
       ],
     }),
-    {}
+    {},
   );
 
 const PLACEMENT_EVENT_HANDLERS: TransitionsConfig<Context, BlockchainEvent> =
@@ -424,7 +420,7 @@ const PLACEMENT_EVENT_HANDLERS: TransitionsConfig<Context, BlockchainEvent> =
         })),
       },
     }),
-    {}
+    {},
   );
 
 export type BlockchainState = {
@@ -441,7 +437,6 @@ export type BlockchainState = {
     | "syncing"
     | "synced"
     | "minting"
-    | "purchasing"
     | "buyingSFL"
     | "revealing"
     | "revealed"
@@ -455,7 +450,6 @@ export type BlockchainState = {
     | "transacting"
     | "depositing"
     | "landscaping"
-    | "fontReward"
     | "specialOffer"
     | "promo"
     | "trading"
@@ -466,10 +460,10 @@ export type BlockchainState = {
     | "fulfillTradeListing"
     | "sellMarketResource"
     | "sniped"
+    | "tradeAlreadyFulfilled"
     | "priceChanged"
     | "buds"
     | "airdrop"
-    | "noBumpkinFound"
     | "coolingDown"
     | "buyingBlockBucks"
     | "auctionResults"
@@ -479,6 +473,7 @@ export type BlockchainState = {
     | "withdrawing"
     | "withdrawn"
     | "provingPersonhood"
+    | "somethingArrived"
     | "randomising"; // TEST ONLY
   context: Context;
 };
@@ -499,7 +494,7 @@ export const saveGame = async (
   context: Context,
   event: any,
   farmId: number,
-  rawToken: string
+  rawToken: string,
 ) => {
   const saveAt = new Date();
 
@@ -538,7 +533,7 @@ export const saveGame = async (
 const handleSuccessfulSave = (context: Context, event: any) => {
   // Actions that occured since the server request
   const recentActions = context.actions.filter(
-    (action) => action.createdAt.getTime() > event.data.saveAt.getTime()
+    (action) => action.createdAt.getTime() > event.data.saveAt.getTime(),
   );
 
   const updatedState = recentActions.reduce((state, action) => {
@@ -578,6 +573,7 @@ export function startGame(authContext: AuthContext) {
         },
         saveQueued: false,
         verified: !CONFIG.API_URL,
+        purchases: [],
       },
       states: {
         loading: {
@@ -628,6 +624,7 @@ export function startGame(authContext: AuthContext) {
                 nftId: response.nftId,
                 wallet: response.wallet,
                 verified: response.verified,
+                purchases: response.purchases,
               };
             },
             onDone: [
@@ -637,7 +634,7 @@ export function startGame(authContext: AuthContext) {
               },
               {
                 target: "portalling",
-                cond: () => !!getPortal(),
+                cond: () => !!portalName,
                 actions: ["assignGame"],
               },
               {
@@ -665,7 +662,7 @@ export function startGame(authContext: AuthContext) {
           id: "portalling",
           invoke: {
             src: async (context) => {
-              const portalId = getPortal() as MinigameName;
+              const portalId = portalName as MinigameName;
               const { token } = await portal({
                 portalId,
                 token: authContext.user.rawToken as string,
@@ -759,11 +756,7 @@ export function startGame(authContext: AuthContext) {
                 );
               },
             },
-            {
-              target: "noBumpkinFound",
-              cond: (context: Context, event: any) =>
-                !event.data?.state.bumpkin && !context.state.bumpkin,
-            },
+
             {
               target: "introduction",
               cond: (context) => {
@@ -791,6 +784,10 @@ export function startGame(authContext: AuthContext) {
                 !context.state.collectibles["Clash of Factions Banner"] &&
                 !getSeasonPassRead(),
             },
+            {
+              target: "somethingArrived",
+              cond: (context) => !!context.revealed,
+            },
             // EVENTS THAT TARGET NOTIFYING OR LOADING MUST GO ABOVE THIS LINE
 
             // EVENTS THAT TARGET PLAYING MUST GO BELOW THIS LINE
@@ -807,26 +804,10 @@ export function startGame(authContext: AuthContext) {
               target: "airdrop",
               cond: (context) => {
                 const airdrop = context.state.airdrops?.find(
-                  (airdrop) => !airdrop.coordinates
+                  (airdrop) => !airdrop.coordinates,
                 );
 
                 return !!airdrop;
-              },
-            },
-
-            {
-              target: "fontReward",
-              cond: (context) => {
-                return (
-                  // Not a new account
-                  context.state.createdAt < new Date("2024-06-09").getTime() &&
-                  // Claims before period ends
-                  Date.now() < new Date("2024-06-15").getTime() &&
-                  // Has played a bit
-                  getBumpkinLevel(context.state.bumpkin?.experience ?? 0) >=
-                    10 &&
-                  !context.state.wardrobe["Pixel Perfect Hoodie"]
-                );
               },
             },
 
@@ -841,16 +822,6 @@ export function startGame(authContext: AuthContext) {
             },
           ],
         },
-        noBumpkinFound: {
-          on: {
-            DEPOSIT: {
-              target: "depositing",
-            },
-            REFRESH: {
-              target: "refreshing",
-            },
-          },
-        },
         specialOffer: {
           on: {
             "banner.purchased": (GAME_EVENT_HANDLERS as any)[
@@ -861,11 +832,13 @@ export function startGame(authContext: AuthContext) {
             },
           },
         },
-        fontReward: {
+        somethingArrived: {
           on: {
-            "bonus.claimed": (GAME_EVENT_HANDLERS as any)["bonus.claimed"],
             ACKNOWLEDGE: {
-              target: "autosaving",
+              target: "notifying",
+              actions: assign((context: Context) => ({
+                revealed: undefined,
+              })),
             },
           },
         },
@@ -978,18 +951,21 @@ export function startGame(authContext: AuthContext) {
              * It is a rare event but it saves a user from making too much progress that would not be synced
              */
             src: (context) => (cb) => {
-              const interval = setInterval(async () => {
-                if (!context.farmAddress) return;
+              const interval = setInterval(
+                async () => {
+                  if (!context.farmAddress) return;
 
-                const sessionID = await getSessionId(
-                  wallet.web3Provider,
-                  context.farmId as number
-                );
+                  const sessionID = await getSessionId(
+                    wallet.web3Provider,
+                    context.farmId as number,
+                  );
 
-                if (sessionID !== context.sessionId) {
-                  cb("EXPIRED");
-                }
-              }, 1000 * 60 * 2);
+                  if (sessionID !== context.sessionId) {
+                    cb("EXPIRED");
+                  }
+                },
+                1000 * 60 * 2,
+              );
 
               return () => {
                 clearInterval(interval);
@@ -1034,9 +1010,6 @@ export function startGame(authContext: AuthContext) {
             BUY_BLOCK_BUCKS: {
               target: "buyingBlockBucks",
             },
-            PURCHASE_ITEM: {
-              target: "purchasing",
-            },
             REVEAL: {
               target: "revealing",
             },
@@ -1065,6 +1038,7 @@ export function startGame(authContext: AuthContext) {
               target: "buyingSFL",
             },
             LIST_TRADE: { target: "listing" },
+            POST_EFFECT: { target: "effect" },
             DELETE_TRADE_LISTING: { target: "deleteTradeListing" },
             FULFILL_TRADE_LISTING: { target: "fulfillTradeListing" },
             SELL_MARKET_RESOURCE: { target: "sellMarketResource" },
@@ -1079,6 +1053,15 @@ export function startGame(authContext: AuthContext) {
                     ).add(event.amount),
                   },
                 },
+                purchases: [
+                  ...context.purchases,
+                  {
+                    id: "Block Buck",
+                    method: "XSOLLA",
+                    purchasedAt: Date.now(),
+                    usd: 1, // Placeholder
+                  } as Purchase,
+                ],
               })),
             },
             UPDATE: {
@@ -1129,7 +1112,7 @@ export function startGame(authContext: AuthContext) {
                 context,
                 event,
                 context.farmId as number,
-                authContext.user.rawToken as string
+                authContext.user.rawToken as string,
               );
 
               return data;
@@ -1140,13 +1123,13 @@ export function startGame(authContext: AuthContext) {
                 // If a SAVE was queued up, go back into saving
                 cond: (c) => c.saveQueued,
                 actions: assign((context: Context, event) =>
-                  handleSuccessfulSave(context, event)
+                  handleSuccessfulSave(context, event),
                 ),
               },
               {
                 target: "playing",
                 actions: assign((context: Context, event) =>
-                  handleSuccessfulSave(context, event)
+                  handleSuccessfulSave(context, event),
                 ),
               },
             ],
@@ -1280,6 +1263,15 @@ export function startGame(authContext: AuthContext) {
                     ).add(event.data.amount),
                   },
                 },
+                purchases: [
+                  ...context.purchases,
+                  {
+                    id: `${event.data.amount} Block Buck`,
+                    method: "MATIC",
+                    purchasedAt: Date.now(),
+                    usd: 1, // Placeholder
+                  },
+                ],
               })),
             },
             onError: [
@@ -1298,49 +1290,7 @@ export function startGame(authContext: AuthContext) {
             ],
           },
         },
-        purchasing: {
-          entry: "setTransactionId",
-          invoke: {
-            src: async (context, event) => {
-              const response = await purchaseItem({
-                farmId: Number(context.farmId),
-                token: authContext.user.rawToken as string,
-                transactionId: context.transactionId as string,
-                item: (event as PurchaseEvent).name,
-                amount: (event as PurchaseEvent).amount,
-              });
 
-              const sessionId = await purchaseItemOnChain({
-                transaction: response.transaction,
-                item: response.item,
-                amount: response.amount,
-              });
-
-              return { sessionId };
-            },
-            onDone: {
-              target: "synced",
-              actions: assign((_, event) => ({
-                sessionId: event.data.sessionId,
-                actions: [],
-              })),
-            },
-            onError: [
-              {
-                target: "#playing",
-                cond: (_, event: any) =>
-                  event.data.message === ERRORS.REJECTED_TRANSACTION,
-                actions: assign((_) => ({
-                  actions: [],
-                })),
-              },
-              {
-                target: "#error",
-                actions: "assignErrorMessage",
-              },
-            ],
-          },
-        },
         // Similar to autosaving, but for events that are only processed server side
         revealing: {
           entry: "setTransactionId",
@@ -1412,7 +1362,7 @@ export function startGame(authContext: AuthContext) {
                       }
 
                       return lamp;
-                    }
+                    },
                   );
 
                   return {
@@ -1451,6 +1401,9 @@ export function startGame(authContext: AuthContext) {
           on: {
             CONTINUE: {
               target: "playing",
+              actions: assign((_, event) => ({
+                revealed: undefined,
+              })),
             },
           },
         },
@@ -1466,7 +1419,7 @@ export function startGame(authContext: AuthContext) {
                 // Delete the Lamp from the collectibles after it's been rubbed 3 times
                 const lamps = context.state.collectibles["Genie Lamp"];
                 const newLamps = lamps?.filter(
-                  (lamp) => !shouldRemoveLamp(lamp)
+                  (lamp) => !shouldRemoveLamp(lamp),
                 );
 
                 return {
@@ -1477,6 +1430,7 @@ export function startGame(authContext: AuthContext) {
                       "Genie Lamp": newLamps,
                     },
                   },
+                  revealed: undefined,
                 };
               }),
             },
@@ -1490,7 +1444,7 @@ export function startGame(authContext: AuthContext) {
                 // Delete the Bean from the collectibles
                 const beans = context.state.collectibles["Magic Bean"];
                 const newBeans = beans?.filter(
-                  (bean) => !(bean.id === event.id)
+                  (bean) => !(bean.id === event.id),
                 );
 
                 return {
@@ -1501,6 +1455,7 @@ export function startGame(authContext: AuthContext) {
                       "Magic Bean": newBeans,
                     },
                   },
+                  revealed: undefined,
                 };
               }),
             },
@@ -1510,7 +1465,7 @@ export function startGame(authContext: AuthContext) {
           entry: "setTransactionId",
           invoke: {
             src: async (context, event) => {
-              const { sellerId, items, sfl } = event as ListingEvent;
+              const { sellerId, items, sfl, signature } = event as ListingEvent;
 
               if (context.actions.length > 0) {
                 await autosave({
@@ -1529,6 +1484,8 @@ export function startGame(authContext: AuthContext) {
                 token: authContext.user.rawToken as string,
                 items,
                 sfl,
+                transactionId: context.transactionId as string,
+                signature,
               });
 
               return { state };
@@ -1555,6 +1512,50 @@ export function startGame(authContext: AuthContext) {
             CONTINUE: "playing",
           },
         },
+        effect: {
+          entry: "setTransactionId",
+          invoke: {
+            src: async (context, event) => {
+              const { effect } = event as PostEffectEvent;
+
+              if (context.actions.length > 0) {
+                await autosave({
+                  farmId: Number(context.farmId),
+                  sessionId: context.sessionId as string,
+                  actions: context.actions,
+                  token: authContext.user.rawToken as string,
+                  fingerprint: context.fingerprint as string,
+                  deviceTrackerId: context.deviceTrackerId as string,
+                  transactionId: context.transactionId as string,
+                });
+              }
+
+              const state = await postEffect({
+                farmId: Number(context.farmId),
+                effect,
+                token: authContext.user.rawToken as string,
+                transactionId: context.transactionId as string,
+              });
+
+              return { state };
+            },
+            onDone: [
+              {
+                target: "playing",
+                actions: [
+                  assign((_, event) => ({
+                    actions: [],
+                    state: event.data.state,
+                  })),
+                ],
+              },
+            ],
+            onError: {
+              target: "error",
+              actions: "assignErrorMessage",
+            },
+          },
+        },
         deleteTradeListing: {
           entry: "setTransactionId",
           invoke: {
@@ -1574,22 +1575,33 @@ export function startGame(authContext: AuthContext) {
                 });
               }
 
-              const state = await deleteListingRequest({
+              const { farm, error } = await deleteListingRequest({
                 sellerId,
                 listingId,
                 listingType,
                 token: authContext.user.rawToken as string,
+                transactionId: context.transactionId as string,
               });
 
-              return { state };
+              return { farm, error };
             },
             onDone: [
+              {
+                target: "tradeAlreadyFulfilled",
+                cond: (_, event) => event.data.error === "ALREADY_BOUGHT",
+                actions: [
+                  assign((_, event) => ({
+                    actions: [],
+                    state: event.data.farm,
+                  })),
+                ],
+              },
               {
                 target: "tradeListingDeleted",
                 actions: [
                   assign((_, event) => ({
                     actions: [],
-                    state: event.data.state,
+                    state: event.data.farm,
                   })),
                 ],
               },
@@ -1630,6 +1642,7 @@ export function startGame(authContext: AuthContext) {
                 listingId,
                 listingType,
                 token: authContext.user.rawToken as string,
+                transactionId: context.transactionId as string,
               });
 
               return {
@@ -1671,6 +1684,11 @@ export function startGame(authContext: AuthContext) {
           },
         },
         sniped: {
+          on: {
+            CONTINUE: "playing",
+          },
+        },
+        tradeAlreadyFulfilled: {
           on: {
             CONTINUE: "playing",
           },
@@ -1747,30 +1765,20 @@ export function startGame(authContext: AuthContext) {
                 itemIds,
                 wearableIds,
                 wearableAmounts,
-                bumpkinTokenUri,
                 budIds,
               } = event as DepositEvent;
 
-              if (bumpkinTokenUri) {
-                await depositBumpkin({
-                  tokenUri: bumpkinTokenUri,
-                  farmId: context.farmId as number,
-                  token: authContext.user.rawToken as string,
-                  transactionId: context.transactionId as string,
-                });
-              } else {
-                await depositToFarm({
-                  web3: wallet.web3Provider,
-                  account: wallet.myAccount,
-                  farmId: context.nftId as number,
-                  sfl: sfl,
-                  itemIds: itemIds,
-                  itemAmounts: itemAmounts,
-                  wearableAmounts,
-                  wearableIds,
-                  budIds,
-                });
-              }
+              await depositToFarm({
+                web3: wallet.web3Provider,
+                account: wallet.myAccount,
+                farmId: context.nftId as number,
+                sfl: sfl,
+                itemIds: itemIds,
+                itemAmounts: itemAmounts,
+                wearableAmounts,
+                wearableIds,
+                budIds,
+              });
             },
             onDone: {
               target: "refreshing",
@@ -1785,18 +1793,21 @@ export function startGame(authContext: AuthContext) {
           entry: "setTransactionId",
           invoke: {
             src: async (context, e) => {
-              const { success } = await reset({
+              const { success, changeset } = await reset({
                 farmId: context.farmId,
                 token: authContext.user.rawToken as string,
                 fingerprint: context.fingerprint as string,
                 transactionId: context.transactionId as string,
               });
 
-              return { success };
+              return { success, changeset };
             },
             onDone: [
               {
                 target: "loading",
+                actions: assign({
+                  revealed: (_, event) => event.data.changeset,
+                }),
               },
             ],
             onError: {
@@ -1886,13 +1897,13 @@ export function startGame(authContext: AuthContext) {
                     gameMachineContext: context,
                     rawToken: authContext.user.rawToken as string,
                     farmId: context.farmId,
-                  } as SaveEvent),
-                { to: "landscaping" }
+                  }) as SaveEvent,
+                { to: "landscaping" },
               ),
             },
             SAVE_SUCCESS: {
               actions: assign((context: Context, event: any) =>
-                handleSuccessfulSave(context, event)
+                handleSuccessfulSave(context, event),
               ),
             },
           },
@@ -2073,7 +2084,10 @@ export function startGame(authContext: AuthContext) {
       actions: {
         initialiseAnalytics: (context, event: any) => {
           if (!ART_MODE) {
-            gameAnalytics.initialise(event.data.analyticsId);
+            gameAnalytics.initialise({
+              id: event.data.analyticsId,
+              experiments: context.state?.experiments ?? [],
+            });
             onboardingAnalytics.initialise({
               id: context.farmId,
             });
@@ -2112,6 +2126,7 @@ export function startGame(authContext: AuthContext) {
           wallet: (_, event) => event.data.wallet,
           nftId: (_, event) => event.data.nftId,
           verified: (_, event) => event.data.verified,
+          purchases: (_, event) => event.data.purchases,
         }),
         setTransactionId: assign<Context, any>({
           transactionId: () => randomID(),
@@ -2120,6 +2135,6 @@ export function startGame(authContext: AuthContext) {
           transactionId: () => undefined,
         }),
       },
-    }
+    },
   );
 }

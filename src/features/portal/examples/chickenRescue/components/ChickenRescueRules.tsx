@@ -14,9 +14,11 @@ import {
   MinigamePrize,
 } from "features/game/types/game";
 import { secondsToString } from "lib/utils/time";
-import { PortalContext } from "../lib/PortalProvider";
 import { useActor } from "@xstate/react";
 import { ITEM_DETAILS } from "features/game/types/images";
+import { PortalContext } from "../lib/PortalProvider";
+import { getKeys } from "features/game/types/craftables";
+import giftIcon from "assets/icons/gift.png";
 
 interface Props {
   onAcknowledged: () => void;
@@ -57,14 +59,19 @@ export const MinigamePrizeUI: React.FC<{
               {secondsToString(secondsLeft, { length: "medium" })}
             </Label>
           )}
-          <div className="flex items-center space-x-2">
-            {!!prize.marks && (
-              <Label icon={ITEM_DETAILS.Mark.image} type="warning">
-                {`${prize.marks} Marks`}
+          <div className="flex flex-wrap justify-between items-center gap-2">
+            {getKeys(prize.items).map((item) => (
+              <Label key={item} type="warning" icon={ITEM_DETAILS[item].image}>
+                {`${prize.items[item]} x ${item}`}
               </Label>
-            )}
+            ))}
+            {getKeys(prize.wearables).map((item) => (
+              <Label key={item} type="warning" icon={giftIcon}>
+                {`${prize.wearables[item]} x ${item}`}
+              </Label>
+            ))}
             {!!prize.coins && (
-              <Label icon={coins} type="warning">
+              <Label type="warning" icon={coins}>
                 {prize.coins}
               </Label>
             )}
@@ -83,7 +90,7 @@ export const MinigameAttempts: React.FC<{
 
   // There is only one type of purchase with chicken rescue - if they have activated in last 7 days
   const hasUnlimitedAttempts = purchases.some(
-    (purchase) => purchase.purchasedAt > Date.now() - 24 * 60 * 60 * 1000
+    (purchase) => purchase.purchasedAt > Date.now() - 24 * 60 * 60 * 1000,
   );
 
   const hasMoreAttempts = attemptsLeft > 0;
@@ -95,7 +102,7 @@ export const MinigameAttempts: React.FC<{
   if (hasMoreAttempts) {
     return (
       <Label type="vibrant">{`${attemptsLeft}  ${t(
-        "minigame.attemptsRemaining"
+        "minigame.attemptsRemaining",
       )}`}</Label>
     );
   }

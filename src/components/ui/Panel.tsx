@@ -9,7 +9,7 @@ import {
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { Equipped } from "features/game/types/bumpkin";
 
-import primaryButton from "assets/ui/light_button.png";
+import { SUNNYSIDE } from "assets/sunnyside";
 import { useIsDarkMode } from "lib/utils/hooks/useIsDarkMode";
 
 export interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -132,19 +132,23 @@ type ButtonPanelProps = React.HTMLAttributes<HTMLDivElement>;
  * A panel with a single layered pixel effect
  */
 export const ButtonPanel: React.FC<
-  ButtonPanelProps & { disabled?: boolean }
+  ButtonPanelProps & { disabled?: boolean; selected?: boolean }
 > = ({ children, disabled, ...divProps }) => {
-  const { className, style, ...otherDivProps } = divProps;
+  const { className, style, selected, ...otherDivProps } = divProps;
 
   return (
     <div
-      className={classNames(className, "hover:brightness-90 cursor-pointer", {
-        "opacity-50": !!disabled,
-      })}
+      className={classNames(
+        className,
+        "hover:brightness-90 cursor-pointer relative",
+        {
+          "opacity-50": !!disabled,
+        },
+      )}
       style={{
         ...pixelDarkBorderStyle,
         padding: `${PIXEL_SCALE * 1}px`,
-        borderImage: `url(${primaryButton})`,
+        borderImage: `url(${SUNNYSIDE.ui.primaryButton})`,
         borderStyle: "solid",
         borderWidth: `8px 8px 10px 8px`,
         borderImageSlice: "3 3 4 3 fill",
@@ -156,6 +160,24 @@ export const ButtonPanel: React.FC<
       {...otherDivProps}
     >
       {children}
+
+      {selected && (
+        <div
+          className="absolute"
+          style={{
+            borderImage: `url(${SUNNYSIDE.ui.select_box})`,
+            borderStyle: "solid",
+            borderWidth: `18px 16px 18px`,
+            borderImageSlice: "9 8 9 8 fill",
+            imageRendering: "pixelated",
+            borderImageRepeat: "stretch",
+            top: `${PIXEL_SCALE * -4}px`,
+            right: `${PIXEL_SCALE * -4}px`,
+            left: `${PIXEL_SCALE * -4}px`,
+            bottom: `${PIXEL_SCALE * -4}px`,
+          }}
+        />
+      )}
     </div>
   );
 };

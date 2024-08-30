@@ -12,14 +12,14 @@ export function makeGame(farm: any): GameState {
         ...items,
         [item]: new Decimal(farm.inventory[item]),
       }),
-      {} as Record<InventoryItemName, Decimal>
+      {} as Record<InventoryItemName, Decimal>,
     ),
     previousInventory: Object.keys(farm.previousInventory).reduce(
       (items, item) => ({
         ...items,
         [item]: new Decimal(farm.previousInventory[item]),
       }),
-      {} as Record<InventoryItemName, Decimal>
+      {} as Record<InventoryItemName, Decimal>,
     ),
     wardrobe: farm.wardrobe,
     previousWardrobe: farm.previousWardrobe,
@@ -28,7 +28,7 @@ export function makeGame(farm: any): GameState {
         ...items,
         [item]: new Decimal(farm.stock[item]),
       }),
-      {} as Record<InventoryItemName, Decimal>
+      {} as Record<InventoryItemName, Decimal>,
     ),
     island: farm.island,
     home: farm.home,
@@ -91,10 +91,6 @@ export function makeGame(farm: any): GameState {
       unread: [],
     },
     mushrooms: farm.mushrooms,
-    catchTheKraken: farm.catchTheKraken ?? {
-      weeklyCatches: {},
-      hunger: undefined,
-    },
     delivery: farm.delivery,
     potionHouse: farm.potionHouse,
     npcs: farm.npcs,
@@ -102,6 +98,8 @@ export function makeGame(farm: any): GameState {
     christmas: farm.christmas,
     flowerShop: farm.flowerShop,
     specialEvents: farm.specialEvents,
+    experiments: farm.experiments,
+    rewards: farm.rewards,
     megastore: {
       ...farm.megastore,
       wearables: farm.megastore.wearables.map((wearable: any) => ({
@@ -121,5 +119,6 @@ export function makeGame(farm: any): GameState {
           amount: new Decimal(farm.dailyFactionDonationRequest.amount),
         }
       : undefined,
+    desert: farm.desert,
   };
 }

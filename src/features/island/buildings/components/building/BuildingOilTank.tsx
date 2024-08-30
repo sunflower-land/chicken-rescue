@@ -18,12 +18,12 @@ import {
   BUILDING_OIL_BOOSTS,
   isCookingBuilding,
 } from "features/game/events/landExpansion/cook";
-import { COOKABLES, CookableName } from "features/game/types/consumables";
+import { CookableName } from "features/game/types/consumables";
 import { Context } from "features/game/GameProvider";
 import { ModalOverlay } from "components/ui/ModalOverlay";
 import { InnerPanel } from "components/ui/Panel";
 import { SUNNYSIDE } from "assets/sunnyside";
-import { setPrecision } from "lib/utils/formatNumber";
+import { formatNumber } from "lib/utils/formatNumber";
 import Decimal from "decimal.js-light";
 import { Box } from "components/ui/Box";
 import useUiRefresher from "lib/utils/hooks/useUiRefresher";
@@ -49,7 +49,7 @@ export const BuildingOilTank = ({
   const [totalOilToAdd, setTotalOilToAdd] = useState(0);
 
   const building = game.buildings[buildingName]?.find(
-    (building) => building.id === buildingId
+    (building) => building.id === buildingId,
   );
 
   const oilRemainingInBuilding = building?.oil || 0;
@@ -122,7 +122,7 @@ export const BuildingOilTank = ({
     }
 
     const buildingTimeCapacity = getOilTimeInMillis(
-      BUILDING_DAILY_OIL_CAPACITY[buildingName]
+      BUILDING_DAILY_OIL_CAPACITY[buildingName],
     );
 
     const percentage = (totalOilMillis / buildingTimeCapacity) * 100;
@@ -135,26 +135,7 @@ export const BuildingOilTank = ({
       return 0;
     }
 
-    const readyAt = building?.crafting?.readyAt;
-
-    if (!readyAt || !currentlyCooking)
-      return getOilTimeInMillis(oilRemainingInBuilding) / 1000;
-
-    const secondsTillReady = (readyAt - Date.now()) / 1000;
-
-    const cookingSeconds = COOKABLES[currentlyCooking]?.cookingSeconds;
-
-    const oilInRecipe = building?.crafting?.boost?.["Oil"] ?? 0;
-
-    const percentageCooked = secondsTillReady / cookingSeconds;
-
-    const oilAllocatedRemaining = oilInRecipe * percentageCooked;
-
-    // Calculate the building remaining oil time
-    const remainingOilTime =
-      getOilTimeInMillis(oilRemainingInBuilding + oilAllocatedRemaining) / 1000;
-
-    return remainingOilTime;
+    return getOilTimeInMillis(oilRemainingInBuilding) / 1000;
   };
 
   const oilInTank = calculatePercentageFull(buildingName);
@@ -271,10 +252,8 @@ export const BuildingOilTank = ({
                   className="mx-1.5 mt-2"
                 >
                   {t("cropMachine.availableInventory", {
-                    amount: setPrecision(
-                      new Decimal(
-                        (game.inventory.Oil?.toNumber() ?? 0) - totalOilToAdd
-                      )
+                    amount: formatNumber(
+                      (game.inventory.Oil?.toNumber() ?? 0) - totalOilToAdd,
                     ),
                   })}
                 </Label>
@@ -294,7 +273,7 @@ export const BuildingOilTank = ({
                             length: "full",
                             isShortFormat: true,
                             removeTrailingZeros: true,
-                          }
+                          },
                         ),
                       })}
                     </span>

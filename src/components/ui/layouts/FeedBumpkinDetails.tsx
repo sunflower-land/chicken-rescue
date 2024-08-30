@@ -4,6 +4,7 @@ import { ITEM_DETAILS } from "features/game/types/images";
 import React from "react";
 import { RequirementLabel } from "../RequirementsLabel";
 import { SquareIcon } from "../SquareIcon";
+import { translateTerms } from "lib/i18n/translate";
 
 /**
  * The props for the details for items.
@@ -46,7 +47,7 @@ export const FeedBumpkinDetails: React.FC<Props> = ({
     const item = ITEM_DETAILS[details.item];
     const icon = item.image;
     const title = details.item;
-    const description = item.description;
+    const description = translateTerms(item.description);
 
     return (
       <>
@@ -58,7 +59,7 @@ export const FeedBumpkinDetails: React.FC<Props> = ({
           )}
           <span className="sm:text-center">{title}</span>
         </div>
-        <span className="text-xs sm:mt-1 whitespace-pre-line sm:text-center">
+        <span className="text-xs mb-2 sm:mt-1 whitespace-pre-line sm:text-center">
           {description}
         </span>
       </>
@@ -69,7 +70,7 @@ export const FeedBumpkinDetails: React.FC<Props> = ({
     if (!properties) return <></>;
 
     return (
-      <div className="border-t border-white w-full my-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap sm:flex-col sm:items-center sm:flex-nowrap">
+      <div className="border-t border-white w-full mb-2 pt-2 flex justify-between gap-x-3 gap-y-2 flex-wrap sm:flex-col sm:items-center sm:flex-nowrap">
         {/* XP display */}
         {!!properties.xp && <RequirementLabel type="xp" xp={properties.xp} />}
       </div>

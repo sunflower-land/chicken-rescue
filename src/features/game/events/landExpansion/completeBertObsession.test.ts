@@ -10,24 +10,6 @@ describe("completeBertObsession", () => {
     jest.useRealTimers();
   });
 
-  it("throws an error if no bumpkin exists", () => {
-    const now = new Date("2023-08-16T00:00:00.000Z");
-    jest.setSystemTime(now);
-
-    expect(() =>
-      completeBertObsession({
-        state: {
-          ...TEST_FARM,
-          npcs: { bert: { deliveryCount: 1 } },
-          bumpkin: undefined,
-        },
-        action: {
-          type: "bertObsession.completed",
-        },
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("throws an error if no NPCs exists", () => {
     const now = new Date("2023-08-16T00:00:00.000Z");
     jest.setSystemTime(now);
@@ -42,7 +24,7 @@ describe("completeBertObsession", () => {
         action: {
           type: "bertObsession.completed",
         },
-      })
+      }),
     ).toThrow("NPCs does not exist");
   });
 
@@ -60,7 +42,7 @@ describe("completeBertObsession", () => {
         action: {
           type: "bertObsession.completed",
         },
-      })
+      }),
     ).toThrow("No discovery available");
   });
 
@@ -84,7 +66,7 @@ describe("completeBertObsession", () => {
         action: {
           type: "bertObsession.completed",
         },
-      })
+      }),
     ).toThrow("You do not have the collectible required");
   });
 
@@ -109,7 +91,7 @@ describe("completeBertObsession", () => {
         action: {
           type: "bertObsession.completed",
         },
-      })
+      }),
     ).toThrow("You do not have the wearable required");
   });
 
@@ -224,7 +206,7 @@ describe("completeBertObsession", () => {
         action: {
           type: "bertObsession.completed",
         },
-      })
+      }),
     ).toThrow("This obsession is already completed");
   });
 });

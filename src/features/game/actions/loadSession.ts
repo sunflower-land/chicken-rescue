@@ -3,7 +3,7 @@ import { CONFIG } from "lib/config";
 import { ERRORS } from "lib/errors";
 import { sanitizeHTTPResponse } from "lib/network";
 import { makeGame } from "../lib/transforms";
-import { GameState } from "../types/game";
+import { GameState, Purchase } from "../types/game";
 import { Announcements } from "../types/announcements";
 import {
   getReferrerId,
@@ -35,11 +35,18 @@ type Response = {
   linkedWallet?: string;
   wallet?: string;
   nftId?: number;
+  purchases: Purchase[];
 };
 
 const API_URL = CONFIG.API_URL;
 
+let loadSessionErrors = 0;
+
 export async function loadSession(request: Request): Promise<Response> {
+  if (loadSessionErrors) {
+    await new Promise((res) => setTimeout(res, loadSessionErrors * 5000));
+  }
+
   const promoCode = getPromoCode();
   const referrerId = getReferrerId();
   const signUpMethod = getSignupMethod();
@@ -74,8 +81,12 @@ export async function loadSession(request: Request): Promise<Response> {
   }
 
   if (response.status >= 400) {
+    loadSessionErrors += 1;
+
     throw new Error(ERRORS.SESSION_SERVER_ERROR);
   }
+
+  loadSessionErrors = 0;
 
   const {
     farm,
@@ -93,6 +104,7 @@ export async function loadSession(request: Request): Promise<Response> {
     linkedWallet,
     wallet,
     nftId,
+    purchases,
   } = await sanitizeHTTPResponse<{
     farm: any;
     startedAt: string;
@@ -111,6 +123,7 @@ export async function loadSession(request: Request): Promise<Response> {
     nftId?: number;
     linkedWallet?: string;
     wallet?: string;
+    purchases: Purchase[];
   }>(response);
 
   saveSession(farm.id);
@@ -131,6 +144,7 @@ export async function loadSession(request: Request): Promise<Response> {
     linkedWallet,
     wallet,
     nftId,
+    purchases,
   };
 }
 

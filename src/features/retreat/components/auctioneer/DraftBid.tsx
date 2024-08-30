@@ -13,11 +13,10 @@ import { GameState } from "features/game/types/game";
 import classNames from "classnames";
 import { useCountdown } from "lib/utils/hooks/useCountdown";
 import { TimerDisplay } from "./AuctionDetails";
-import {
-  INPUT_MAX_CHAR,
-  VALID_NUMBER,
-} from "features/island/hud/components/AddSFL";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
+
+const VALID_NUMBER = new RegExp(/^\d*\.?\d*$/);
+const INPUT_MAX_CHAR = 10;
 
 /**
  * If they have enough resources, default the bid to 5 tickets
@@ -33,8 +32,8 @@ function getInitialTickets(auction: Auction, gameState: GameState) {
     getKeys(auction.ingredients).some(
       (name) =>
         !gameState.inventory[name]?.gt(
-          (auction.ingredients[name] ?? 0) * defaultTickets
-        )
+          (auction.ingredients[name] ?? 0) * defaultTickets,
+        ),
     )
   ) {
     return 1;
@@ -72,7 +71,7 @@ export const DraftBid: React.FC<Props> = ({
   // Validators for multi ingredient auctions. These auctions go up in multiples of tickets
   const missingSFL = gameState.balance.lt(auction.sfl * tickets);
   const missingIngredients = getKeys(auction.ingredients).some((name) =>
-    gameState.inventory[name]?.lt((auction.ingredients[name] ?? 0) * tickets)
+    gameState.inventory[name]?.lt((auction.ingredients[name] ?? 0) * tickets),
   );
 
   const getInputErrorMessage = () => {
@@ -105,11 +104,11 @@ export const DraftBid: React.FC<Props> = ({
         className="flex flex-col justify-center items-center relative"
         style={{ height: "200px" }}
       >
-        <div className="absolute -top-2 right-0">
+        <div className="absolute -top-1 right-0">
           {TimerDisplay({
             time: end,
             fontSize: 32,
-            color: end.minutes >= 1 ? "white" : "red",
+            color: end.minutes < 1 ? "red" : "#3e2731",
           })}
         </div>
         <div className="p-2 flex-1 flex flex-col items-center justify-center">
@@ -170,11 +169,11 @@ export const DraftBid: React.FC<Props> = ({
           <div />
         </div>
 
-        <div className="absolute -top-2 right-0">
+        <div className="absolute -top-1 right-0">
           {TimerDisplay({
             time: end,
             fontSize: 32,
-            color: end.minutes >= 1 ? "white" : "red",
+            color: end.minutes < 1 ? "red" : "#3e2731",
           })}
         </div>
 
@@ -218,7 +217,7 @@ export const DraftBid: React.FC<Props> = ({
                     <p
                       className={classNames("mr-1 text-right text-sm", {
                         ["text-red-500"]: gameState.inventory[name]?.lt(
-                          (auction.ingredients[name] ?? 0) * tickets
+                          (auction.ingredients[name] ?? 0) * tickets,
                         ),
                       })}
                     >
@@ -272,7 +271,7 @@ export const DraftBid: React.FC<Props> = ({
 
                   if (VALID_NUMBER.test(e.target.value)) {
                     const amount = Number(
-                      e.target.value.slice(0, INPUT_MAX_CHAR)
+                      e.target.value.slice(0, INPUT_MAX_CHAR),
                     );
                     setTickets(amount);
                   }
@@ -281,7 +280,7 @@ export const DraftBid: React.FC<Props> = ({
                   "my-1 text-shadow rounded-sm shadow-inner shadow-black bg-brown-200 p-2 h-10",
                   {
                     "text-error": !!getInputErrorMessage(),
-                  }
+                  },
                 )}
               />
               <img

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { InnerPanel, OuterPanel } from "components/ui/Panel";
+import { OuterPanel } from "components/ui/Panel";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 
 import { Modal } from "components/ui/Modal";
@@ -22,14 +22,13 @@ import { Label } from "components/ui/Label";
 import classNames from "classnames";
 import { useSound } from "lib/utils/hooks/useSound";
 
-import trophy from "assets/icons/trophy.png";
 import factions from "assets/icons/factions.webp";
 import chores from "assets/icons/chores.webp";
-import { TicketsLeaderboard } from "./pages/TicketsLeaderboard";
+import gift from "assets/icons/gift.png";
 import { Leaderboards } from "features/game/expansion/components/leaderboard/actions/cache";
 import { fetchLeaderboardData } from "features/game/expansion/components/leaderboard/actions/leaderboard";
-import { hasFeatureAccess } from "lib/flags";
-import { FactionsLeaderboard } from "./pages/FactionsLeaderboard";
+import { FactionLeaderboard } from "./pages/FactionLeaderboard";
+import { Season } from "./pages/Season";
 
 interface Props {
   show: boolean;
@@ -55,6 +54,7 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
 
   useEffect(() => {
     if (!show) return;
+    gameService.send("SAVE");
 
     const fetchLeaderboards = async () => {
       try {
@@ -95,12 +95,17 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
     String(gameService?.state?.context?.farmId);
 
   const incompleteDeliveries = state.delivery.orders.filter(
-    (order) => !order.completedAt
+    (order) => !order.completedAt,
   ).length;
 
   const incompleteChores = Object.values(state.chores?.chores ?? {}).filter(
-    (chore) => !chore.completedAt
+    (chore) => !chore.completedAt,
   ).length;
+
+  const inCompleteKingdomChores =
+    state.kingdomChores?.chores.filter(
+      (chore) => chore.startedAt && !chore.completedAt && !chore.skippedAt,
+    ).length ?? 0;
 
   const categories: CodexCategory[] = [
     {
@@ -111,7 +116,12 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
     {
       name: "Chores",
       icon: chores,
-      count: incompleteChores,
+      count: incompleteChores + inCompleteKingdomChores,
+    },
+    {
+      name: "Leaderboard" as const,
+      icon: gift,
+      count: 0,
     },
     {
       name: "Fish",
@@ -123,27 +133,20 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
       icon: ITEM_DETAILS["Red Pansy"].image,
       count: 0,
     },
-    ...(hasFeatureAccess(state, "FACTION_LEADERBOARD")
+
+    ...(state.faction
       ? [
           {
-            name: "Leaderboard" as const,
-            icon: trophy,
+            name: "Marks" as const,
+            icon: factions,
             count: 0,
           },
-          ...(state.faction
-            ? [
-                {
-                  name: "Factions" as const,
-                  icon: factions,
-                  count: 0,
-                },
-              ]
-            : []),
         ]
       : []),
   ];
 
   return (
+    // TODO feat/marks-leaderboard ADD SHOW
     <Modal show={show} onHide={handleHide} dialogClassName="md:max-w-3xl">
       <div className="h-[500px] relative">
         {/* Header */}
@@ -176,7 +179,7 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
                   <OuterPanel
                     key={`${tab}-${index}`}
                     className={classNames(
-                      "flex items-center relative p-0.5 mb-1 cursor-pointer"
+                      "flex items-center relative p-0.5 mb-1 cursor-pointer",
                     )}
                     onClick={() => handleTabClick(index)}
                     style={{
@@ -208,42 +211,30 @@ export const Codex: React.FC<Props> = ({ show, onHide }) => {
                 "overflow-y-auto scrollable": currentTab !== 5,
               })}
             > */}
-            {currentTab === 0 && <Deliveries />}
+            {currentTab === 0 && <Deliveries onClose={onHide} />}
             {currentTab === 1 && <Chores farmId={farmId} />}
             {currentTab === 2 && (
-              <Fish onMilestoneReached={handleMilestoneReached} />
+              <Season
+                id={id}
+                isLoading={data?.tickets === undefined}
+                data={data?.tickets ?? null}
+              />
             )}
             {currentTab === 3 && (
-              <Flowers onMilestoneReached={handleMilestoneReached} />
+              <Fish onMilestoneReached={handleMilestoneReached} />
             )}
             {currentTab === 4 && (
-              <InnerPanel
-                className={classNames(
-                  "flex flex-col h-full overflow-hidden overflow-y-auto scrollable"
-                )}
-              >
-                <TicketsLeaderboard
-                  id={id}
-                  isLoading={data === undefined}
-                  data={data?.tickets ?? null}
-                />
-              </InnerPanel>
+              <Flowers onMilestoneReached={handleMilestoneReached} />
             )}
+
             {currentTab === 5 && state.faction && (
-              <InnerPanel
-                className={classNames(
-                  "flex flex-col h-full overflow-hidden overflow-y-auto scrollable"
-                )}
-              >
-                <FactionsLeaderboard
-                  id={id}
-                  faction={state.faction.name}
-                  isLoading={data === undefined}
-                  data={data?.factions ?? null}
-                />
-              </InnerPanel>
+              <FactionLeaderboard
+                leaderboard={data?.kingdom ?? null}
+                isLoading={data?.kingdom === undefined}
+                playerId={id}
+                faction={state.faction.name}
+              />
             )}
-            {/* </InnerPanel> */}
           </div>
         </OuterPanel>
         {showMilestoneReached && (

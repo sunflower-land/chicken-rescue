@@ -31,7 +31,7 @@ export function getPlantedAt(
   fruitSeedName: FruitSeedName,
   wearables: BumpkinParts,
   game: GameState,
-  createdAt: number
+  createdAt: number,
 ) {
   if (!fruitSeedName) return createdAt;
 
@@ -59,6 +59,10 @@ export function getFruitTime({
     seconds = seconds * 0.5;
   }
 
+  if (isCollectibleActive({ name: "Orchard Hourglass", game })) {
+    seconds = seconds * 0.75;
+  }
+
   return seconds;
 }
 
@@ -68,7 +72,7 @@ export function getFruitTime({
 export const getFruitPatchTime = (
   fruitSeedName: FruitSeedName,
   game: GameState,
-  _: BumpkinParts
+  _: BumpkinParts,
 ) => {
   let seconds = FRUIT_SEEDS()[fruitSeedName]?.plantSeconds ?? 0;
 
@@ -97,6 +101,34 @@ export const getFruitPatchTime = (
     isWearableActive({ name: "Banana Onesie", game })
   ) {
     seconds = seconds * 0.8;
+  }
+
+  if (
+    fruitSeedName === "Lemon Seed" &&
+    isCollectibleBuilt({ name: "Lemon Tea Bath", game })
+  ) {
+    seconds = seconds * 0.5;
+  }
+
+  if (
+    fruitSeedName === "Lemon Seed" &&
+    isCollectibleBuilt({ name: "Lemon Frog", game })
+  ) {
+    seconds = seconds * 0.75;
+  }
+
+  if (
+    fruitSeedName === "Tomato Seed" &&
+    isCollectibleBuilt({ name: "Tomato Clown", game })
+  ) {
+    seconds = seconds * 0.5;
+  }
+
+  if (
+    fruitSeedName === "Tomato Seed" &&
+    isCollectibleBuilt({ name: "Cannonball", game })
+  ) {
+    seconds = seconds * 0.75;
   }
 
   return seconds;
@@ -163,7 +195,7 @@ export function plantFruit({
       action.seed,
       (stateCopy.bumpkin as Bumpkin).equipped,
       stateCopy,
-      createdAt
+      createdAt,
     ),
     amount: getFruitYield({
       name: fruitName,
@@ -178,7 +210,7 @@ export function plantFruit({
   bumpkin.activity = trackActivity(
     `${action.seed} Planted`,
     bumpkin?.activity,
-    new Decimal(1)
+    new Decimal(1),
   );
 
   return stateCopy;

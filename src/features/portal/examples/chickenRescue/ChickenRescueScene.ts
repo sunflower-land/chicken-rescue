@@ -83,7 +83,7 @@ export class ChickenRescueScene extends BaseScene {
       this.load.plugin(
         "rexvirtualjoystickplugin",
         "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js",
-        true
+        true,
       );
     }
 
@@ -153,7 +153,7 @@ export class ChickenRescueScene extends BaseScene {
             pointer.downX,
             pointer.downY,
             pointer.x,
-            pointer.y
+            pointer.y,
           );
 
           // get cursor keys
@@ -182,7 +182,7 @@ export class ChickenRescueScene extends BaseScene {
 
     this.currentPlayer?.setPosition(
       GRID_SIZE * 20 + GRID_SIZE / 2,
-      GRID_SIZE * 20 + GRID_SIZE / 2
+      GRID_SIZE * 20 + GRID_SIZE / 2,
     );
 
     // Reset all scene data
@@ -210,7 +210,7 @@ export class ChickenRescueScene extends BaseScene {
       GRID_SIZE / 2,
       GRID_SIZE * FENCE_BOUNDS.height,
       0x000000,
-      0
+      0,
     );
 
     const rightFence = this.add.rectangle(
@@ -219,7 +219,7 @@ export class ChickenRescueScene extends BaseScene {
       GRID_SIZE / 2,
       GRID_SIZE * FENCE_BOUNDS.height,
       0x000000,
-      0
+      0,
     );
 
     const bottomFence = this.add.rectangle(
@@ -228,7 +228,7 @@ export class ChickenRescueScene extends BaseScene {
       GRID_SIZE * FENCE_BOUNDS.width,
       GRID_SIZE / 2,
       0x000000,
-      0
+      0,
     );
 
     const topFence = this.add.rectangle(
@@ -237,7 +237,7 @@ export class ChickenRescueScene extends BaseScene {
       GRID_SIZE * FENCE_BOUNDS.width,
       GRID_SIZE / 2,
       0x000000,
-      0
+      0,
     );
 
     this.physics.world.enable(leftFence);
@@ -251,7 +251,7 @@ export class ChickenRescueScene extends BaseScene {
       [leftFence, rightFence, bottomFence, topFence],
       () => {
         this.gameOver();
-      }
+      },
     );
 
     if (this.physics.world.drawDebug) {
@@ -263,7 +263,7 @@ export class ChickenRescueScene extends BaseScene {
             y,
             "Teeny Tiny Pixls",
             `${x / GRID_SIZE},${y / GRID_SIZE}`,
-            5
+            5,
           );
           name.setScale(0.5);
         }
@@ -420,7 +420,7 @@ export class ChickenRescueScene extends BaseScene {
       goblin as Phaser.GameObjects.GameObject,
       () => {
         this.gameOver();
-      }
+      },
     );
 
     this.goblins.push({
@@ -463,8 +463,8 @@ export class ChickenRescueScene extends BaseScene {
               width: 1,
               height: 1,
             },
-            box
-          )
+            box,
+          ),
       );
 
       if (!isEmpty) {
@@ -488,8 +488,8 @@ export class ChickenRescueScene extends BaseScene {
               width: 1,
               height: 1,
             },
-            box
-          )
+            box,
+          ),
       );
 
       if (!isEmpty) {
@@ -517,8 +517,8 @@ export class ChickenRescueScene extends BaseScene {
               width: 1,
               height: 1,
             },
-            box
-          )
+            box,
+          ),
       );
 
       if (!isEmpty) {
@@ -542,8 +542,8 @@ export class ChickenRescueScene extends BaseScene {
               width: 1,
               height: 1,
             },
-            box
-          )
+            box,
+          ),
       );
 
       if (!isEmpty) {
@@ -595,7 +595,7 @@ export class ChickenRescueScene extends BaseScene {
       // Remove from list
       this.sleeping = this.sleeping.filter(
         (sleeping) =>
-          sleeping.x !== coordinates.x && sleeping.y !== coordinates.y
+          sleeping.x !== coordinates.x && sleeping.y !== coordinates.y,
       );
     };
 
@@ -631,7 +631,7 @@ export class ChickenRescueScene extends BaseScene {
         this.onAddFollower();
 
         chicken?.destroy();
-      }
+      },
     );
   }
 
@@ -675,7 +675,7 @@ export class ChickenRescueScene extends BaseScene {
     const body = enemySprite.body as Phaser.Physics.Arcade.Body;
     body.setSize(
       dimensions.width * SQUARE_WIDTH - 8,
-      dimensions.height * SQUARE_WIDTH - 8
+      dimensions.height * SQUARE_WIDTH - 8,
     );
 
     // On collide destroy the chicken
@@ -684,7 +684,7 @@ export class ChickenRescueScene extends BaseScene {
       enemySprite,
       () => {
         this.gameOver();
-      }
+      },
     );
 
     this.obstacles.push({
@@ -776,7 +776,7 @@ export class ChickenRescueScene extends BaseScene {
         if (index <= 2) return;
 
         this.gameOver();
-      }
+      },
     );
 
     const sounds = ["chicken_1", "chicken_2"];
@@ -882,7 +882,7 @@ export class ChickenRescueScene extends BaseScene {
 
     (this.currentPlayer?.body as Phaser.Physics.Arcade.Body).setVelocity(
       xVelocity,
-      yVelocity
+      yVelocity,
     );
 
     this.pivots = [
@@ -983,7 +983,7 @@ export class ChickenRescueScene extends BaseScene {
 
     (this.currentPlayer?.body as Phaser.Physics.Arcade.Body).setVelocity(
       xVelocity,
-      yVelocity
+      yVelocity,
     );
 
     this.pivots = [
@@ -1004,7 +1004,7 @@ export class ChickenRescueScene extends BaseScene {
   calculatePosition(
     currentPosition: Coordinates,
     targetPosition: Coordinates,
-    speed: number
+    speed: number,
   ) {
     // Calculate direction vector from current position to target position
     const directionX = targetPosition.x - currentPosition.x;
@@ -1012,7 +1012,7 @@ export class ChickenRescueScene extends BaseScene {
 
     // Calculate distance between current position and target position
     const distance = Math.sqrt(
-      directionX * directionX + directionY * directionY
+      directionX * directionX + directionY * directionY,
     );
 
     // Calculate normalized direction vector
@@ -1113,11 +1113,11 @@ export class ChickenRescueScene extends BaseScene {
       // Perform linear interpolation
       follower.x = Phaser.Math.Interpolation.Linear(
         [follower.x, targetX],
-        speed
+        speed,
       );
       follower.y = Phaser.Math.Interpolation.Linear(
         [follower.y, targetY],
-        speed
+        speed,
       );
     });
   }
@@ -1141,7 +1141,7 @@ export class ChickenRescueScene extends BaseScene {
           goblin.moveTo = undefined;
           (goblin.container.body as Phaser.Physics.Arcade.Body).setVelocity(
             0,
-            0
+            0,
           );
           goblin.container.idle();
           // Reached it!

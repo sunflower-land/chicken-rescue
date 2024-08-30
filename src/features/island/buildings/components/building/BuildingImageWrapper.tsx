@@ -13,7 +13,6 @@ import { MachineState } from "features/game/lib/gameMachine";
 import { getBumpkinLevel } from "features/game/lib/level";
 import { Context } from "features/game/GameProvider";
 import { Modal } from "components/ui/Modal";
-import lockIcon from "assets/skills/lock.png";
 import { InnerPanel } from "components/ui/Panel";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
 
@@ -50,7 +49,7 @@ export const BuildingImageWrapper: React.FC<Props> = ({
 
   const bumpkinLevelRequired = getBuildingBumpkinLevelRequired(
     name as BuildingName,
-    index ?? 0
+    index ?? 0,
   );
   const bumpkinTooLow = bumpkinLevel < bumpkinLevelRequired;
   const { t } = useAppTranslation();
@@ -62,10 +61,10 @@ export const BuildingImageWrapper: React.FC<Props> = ({
       setWarning(
         <CloseButtonPanel onClose={() => setWarning(undefined)}>
           <div className="p-2 flex flex-col items-center">
-            <img src={lockIcon} className="w-20 my-2" />
+            <img src={SUNNYSIDE.icons.lock} className="w-20 my-2" />
             <p className="text-sm">{`${name} requires Bumpkin level ${bumpkinLevelRequired} to use.`}</p>
           </div>
-        </CloseButtonPanel>
+        </CloseButtonPanel>,
       );
     };
 
@@ -95,7 +94,7 @@ export const BuildingImageWrapper: React.FC<Props> = ({
             ? bumpkinTooLow
               ? "opacity-50"
               : ""
-            : "cursor-pointer hover:img-highlight"
+            : "cursor-pointer hover:img-highlight",
         )}
         onClick={
           !enabled
@@ -117,7 +116,7 @@ export const BuildingImageWrapper: React.FC<Props> = ({
           }}
         >
           <InnerPanel className="absolute whitespace-nowrap w-fit z-50">
-            <div className="text-xxs mx-1 p-1">
+            <div className="text-xs mx-1 p-1">
               <span>
                 {t("bumpkin.level")} {bumpkinLevelRequired} {t("required")}
                 {"."}

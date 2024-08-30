@@ -1,7 +1,7 @@
 import React from "react";
 import classNames from "classnames";
 import { OuterPanel } from "./Panel";
-import { setPrecision } from "lib/utils/formatNumber";
+import { formatNumber } from "lib/utils/formatNumber";
 import { Label } from "./Label";
 import Decimal from "decimal.js-light";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
@@ -42,7 +42,7 @@ export const ListingCategoryCard: React.FC<Props> = ({
         {
           "cursor-not-allowed opacity-75": disabled,
           "cursor-pointer hover:bg-brown-200": !disabled,
-        }
+        },
       )}
       onClick={onClick}
     >
@@ -55,7 +55,7 @@ export const ListingCategoryCard: React.FC<Props> = ({
             right: `${PIXEL_SCALE * -3}px`,
           }}
         >
-          {`${setPrecision(inventoryAmount, 0)}`}
+          {formatNumber(inventoryAmount, { decimalPlaces: 0 })}
         </Label>
       )}
       <span className="text-xs mt-1">{itemName}</span>
@@ -81,7 +81,10 @@ export const ListingCategoryCard: React.FC<Props> = ({
         >
           {t("bumpkinTrade.price/unit", {
             price: pricePerUnit
-              ? setPrecision(new Decimal(pricePerUnit)).toFixed(4)
+              ? formatNumber(pricePerUnit, {
+                  decimalPlaces: 4,
+                  showTrailingZeros: true,
+                })
               : "?",
           })}
         </span>

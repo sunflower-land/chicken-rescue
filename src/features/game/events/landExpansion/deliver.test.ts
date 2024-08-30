@@ -7,11 +7,9 @@ import {
   deliverOrder,
 } from "./deliver";
 import { INITIAL_BUMPKIN, TEST_FARM } from "features/game/lib/constants";
-import { SEASONS, getSeasonalTicket } from "features/game/types/seasons";
-import { Quest } from "features/game/types/game";
-import { FACTION_POINT_CUTOFF } from "./donateToFaction";
+import { getSeasonalTicket } from "features/game/types/seasons";
 
-const LAST_DAY_OF_SEASON = new Date("2023-10-31T16:00:00Z").getTime();
+const FIRST_DAY_OF_SEASON = new Date("2023-11-01T16:00:00Z").getTime();
 const MID_SEASON = new Date("2023-08-15T15:00:00Z").getTime();
 
 describe("deliver", () => {
@@ -29,7 +27,7 @@ describe("deliver", () => {
           id: "123",
           type: "order.delivered",
         },
-      })
+      }),
     ).toThrow("Order does not exist");
   });
 
@@ -59,7 +57,7 @@ describe("deliver", () => {
           type: "order.delivered",
         },
         createdAt: MID_SEASON,
-      })
+      }),
     ).toThrow("Order has not started");
   });
 
@@ -89,7 +87,7 @@ describe("deliver", () => {
           type: "order.delivered",
         },
         createdAt: MID_SEASON,
-      })
+      }),
     ).toThrow("Insufficient ingredient: Sunflower");
   });
 
@@ -123,7 +121,7 @@ describe("deliver", () => {
           id: "123",
           type: "order.delivered",
         },
-      })
+      }),
     ).toThrow("Insufficient ingredient: sfl");
   });
 
@@ -154,7 +152,7 @@ describe("deliver", () => {
           type: "order.delivered",
         },
         createdAt: MID_SEASON,
-      })
+      }),
     ).toThrow("Insufficient ingredient: coins");
   });
 
@@ -387,6 +385,190 @@ describe("deliver", () => {
     expect(state.coins).toEqual(336);
   });
 
+  it("rewards 25% SFL when Crown is Active", () => {
+    const state = deliverOrder({
+      state: {
+        ...TEST_FARM,
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            hat: "Goblin Crown",
+          },
+        },
+        faction: {
+          name: "goblins",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+        inventory: {
+          "Eggplant Cake": new Decimal(1),
+        },
+        delivery: {
+          ...TEST_FARM.delivery,
+          fulfilledCount: 0,
+          orders: [
+            {
+              id: "123",
+              createdAt: 0,
+              readyAt: Date.now(),
+              from: "betty",
+              items: {
+                "Eggplant Cake": 1,
+              },
+              reward: { sfl: 320 },
+            },
+          ],
+        },
+      },
+      action: {
+        id: "123",
+        type: "order.delivered",
+      },
+    });
+
+    expect(state.balance).toEqual(new Decimal(400));
+  });
+
+  it("rewards 25% Coins when Crown is Active", () => {
+    const state = deliverOrder({
+      state: {
+        ...TEST_FARM,
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            hat: "Goblin Crown",
+          },
+        },
+        faction: {
+          name: "goblins",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+        inventory: {
+          "Eggplant Cake": new Decimal(1),
+        },
+        delivery: {
+          ...TEST_FARM.delivery,
+          fulfilledCount: 0,
+          orders: [
+            {
+              id: "123",
+              createdAt: 0,
+              readyAt: Date.now(),
+              from: "betty",
+              items: {
+                "Eggplant Cake": 1,
+              },
+              reward: { coins: 320 },
+            },
+          ],
+        },
+      },
+      action: {
+        id: "123",
+        type: "order.delivered",
+      },
+    });
+
+    expect(state.coins).toEqual(400);
+  });
+
+  it("Crown Boost won't apply if not in a faction", () => {
+    const state = deliverOrder({
+      state: {
+        ...TEST_FARM,
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            hat: "Goblin Crown",
+          },
+        },
+        faction: {
+          name: "nightshades",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+        inventory: {
+          "Eggplant Cake": new Decimal(1),
+        },
+        delivery: {
+          ...TEST_FARM.delivery,
+          fulfilledCount: 0,
+          orders: [
+            {
+              id: "123",
+              createdAt: 0,
+              readyAt: Date.now(),
+              from: "betty",
+              items: {
+                "Eggplant Cake": 1,
+              },
+              reward: { coins: 320 },
+            },
+          ],
+        },
+      },
+      action: {
+        id: "123",
+        type: "order.delivered",
+      },
+    });
+
+    expect(state.coins).toEqual(320);
+  });
+
+  it("Crown Boost won't apply if not in the right faction", () => {
+    const state = deliverOrder({
+      state: {
+        ...TEST_FARM,
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          equipped: {
+            ...INITIAL_BUMPKIN.equipped,
+            hat: "Goblin Crown",
+          },
+        },
+        faction: {
+          name: "nightshades",
+          pledgedAt: 0,
+          history: {},
+          points: 0,
+        },
+        inventory: {
+          "Eggplant Cake": new Decimal(1),
+        },
+        delivery: {
+          ...TEST_FARM.delivery,
+          fulfilledCount: 0,
+          orders: [
+            {
+              id: "123",
+              createdAt: 0,
+              readyAt: Date.now(),
+              from: "betty",
+              items: {
+                "Eggplant Cake": 1,
+              },
+              reward: { coins: 320 },
+            },
+          ],
+        },
+      },
+      action: {
+        id: "123",
+        type: "order.delivered",
+      },
+    });
+
+    expect(state.coins).toEqual(320);
+  });
+
   it("rewards season tickets", () => {
     const state = deliverOrder({
       state: {
@@ -534,131 +716,6 @@ describe("deliver", () => {
     });
   });
 
-  it("rewards faction points", () => {
-    const now = new Date("2024-05-09").getTime();
-
-    const state = deliverOrder({
-      createdAt: now,
-      state: {
-        ...TEST_FARM,
-        inventory: {
-          Gold: new Decimal(60),
-        },
-        faction: {
-          name: "goblins",
-          donated: { daily: { resources: {}, sfl: {} }, totalItems: {} },
-          points: 0,
-          pledgedAt: 0,
-        },
-        delivery: {
-          ...TEST_FARM.delivery,
-          fulfilledCount: 0,
-          orders: [
-            {
-              id: "123",
-              createdAt: 0,
-              readyAt: now,
-              from: "tywin",
-              items: {
-                Gold: 50,
-              },
-              reward: { tickets: 5 },
-            } as Quest,
-          ],
-        },
-        bumpkin: INITIAL_BUMPKIN,
-      },
-      action: {
-        id: "123",
-        type: "order.delivered",
-      },
-    });
-
-    expect(state.faction?.points).toEqual(25);
-  });
-
-  it("does not reward faction points if no faction selected", () => {
-    const timers = jest.useFakeTimers();
-
-    const seasonTime = new Date(
-      SEASONS["Witches' Eve"].startDate.getTime() + 8 * 24 * 60 * 60 * 1000
-    );
-
-    timers.setSystemTime(seasonTime);
-    const state = deliverOrder({
-      state: {
-        ...TEST_FARM,
-        inventory: {
-          Gold: new Decimal(60),
-        },
-        delivery: {
-          ...TEST_FARM.delivery,
-          fulfilledCount: 0,
-          orders: [
-            {
-              id: "123",
-              createdAt: 0,
-              readyAt: Date.now(),
-              from: "raven",
-              items: {
-                Gold: 50,
-              },
-              reward: { tickets: 5 },
-            } as Quest,
-          ],
-        },
-        bumpkin: INITIAL_BUMPKIN,
-      },
-      action: {
-        id: "123",
-        type: "order.delivered",
-      },
-    });
-
-    expect(state.faction).toBeUndefined();
-  });
-
-  it("does not reward faction points after faction point cutoff", () => {
-    const state = deliverOrder({
-      state: {
-        ...TEST_FARM,
-        inventory: {
-          Gold: new Decimal(60),
-        },
-        faction: {
-          name: "goblins",
-          donated: { daily: { resources: {}, sfl: {} }, totalItems: {} },
-          points: 0,
-          pledgedAt: 0,
-        },
-        delivery: {
-          ...TEST_FARM.delivery,
-          fulfilledCount: 0,
-          orders: [
-            {
-              id: "123",
-              createdAt: 0,
-              readyAt: Date.now(),
-              from: "raven",
-              items: {
-                Gold: 50,
-              },
-              reward: {},
-            } as Quest,
-          ],
-        },
-        bumpkin: INITIAL_BUMPKIN,
-      },
-      action: {
-        id: "123",
-        type: "order.delivered",
-      },
-      createdAt: new Date(FACTION_POINT_CUTOFF.getTime() + 1).getTime(),
-    });
-
-    expect(state.faction?.points).toBe(0);
-  });
-
   it("does not complete order with ticket rewards when frozen", () => {
     expect(() =>
       deliverOrder({
@@ -674,7 +731,7 @@ describe("deliver", () => {
               {
                 id: "123",
                 createdAt: 0,
-                readyAt: LAST_DAY_OF_SEASON,
+                readyAt: FIRST_DAY_OF_SEASON,
                 from: "pumpkin' pete",
                 items: {
                   Sunflower: 50,
@@ -689,8 +746,8 @@ describe("deliver", () => {
           id: "123",
           type: "order.delivered",
         },
-        createdAt: LAST_DAY_OF_SEASON,
-      })
+        createdAt: FIRST_DAY_OF_SEASON,
+      }),
     ).toThrow("Ticket tasks are frozen");
   });
 
@@ -708,7 +765,7 @@ describe("deliver", () => {
             {
               id: "123",
               createdAt: 0,
-              readyAt: LAST_DAY_OF_SEASON,
+              readyAt: FIRST_DAY_OF_SEASON,
               from: "betty",
               items: {
                 Sunflower: 50,
@@ -723,7 +780,7 @@ describe("deliver", () => {
         id: "123",
         type: "order.delivered",
       },
-      createdAt: LAST_DAY_OF_SEASON,
+      createdAt: FIRST_DAY_OF_SEASON,
     });
 
     expect(state.balance).toEqual(new Decimal(10));
@@ -765,8 +822,8 @@ describe("deliver", () => {
         createdAt: new Date("2024-05-10T16:00:00Z").getTime(),
       });
 
-      expect(state.inventory["Scroll"]).toEqual(
-        new Decimal(TICKET_REWARDS[name as QuestNPCName])
+      expect(state.inventory[getSeasonalTicket()]).toEqual(
+        new Decimal(TICKET_REWARDS[name as QuestNPCName]),
       );
     });
   });
@@ -803,7 +860,7 @@ describe("deliver", () => {
       createdAt: new Date("2024-05-10T16:00:00Z").getTime(),
     });
 
-    expect(state.inventory["Scroll"]).toEqual(new Decimal(1));
+    expect(state.inventory[getSeasonalTicket()]).toEqual(new Decimal(1));
   });
 
   it("provides +2 tickets for banner holder", () => {
@@ -839,7 +896,7 @@ describe("deliver", () => {
       createdAt: new Date("2024-05-10T16:00:00Z").getTime(),
     });
 
-    expect(state.inventory["Scroll"]).toEqual(new Decimal(3));
+    expect(state.inventory[getSeasonalTicket()]).toEqual(new Decimal(3));
   });
 
   it("provides +2 tickets for Lifetime Farmer banner holder", () => {
@@ -875,6 +932,81 @@ describe("deliver", () => {
       createdAt: new Date("2024-05-10T16:00:00Z").getTime(),
     });
 
-    expect(state.inventory["Scroll"]).toEqual(new Decimal(3));
+    expect(state.inventory[getSeasonalTicket()]).toEqual(new Decimal(3));
+  });
+
+  it("add 10% more SFL profit on completed deliveries if player has SFL Swindler", () => {
+    const state = deliverOrder({
+      state: {
+        ...TEST_FARM,
+        balance: new Decimal(0),
+        inventory: {
+          "Sunflower Cake": new Decimal(1),
+        },
+        coins: 0,
+        delivery: {
+          ...TEST_FARM.delivery,
+          orders: [
+            {
+              id: "123",
+              createdAt: 0,
+              readyAt: Date.now(),
+              from: "betty",
+              items: {
+                "Sunflower Cake": 1,
+              },
+              reward: { sfl: 100 },
+            },
+          ],
+        },
+        bumpkin: {
+          ...INITIAL_BUMPKIN,
+          skills: {
+            "SFL Swindler": 1,
+          },
+        },
+      },
+      action: {
+        id: "123",
+        type: "order.delivered",
+      },
+    });
+
+    expect(state.balance).toEqual(new Decimal(110));
+  });
+
+  it("does not add 10% more SFL profit on completed deliveries with SFL Swindler if reward is not SFL", () => {
+    const state = deliverOrder({
+      state: {
+        ...TEST_FARM,
+        balance: new Decimal(100),
+        inventory: {
+          "Sunflower Cake": new Decimal(1),
+        },
+        coins: 0,
+        delivery: {
+          ...TEST_FARM.delivery,
+          orders: [
+            {
+              id: "123",
+              createdAt: 0,
+              readyAt: Date.now(),
+              from: "betty",
+              items: {
+                "Sunflower Cake": 1,
+              },
+              reward: { coins: 320 },
+            },
+          ],
+        },
+        bumpkin: INITIAL_BUMPKIN,
+      },
+      action: {
+        id: "123",
+        type: "order.delivered",
+      },
+    });
+
+    expect(state.coins).toEqual(320);
   });
 });

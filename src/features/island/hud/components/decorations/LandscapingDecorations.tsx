@@ -76,7 +76,7 @@ export const LandscapingDecorations: React.FC<Props> = ({ onClose }) => {
 
   const lessIngredients = () =>
     getKeys(selected.ingredients).some((name) =>
-      selected.ingredients[name]?.greaterThan(inventory[name] || 0)
+      selected.ingredients[name]?.greaterThan(inventory[name] || 0),
     );
 
   return (
@@ -113,7 +113,6 @@ export const LandscapingDecorations: React.FC<Props> = ({ onClose }) => {
               }
             />
           ))}
-          <span className="text-xxs mt-2">{t("statements.frankie.plaza")}</span>
         </>
       }
     />

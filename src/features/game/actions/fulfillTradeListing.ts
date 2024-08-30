@@ -11,6 +11,7 @@ type Request = {
   listingId: string;
   listingType: string;
   token: string;
+  transactionId: string;
 };
 type Response = {
   farm: GameState;
@@ -18,13 +19,14 @@ type Response = {
 };
 
 export async function fulfillTradeListingRequest(
-  request: Request
+  request: Request,
 ): Promise<Response> {
   const response = await window.fetch(`${API_URL}/listings`, {
     method: "PUT",
     headers: {
       "content-type": "application/json;charset=UTF-8",
       Authorization: `Bearer ${request.token}`,
+      "X-Transaction-ID": request.transactionId,
       accept: "application/json",
       ...((window as any)["x-amz-ttl"]
         ? { "X-Amz-TTL": (window as any)["x-amz-ttl"] }
@@ -35,6 +37,7 @@ export async function fulfillTradeListingRequest(
       buyerId: request.buyerId,
       listingId: request.listingId,
       listingType: request.listingType,
+      createdAt: new Date().toISOString(),
     }),
   });
 

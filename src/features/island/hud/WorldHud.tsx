@@ -13,15 +13,15 @@ import { placeEvent } from "features/game/expansion/placeable/landscapingMachine
 import { Save } from "./components/Save";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { Settings } from "./components/Settings";
-import { Leaderboard } from "features/game/expansion/components/leaderboard/Leaderboard";
 import { TravelButton } from "./components/deliveries/TravelButton";
 import { AuctionCountdown } from "features/retreat/components/auctioneer/AuctionCountdown";
 import { CodexButton } from "./components/codex/CodexButton";
 import { HudContainer } from "components/ui/HudContainer";
 import { ModalContext } from "features/game/components/modal/ModalProvider";
-import { hasFeatureAccess } from "lib/flags";
 import { useAppTranslation } from "lib/i18n/useAppTranslations";
-import { EmblemAirdropCountdown } from "./EmblemAirdropCountdown";
+import { useLocation } from "react-router-dom";
+import { SpecialEventCountdown } from "./SpecialEventCountdown";
+import { DesertDiggingDisplay } from "./components/DesertDiggingDisplay";
 
 /**
  * Heads up display - a concept used in games for the small overlaid display of information.
@@ -36,8 +36,7 @@ const HudComponent: React.FC = () => {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [depositDataLoaded, setDepositDataLoaded] = useState(false);
 
-  const farmId = Number(gameState.context.farmId);
-  const username = gameState.context.state.username;
+  const { pathname } = useLocation();
 
   const autosaving = gameState.matches("autosaving");
 
@@ -50,7 +49,7 @@ const HudComponent: React.FC = () => {
   };
 
   const handleDeposit = (
-    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">
+    args: Pick<DepositArgs, "sfl" | "itemIds" | "itemAmounts">,
   ) => {
     gameService.send("DEPOSIT", args);
   };
@@ -75,8 +74,13 @@ const HudComponent: React.FC = () => {
         onDepositClick={() => setShowDepositModal(true)}
         isSaving={autosaving}
         isFarming={false}
+        hideActions={
+          pathname.includes("retreat") ||
+          pathname.includes("visit") ||
+          pathname.includes("dawn-breaker")
+        }
       />
-
+      {pathname.includes("beach") && <DesertDiggingDisplay />}
       <Balances
         onClick={farmAddress ? handleBuyCurrenciesModal : undefined}
         sfl={gameState.context.state.balance}
@@ -91,25 +95,10 @@ const HudComponent: React.FC = () => {
           left: `${PIXEL_SCALE * 3}px`,
           bottom: `${PIXEL_SCALE * 3}px`,
           width: `${PIXEL_SCALE * 22}px`,
-          height: hasFeatureAccess(
-            gameState.context.state,
-            "FACTION_LEADERBOARD"
-          )
-            ? `${PIXEL_SCALE * 23 * 2 + 8}px`
-            : `${PIXEL_SCALE * 23 * 3 + 12}px`,
+          height: `${PIXEL_SCALE * 23 * 2 + 8}px`,
         }}
       >
-        {hasFeatureAccess(gameState.context.state, "FACTION_LEADERBOARD") ? (
-          <>
-            <CodexButton />
-          </>
-        ) : (
-          <>
-            <Leaderboard farmId={farmId} username={username} />
-            <CodexButton />
-          </>
-        )}
-
+        <CodexButton />
         <TravelButton />
       </div>
       <div
@@ -120,7 +109,7 @@ const HudComponent: React.FC = () => {
         }}
       >
         <AuctionCountdown />
-        <EmblemAirdropCountdown />
+        <SpecialEventCountdown />
       </div>
 
       <BumpkinProfile isFullUser={isFullUser} />

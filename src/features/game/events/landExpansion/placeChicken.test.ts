@@ -4,40 +4,23 @@ import { Chicken } from "features/game/types/game";
 import { placeChicken } from "./placeChicken";
 
 const makeChickensStateObject = (numOfChickens: number) => {
-  return Array.from(Array(numOfChickens).keys()).reduce((obj, curr) => {
-    obj[curr] = {
-      coordinates: {
-        x: curr,
-        y: curr,
-      },
-      multiplier: 1,
-    };
+  return Array.from(Array(numOfChickens).keys()).reduce(
+    (obj, curr) => {
+      obj[curr] = {
+        coordinates: {
+          x: curr,
+          y: curr,
+        },
+        multiplier: 1,
+      };
 
-    return obj;
-  }, {} as Record<number, Chicken>);
+      return obj;
+    },
+    {} as Record<number, Chicken>,
+  );
 };
 
 describe("buyChicken", () => {
-  it("throws an error if no bumpkin exists", () => {
-    expect(() =>
-      placeChicken({
-        state: {
-          ...TEST_FARM,
-          bumpkin: undefined,
-          chickens: {},
-        },
-        action: {
-          id: "1234asdf",
-          coordinates: {
-            x: 2,
-            y: 2,
-          },
-          type: "chicken.placed",
-        },
-      })
-    ).toThrow("You do not have a Bumpkin");
-  });
-
   it("throws an error if no chickens are available", () => {
     expect(() =>
       placeChicken({
@@ -56,7 +39,7 @@ describe("buyChicken", () => {
           },
           type: "chicken.placed",
         },
-      })
+      }),
     ).toThrow("You do not have any available chickens");
   });
 
@@ -108,7 +91,7 @@ describe("buyChicken", () => {
           },
           type: "chicken.placed",
         },
-      })
+      }),
     ).toThrow("Insufficient space for more chickens");
   });
 
@@ -144,7 +127,7 @@ describe("buyChicken", () => {
           },
           type: "chicken.placed",
         },
-      })
+      }),
     ).toThrow("Insufficient space for more chickens");
   });
 

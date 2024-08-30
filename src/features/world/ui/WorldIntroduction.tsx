@@ -28,21 +28,21 @@ export const WorldIntroduction: React.FC<Props> = ({ onClose }) => {
 
   // Find a delivery that is ready
   const delivery = gameState.context.state.delivery.orders.find((order) =>
-    hasOrderRequirements({ order, sfl: balance, coins, inventory })
+    hasOrderRequirements({ order, sfl: balance, coins, inventory }),
   );
 
   if (showNPCFind && delivery) {
     return (
       <Panel bumpkinParts={NPC_WEARABLES["pumpkin' pete"]}>
-        <div className="h-40 flex flex-col justify-between">
+        <div className="flex flex-col justify-between">
           <div className="p-1">
             <Label type={"default"} className="capitalize mb-1">{`${t(
-              "world.intro.find"
+              "world.intro.find",
             )} ${delivery.from}`}</Label>
             <InlineDialogue
               message={t("world.intro.findNPC", { name: delivery.from })}
             />
-            <div className="relative mt-3 mb-2 mr-0.5 -ml-1">
+            <div className="relative mt-2 mb-2 mr-0.5 -ml-1">
               <NPCIcon parts={NPC_WEARABLES[delivery.from]} />
             </div>
           </div>

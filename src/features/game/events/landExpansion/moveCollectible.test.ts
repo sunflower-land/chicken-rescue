@@ -14,23 +14,7 @@ const GAME_STATE: GameState = {
 
 describe("moveCollectible", () => {
   const dateNow = Date.now();
-  it("throws if player has no Bumpkin", () => {
-    expect(() =>
-      moveCollectible({
-        state: {
-          ...TEST_FARM,
-          bumpkin: undefined,
-        },
-        action: {
-          type: "collectible.moved",
-          name: "Algerian Flag",
-          id: "1",
-          coordinates: { x: 2, y: 2 },
-          location: "farm",
-        },
-      })
-    ).toThrow(MOVE_COLLECTIBLE_ERRORS.NO_BUMPKIN);
-  });
+
   it("does not move non-existent building ", () => {
     expect(() =>
       moveCollectible({
@@ -54,7 +38,7 @@ describe("moveCollectible", () => {
           coordinates: { x: 2, y: 2 },
           location: "farm",
         },
-      })
+      }),
     ).toThrow(MOVE_COLLECTIBLE_ERRORS.NO_COLLECTIBLES);
   });
 
@@ -81,7 +65,7 @@ describe("moveCollectible", () => {
           coordinates: { x: 2, y: 2 },
           location: "farm",
         },
-      })
+      }),
     ).toThrow(MOVE_COLLECTIBLE_ERRORS.COLLECTIBLE_NOT_PLACED);
   });
 
@@ -240,7 +224,7 @@ describe("moveCollectible", () => {
           location: "farm",
         },
         createdAt: dateNow,
-      })
+      }),
     ).toThrow("Chickens are fed");
   });
 });
