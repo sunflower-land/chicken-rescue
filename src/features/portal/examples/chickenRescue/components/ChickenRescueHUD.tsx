@@ -28,7 +28,9 @@ export const ChickenRescueHUD: React.FC = () => {
   const score = useSelector(portalService, _score);
   const ready = useSelector(portalService, _ready);
 
-  const target = state.minigames.prizes["chicken-rescue"]?.score;
+  const target = state.minigames.prizes["chicken-rescue"]?.score ?? 0;
+
+  const isTargetReached = score >= target;
 
   return (
     <HudContainer>
@@ -39,7 +41,13 @@ export const ChickenRescueHUD: React.FC = () => {
       />
       <div className="absolute top-4 left-4 pointer-events-none">
         {!!target && (
-          <Label icon={SUNNYSIDE.resource.chicken} type="vibrant">
+          <Label
+            icon={SUNNYSIDE.resource.chicken}
+            secondaryIcon={
+              isTargetReached ? SUNNYSIDE.icons.confirm : undefined
+            }
+            type={isTargetReached ? "success" : "vibrant"}
+          >
             {`Target: ${target}`}
           </Label>
         )}
