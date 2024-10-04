@@ -4,14 +4,14 @@ import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SUNNYSIDE } from "assets/sunnyside";
 import worldIcon from "assets/icons/world.png";
 import { HudContainer } from "components/ui/HudContainer";
-import { Balances } from "components/Balances";
-import Decimal from "decimal.js-light";
 import { Label } from "components/ui/Label";
 import { t } from "i18next";
 import { isTouchDevice } from "features/world/lib/device";
 import { PortalMachineState } from "../lib/chickenRescueMachine";
 import { PortalContext } from "../lib/PortalProvider";
 import { goHome } from "features/portal/lib/portalUtil";
+import { formatNumber } from "lib/utils/formatNumber";
+import sflIcon from "assets/icons/sfl.webp";
 
 const _score = (state: PortalMachineState) => state.context.score;
 const _state = (state: PortalMachineState) => state.context.state;
@@ -34,11 +34,24 @@ export const ChickenRescueHUD: React.FC = () => {
 
   return (
     <HudContainer>
-      <Balances
-        sfl={state.balance}
-        coins={state.coins}
-        blockBucks={state.inventory["Block Buck"] ?? new Decimal(0)}
-      />
+      {/* SFL balance */}
+      <div className="flex flex-col absolute space-y-1 items-end z-50 right-3 top-3 !text-[28px] text-stroke pointer-events-none">
+        <div className="flex items-center space-x-2 relative">
+          <div className="h-9 w-full bg-black opacity-25 absolute sfl-hud-backdrop" />
+          <span className="balance-text">
+            {formatNumber(state.balance, { decimalPlaces: 4 })}
+          </span>
+          <img
+            src={sflIcon}
+            alt="SFL"
+            style={{
+              width: 26,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* target and score */}
       <div className="absolute top-4 left-4 pointer-events-none">
         {!!target && (
           <Label
@@ -51,7 +64,7 @@ export const ChickenRescueHUD: React.FC = () => {
             {`Target: ${target}`}
           </Label>
         )}
-        <div className="relative ">
+        <div className="relative">
           <div className="h-6 w-full bg-black opacity-30 absolute coins-bb-hud-backdrop-reverse" />
           {/* Coins */}
           <div
