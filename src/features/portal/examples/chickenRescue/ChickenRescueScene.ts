@@ -101,6 +101,7 @@ export class ChickenRescueScene extends BaseScene {
     this.load.audio("game_over", SOUNDS.notifications.maze_over);
     this.load.audio("chicken_1", SOUNDS.resources.chicken_1);
     this.load.audio("chicken_2", SOUNDS.resources.chicken_2);
+    this.load.audio("target_reached", "world/target_reached.mp3");
 
     this.load.image("rock", SUNNYSIDE.resource.stone_rock);
     this.load.image("boulder", SUNNYSIDE.resource.boulder);
@@ -245,7 +246,7 @@ export class ChickenRescueScene extends BaseScene {
     this.physics.world.enable(bottomFence);
     this.physics.world.enable(topFence);
 
-    // On collide destroy the chicken
+    // On collide game over
     this.physics.add.overlap(
       this.currentPlayer as Phaser.GameObjects.GameObject,
       [leftFence, rightFence, bottomFence, topFence],
@@ -414,7 +415,7 @@ export class ChickenRescueScene extends BaseScene {
       .setImmovable(true)
       .setCollideWorldBounds(true);
 
-    // On collide destroy the chicken
+    // On collide game over
     this.physics.add.overlap(
       this.currentPlayer as Phaser.GameObjects.GameObject,
       goblin as Phaser.GameObjects.GameObject,
@@ -631,6 +632,12 @@ export class ChickenRescueScene extends BaseScene {
         this.onAddFollower();
 
         chicken?.destroy();
+
+        // play target reached sound if target is reached
+        if (this.target >= 0 && this.score === this.target) {
+          const targetReachedSound = this.sound.add("target_reached");
+          targetReachedSound.play({ volume: 1.0 });
+        }
       },
     );
   }
@@ -678,7 +685,7 @@ export class ChickenRescueScene extends BaseScene {
       dimensions.height * SQUARE_WIDTH - 8,
     );
 
-    // On collide destroy the chicken
+    // On collide game over
     this.physics.add.overlap(
       this.currentPlayer as Phaser.GameObjects.GameObject,
       enemySprite,
@@ -903,6 +910,14 @@ export class ChickenRescueScene extends BaseScene {
 
   get score() {
     return this.portalService?.state.context.score ?? 0;
+  }
+
+  get target() {
+    return (
+      this.portalService?.state.context.state?.minigames.prizes[
+        "chicken-rescue"
+      ]?.score ?? 0
+    );
   }
 
   chickenSpawnInterval: NodeJS.Timer | undefined;
