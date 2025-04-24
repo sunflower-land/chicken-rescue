@@ -12,14 +12,14 @@ export function makeGame(farm: any): GameState {
         ...items,
         [item]: new Decimal(farm.inventory[item]),
       }),
-      {} as Record<InventoryItemName, Decimal>,
+      {} as Record<InventoryItemName, Decimal>
     ),
     previousInventory: Object.keys(farm.previousInventory).reduce(
       (items, item) => ({
         ...items,
         [item]: new Decimal(farm.previousInventory[item]),
       }),
-      {} as Record<InventoryItemName, Decimal>,
+      {} as Record<InventoryItemName, Decimal>
     ),
     wardrobe: farm.wardrobe,
     previousWardrobe: farm.previousWardrobe,
@@ -28,7 +28,7 @@ export function makeGame(farm: any): GameState {
         ...items,
         [item]: new Decimal(farm.stock[item]),
       }),
-      {} as Record<InventoryItemName, Decimal>,
+      {} as Record<InventoryItemName, Decimal>
     ),
     island: farm.island,
     home: farm.home,
@@ -101,15 +101,12 @@ export function makeGame(farm: any): GameState {
     experiments: farm.experiments,
     rewards: farm.rewards,
     megastore: {
-      ...farm.megastore,
-      wearables: farm.megastore.wearables.map((wearable: any) => ({
-        ...wearable,
-        price: new Decimal(wearable.price),
-      })),
-      collectibles: farm.megastore.collectibles.map((collectible: any) => ({
-        ...collectible,
-        price: new Decimal(collectible.price),
-      })),
+      available: {
+        from: 0,
+        to: 0,
+      },
+      collectibles: [],
+      wearables: [],
     },
     goblinMarket: farm.goblinMarket,
     faction: farm.faction,
