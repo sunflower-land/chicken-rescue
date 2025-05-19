@@ -113,7 +113,7 @@ export function getCurrentSeason(now = new Date()): SeasonName {
   });
 
   if (!currentSeason) {
-    throw new Error("No Season found");
+    return "Solar Flare";
   }
 
   return currentSeason;
@@ -179,7 +179,7 @@ function getPreviousSeason(now = new Date()): SeasonName {
   // Find the season where the end date matches the start date of the current season
   const previousSeason = Object.entries(SEASONS).find(
     ([_, { endDate }]) =>
-      endDate.getTime() === startDateOfCurrentSeason.getTime(),
+      endDate.getTime() === startDateOfCurrentSeason.getTime()
   );
 
   if (!previousSeason) {
