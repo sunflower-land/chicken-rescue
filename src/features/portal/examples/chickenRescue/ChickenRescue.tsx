@@ -30,7 +30,6 @@ import { Loading } from "features/auth/components";
 import { CONFIG } from "lib/config";
 import { claimPrize, goHome, purchase } from "features/portal/lib/portalUtil";
 import { PortalContext, PortalProvider } from "./lib/PortalProvider";
-import { ChickenRescueRewards } from "./components/ChickenRescueRewards";
 
 export const ChickenRescueApp: React.FC = () => {
   return (
@@ -193,17 +192,6 @@ export const ChickenRescue: React.FC = () => {
                 {t("minigame.unlockAttempts")}
               </Button>
             </div>
-          </Panel>
-        </Modal>
-      )}
-
-      {portalState.matches("reward") && (
-        <Modal show>
-          <Panel bumpkinParts={NPC_WEARABLES.chicken}>
-            <ChickenRescueRewards
-              onAcknowledged={() => portalService.send("CONTINUE")}
-              onClose={() => goHome()}
-            />
           </Panel>
         </Modal>
       )}
