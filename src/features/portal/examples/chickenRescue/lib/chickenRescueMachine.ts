@@ -137,7 +137,6 @@ export const portalMachine = createMachine({
 
           const attemptsLeft = DAILY_ATTEMPTS - dailyAttempt.attempts;
 
-          console.log({ progress });
           return { game, farmId, attemptsLeft, progress };
         },
         onDone: [
@@ -182,7 +181,6 @@ export const portalMachine = createMachine({
         {
           target: "noAttempts",
           cond: (context) => {
-            console.log("NO ATTEMP CHECK");
             const minigame = context.state?.minigames.games["chicken-rescue"];
             const purchases = minigame?.purchases ?? [];
 
@@ -241,9 +239,7 @@ export const portalMachine = createMachine({
           target: "gameOver",
           actions: assign({
             progress: (context: any) => {
-              let score = context.score;
-
-              console.log({ score, previous: context.progress });
+              const score = context.score;
 
               return {
                 ...context.progress,
@@ -254,14 +250,12 @@ export const portalMachine = createMachine({
               };
             },
             state: (context: any) => {
-              let score = context.score;
+              const score = context.score;
 
-              let custom: ChickenRescueCustom = {
+              const custom: ChickenRescueCustom = {
                 ...context.progress.custom,
                 chickens: (context.progress.custom?.chickens ?? 0) + score,
               };
-
-              console.log({ custom, progress: context.progress });
 
               submitScore({ score, custom });
 

@@ -9,7 +9,7 @@ type Request = {
 };
 
 export const getUrl = () => {
-  return CONFIG.API_URL; // TODO test only
+  // return CONFIG.API_URL; // TODO test only
   const network = new URLSearchParams(window.location.search).get("network");
 
   if (network && network === "mainnet") {
