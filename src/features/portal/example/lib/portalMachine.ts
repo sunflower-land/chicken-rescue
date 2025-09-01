@@ -1,5 +1,5 @@
 import { OFFLINE_FARM } from "features/game/lib/landData";
-import { GameState } from "features/game/types/game";
+import { GameState, Minigame } from "features/game/types/game";
 import { assign, createMachine, Interpreter, State } from "xstate";
 import { getUrl, loadPortal } from "../../actions/loadPortal";
 import { CONFIG } from "lib/config";
@@ -14,6 +14,7 @@ export interface Context {
   id: number;
   jwt: string;
   state: GameState;
+  progress: Minigame;
 }
 
 export type PortalEvent = { type: "PURCHASED" } | { type: "RETRY" };
@@ -67,18 +68,19 @@ export const portalMachine = createMachine({
           const { farmId } = decodeToken(context.jwt as string);
 
           // Load the game data
-          const { game } = await loadPortal({
+          const { game, progress } = await loadPortal({
             portalId: CONFIG.PORTAL_APP,
             token: context.jwt as string,
           });
 
-          return { game, farmId };
+          return { game, farmId, progress };
         },
         onDone: [
           {
             target: "playing",
             actions: assign({
               state: (_: any, event) => event.data.game,
+              progress: (_: any, event) => event.data.progress,
               id: (_: any, event) => event.data.farmId,
             }),
           },

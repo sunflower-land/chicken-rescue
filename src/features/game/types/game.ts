@@ -915,14 +915,27 @@ export type MinigameHistory = {
   prizeClaimedAt?: number;
 };
 
+export type ChickenRescueCustom = {
+  chickens: number;
+};
+
 export type Minigame = {
   highscore: number;
+  history: Record<string, MinigameHistory>;
+
+  spent?: {
+    sfl: number;
+  };
+
+  // Custom fields they can implement
+  custom?: ChickenRescueCustom;
+
+  // Legacy
   purchases?: {
     sfl: number;
-    items?: Partial<Record<MinigameCurrency, number>>;
+    items?: Partial<Record<InventoryItemName, number>>;
     purchasedAt: number;
   }[];
-  history: Record<string, MinigameHistory>;
 };
 
 export type TradeListing = {

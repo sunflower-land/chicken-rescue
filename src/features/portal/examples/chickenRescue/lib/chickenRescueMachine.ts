@@ -1,5 +1,9 @@
 import { OFFLINE_FARM } from "features/game/lib/landData";
-import { GameState } from "features/game/types/game";
+import {
+  ChickenRescueCustom,
+  GameState,
+  Minigame,
+} from "features/game/types/game";
 import { assign, createMachine, Interpreter, State } from "xstate";
 import { CONFIG } from "lib/config";
 import { decodeToken } from "features/auth/actions/login";
@@ -16,6 +20,7 @@ const getJWT = () => {
 export interface Context {
   id: number;
   jwt: string;
+  progress: Minigame;
   state: GameState;
   score: number;
   endAt: number;
@@ -68,6 +73,11 @@ export type MachineInterpreter = Interpreter<
 
 export type PortalMachineState = State<Context, PortalEvent, PortalState>;
 
+const INITIAL_PROGRESS: Minigame = {
+  highscore: 0,
+  history: {},
+};
+
 export const portalMachine = createMachine({
   id: "portalMachine",
   initial: "initialising",
@@ -79,6 +89,7 @@ export const portalMachine = createMachine({
     score: 0,
     completeAcknowledged: false,
     attemptsLeft: DAILY_ATTEMPTS,
+    progress: INITIAL_PROGRESS,
   },
   states: {
     initialising: {
@@ -99,13 +110,17 @@ export const portalMachine = createMachine({
       invoke: {
         src: async (context) => {
           if (!getUrl()) {
-            return { game: OFFLINE_FARM, attemptsLeft: DAILY_ATTEMPTS };
+            return {
+              game: OFFLINE_FARM,
+              attemptsLeft: DAILY_ATTEMPTS,
+              progress: INITIAL_PROGRESS,
+            };
           }
 
           const { farmId } = decodeToken(context.jwt as string);
 
           // Load the game data
-          const { game } = await loadPortal({
+          const { game, progress } = await loadPortal({
             portalId: CONFIG.PORTAL_APP,
             token: context.jwt as string,
           });
@@ -122,7 +137,8 @@ export const portalMachine = createMachine({
 
           const attemptsLeft = DAILY_ATTEMPTS - dailyAttempt.attempts;
 
-          return { game, farmId, attemptsLeft };
+          console.log({ progress });
+          return { game, farmId, attemptsLeft, progress };
         },
         onDone: [
           {
@@ -131,6 +147,7 @@ export const portalMachine = createMachine({
               state: (_: any, event) => event.data.game,
               id: (_: any, event) => event.data.farmId,
               attemptsLeft: (_: any, event) => event.data.attemptsLeft,
+              progress: (_: any, event) => event.data.progress,
             }),
           },
         ],
@@ -165,6 +182,7 @@ export const portalMachine = createMachine({
         {
           target: "noAttempts",
           cond: (context) => {
+            console.log("NO ATTEMP CHECK");
             const minigame = context.state?.minigames.games["chicken-rescue"];
             const purchases = minigame?.purchases ?? [];
 
@@ -181,6 +199,7 @@ export const portalMachine = createMachine({
             return context.attemptsLeft <= 0;
           },
         },
+
         {
           target: "ready",
         },
@@ -221,13 +240,36 @@ export const portalMachine = createMachine({
         GAME_OVER: {
           target: "gameOver",
           actions: assign({
+            progress: (context: any) => {
+              let score = context.score;
+
+              console.log({ score, previous: context.progress });
+
+              return {
+                ...context.progress,
+                custom: {
+                  ...context.progress.custom,
+                  chickens: (context.progress.custom?.chickens ?? 0) + score,
+                },
+              };
+            },
             state: (context: any) => {
-              submitScore({ score: context.score });
+              let score = context.score;
+
+              let custom: ChickenRescueCustom = {
+                ...context.progress.custom,
+                chickens: (context.progress.custom?.chickens ?? 0) + score,
+              };
+
+              console.log({ custom, progress: context.progress });
+
+              submitScore({ score, custom });
+
               return playMinigame({
                 state: context.state,
                 action: {
                   type: "minigame.played",
-                  score: context.score,
+                  score,
                   id: "chicken-rescue",
                 },
               });

@@ -1,3 +1,5 @@
+import { BumpkinItem } from "features/game/types/bumpkin";
+import { InventoryItemName } from "features/game/types/game";
 import { CONFIG } from "lib/config";
 
 const isInIframe = window.self !== window.top;
@@ -23,7 +25,17 @@ export function purchase({ sfl }: { sfl: number }) {
     alert(`Sunflower Land not available - are you in an iframe?`);
   }
 
-  window.parent.postMessage({ event: "purchase", sfl, items: {} }, "*");
+  window.parent.postMessage(
+    {
+      event: "purchase",
+      sfl,
+      items: {},
+      custom: {
+        purchasedAttemptsAt: Date.now(),
+      },
+    },
+    "*"
+  );
 }
 
 /**
@@ -40,11 +52,11 @@ export function startAttempt() {
 /**
  * Submits a minigame score
  */
-export function submitScore({ score }: { score: number }) {
+export function submitScore({ score, custom }: { score: number; custom: any }) {
   if (!isInIframe) {
     alert(`Sunflower Land running in test mode - score submitted`);
   } else {
-    window.parent.postMessage({ event: "scoreSubmitted", score }, "*");
+    window.parent.postMessage({ event: "scoreSubmitted", score, custom }, "*");
   }
 }
 

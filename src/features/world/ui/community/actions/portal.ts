@@ -2,6 +2,7 @@ import jwt_decode from "jwt-decode";
 import { Token } from "features/auth/actions/login";
 import { MinigameName } from "features/game/types/minigames";
 import { ERRORS } from "lib/errors";
+import { CONFIG } from "lib/config";
 
 type Request = {
   portalId: MinigameName;
@@ -11,6 +12,8 @@ type Request = {
 
 // Network is passed in through the iframe
 const getUrl = () => {
+  return CONFIG.API_URL; // TODO test only
+
   const network = new URLSearchParams(window.location.search).get("network");
 
   if (network === "mainnet") {
@@ -46,7 +49,7 @@ export async function portal(request: Request) {
       body: JSON.stringify({
         farmId: request.farmId,
       }),
-    },
+    }
   );
 
   if (response.status >= 400) {

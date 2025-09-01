@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useSelector } from "@xstate/react";
 import { PIXEL_SCALE } from "features/game/lib/constants";
 import { SUNNYSIDE } from "assets/sunnyside";
@@ -12,13 +12,17 @@ import { PortalContext } from "../lib/PortalProvider";
 import { goHome } from "features/portal/lib/portalUtil";
 import { formatNumber } from "lib/utils/formatNumber";
 import sflIcon from "assets/icons/sfl.webp";
+import trophy from "assets/icons/trophy.png";
 
 const _score = (state: PortalMachineState) => state.context.score;
+const _chickens = (state: PortalMachineState) =>
+  state.context.progress.custom?.chickens ?? 0;
 const _state = (state: PortalMachineState) => state.context.state;
 const _ready = (state: PortalMachineState) => state.matches("ready");
 
 export const ChickenRescueHUD: React.FC = () => {
   const { portalService } = useContext(PortalContext);
+  const [showGuide, setShowGuide] = useState(false);
 
   const travelHome = () => {
     goHome();
@@ -26,6 +30,7 @@ export const ChickenRescueHUD: React.FC = () => {
 
   const state = useSelector(portalService, _state);
   const score = useSelector(portalService, _score);
+  const chickens = useSelector(portalService, _chickens);
   const ready = useSelector(portalService, _ready);
 
   const target = state.minigames.prizes["chicken-rescue"]?.score ?? 0;
@@ -43,6 +48,20 @@ export const ChickenRescueHUD: React.FC = () => {
           </span>
           <img
             src={sflIcon}
+            alt="SFL"
+            style={{
+              width: 26,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col absolute space-y-1 items-end z-50 right-3 top-12 !text-[28px] text-stroke pointer-events-none">
+        <div className="flex items-center space-x-2 relative">
+          <div className="h-9 w-full bg-black opacity-25 absolute sfl-hud-backdrop" />
+          <span className="balance-text">{chickens}</span>
+          <img
+            src={trophy}
             alt="SFL"
             style={{
               width: 26,

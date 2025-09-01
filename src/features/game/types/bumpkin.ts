@@ -278,6 +278,7 @@ export type BumpkinHat =
   | "Queen Bee Crown"
   | "Lucky Red Hat"
   | "Chicken Hat"
+  | "Chicken Rescuer"
   | "Love's Topper"
   | "Non La Hat"
   | "Crown"
@@ -826,12 +827,14 @@ export const ITEM_IDS: Record<BumpkinItem, number> = {
   "Goblin Medallion": 389,
   "Nightshade Medallion": 390,
   "Sunflorian Medallion": 391,
+
+  "Chicken Rescuer": 484,
 };
 
 // The reverse of above
 export const ITEM_NAMES: Record<string, BumpkinItem> = Object.assign(
   {},
-  ...Object.entries(ITEM_IDS).map(([a, b]) => ({ [b]: a })),
+  ...Object.entries(ITEM_IDS).map(([a, b]) => ({ [b]: a }))
 );
 
 export const IDS = Object.values(ITEM_IDS);
@@ -886,7 +889,7 @@ export const UNLIMITED_SUPPLY = 1000000;
 // The reverse of above
 export const BUMPKIN_ITEMS: Record<string, number> = Object.assign(
   {},
-  ...Object.entries(ITEM_IDS).map(([a, b]) => ({ [b]: a })),
+  ...Object.entries(ITEM_IDS).map(([a, b]) => ({ [b]: a }))
 );
 
 export const BUMPKIN_ITEMS_IDS = Object.values(ITEM_IDS);
@@ -1194,6 +1197,7 @@ export const BUMPKIN_ITEM_PART: Record<BumpkinItem, keyof Wallet> = {
   "Rose Dress": "dress",
   "Blue Rose Dress": "dress",
   "Chicken Hat": "hat",
+  "Chicken Rescuer": "hat",
   "Lucky Red Hat": "hat",
   "Lucky Red Suit": "suit",
   "Love's Topper": "hat",
