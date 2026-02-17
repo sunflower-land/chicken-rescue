@@ -1670,4 +1670,196 @@ export const BUMPKIN_WITHDRAWABLES: Record<
   "Golden Wings": () => false,
   "Oracle Syringe": () => false,
   "Love Puff Aura": () => false,
+  "Moonseeker Potion": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Paint Splattered Hair": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Brush Back Hair": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Frizzy Bob Cut": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Two-toned Layered": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Crimstone Spikes Hair": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Corn Silk Hair": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Paint Splattered Shirt": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Diamond Patterned Vest": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Recycle Shirt": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Chef Shirt": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Pet Specialist Shirt": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Comfy Xmas Sweater": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Fish Hook Vest": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Paint Splattered Overalls": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Pet Specialist Pants": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Comfy Xmas Pants": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Fish Hook Waders": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Lava Swimwear": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Wooly Dress": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Paint Spray Can": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Chemist Potion": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Architect Ruler": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Onion Leek": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Halloween Deathscythe": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Moonseeker Hand Puppet": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Master Chef's Cleaver": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Luna's Crescent": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Candy Halbred": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Beast Shoes": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Golden Seedling": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "2026 Tiara": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Slime Hat": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Garbage Bin Hat": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Turd Topper": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Sweet Devil Horns": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Pet Specialist Hat": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Xmas Top Hat": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Reindeer Mask": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Snowman Mask": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Cool Glasses": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Fish Hook Hat": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Trick and Treat": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Training Whistle": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Oil Gallon": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Jack O'Sweets": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Cookie Shield": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Holiday Feast Background": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Alchemist Apron": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Victoria's Apron": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Walrus Onesie": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Raccoon Onesie": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Frank Onesie": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Cozy Reindeer Onesie": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Research Uniform": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Sweet Devil Dress": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Slime Wings": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Underworld Stimpack": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Sweet Devil Wings": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  Moustache: function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Slime Aura": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Wisp Aura": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Diamond Snow Aura": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
+  "Paw Aura": function (state?: GameState): boolean {
+    throw new Error("Function not implemented.");
+  },
 };
